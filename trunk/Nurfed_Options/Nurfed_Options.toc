@@ -1,0 +1,17 @@
+## Interface: 20003
+## Title: Nurfed Options Menu
+## Author: Tivoli, http://www.nurfed.com
+## SavedVariablesPerCharacter: NURFED_ITEMS
+## RequiredDeps: Nurfed
+## Version: 05.12.2007
+## LoadOnDemand: 1
+Localization.lua
+
+Menus\AddOns.lua
+Menus\Bindings.lua
+Menus\Frames.lua
+Menus\ActionBars.lua
+Menus\General.lua
+Menus\Templates.lua
+
+Nurfed_Options.lua
