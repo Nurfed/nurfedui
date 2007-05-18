@@ -1,0 +1,12 @@
+## Interface: 20003
+## Title: Nurfed UI Suite
+## Author: Tivoli
+## SavedVariablesPerCharacter: NURFED_SAVED, NURFED_FRAMES, NURFED_BINDINGS, NURFED_ACTIONBARS
+## X-Website: http://www.nurfedui.net
+
+Libs\Core.lua
+Libs\Units.lua
+Libs\ActionBars.lua
+
+Nurfed.lua
+Layout.lua
