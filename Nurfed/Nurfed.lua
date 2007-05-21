@@ -211,7 +211,10 @@ local onevent = function()
 		end
 		this:SetPoint(unpack(Nurfed:getopt("lock")))
 
-		for k, v in pairs(NURFED_FRAMES.templates) do Nurfed:createtemp(k, v) end
+		for k, v in pairs(NURFED_FRAMES.templates) do
+			Nurfed:createtemp(k, v)
+		end
+
 		for k, v in pairs(NURFED_FRAMES.frames) do
 			local f = Nurfed:create(k, v)
 			if not v.Point then f:SetPoint("CENTER", UIParent, "CENTER") end
