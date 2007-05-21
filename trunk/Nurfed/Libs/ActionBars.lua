@@ -63,12 +63,14 @@ end
 local updatecooldown = function(btn)
 	local start, duration, enable = 0, 0, 0
 	local cooldown = _G[btn:GetName().."Cooldown"]
-	if btn.type == "spell" then
-		start, duration, enable = GetSpellCooldown(btn.spell)
-	elseif btn.spell == "item" then
-		start, duration, enable = GetItemCooldown(btn.spell)
+	if btn.type and btn.spell then
+		if btn.type == "spell" then
+			start, duration, enable = GetSpellCooldown(btn.spell)
+		elseif btn.type == "item" then
+			start, duration, enable = GetItemCooldown(btn.spell)
+		end
+		--if not start or not duration then return end
 	end
-	if not start or not duration then return end
 	CooldownFrame_SetTimer(cooldown, start, duration, enable)
 end
 
@@ -126,8 +128,11 @@ local seticon = function(btn)
 	if value then
 		value = convert(btn, value)
 		local texture, spell
+		local text = _G[btn:GetName().."Name"]
 		local new = SecureButton_GetModifiedAttribute(btn, "type", value)
 		btn.type = new
+		btn.attack = nil
+		text:SetText(nil)
 		if new then
 			spell = SecureButton_GetModifiedAttribute(btn, new, value)
 			if spell then
@@ -143,6 +148,9 @@ local seticon = function(btn)
 					end
 				elseif new == "macro" then
 					spell, texture = GetMacroInfo(spell)
+					if Nurfed:getopt("macrotext") then
+						text:SetText(spell)
+					end
 				end
 			end
 			btn.spell = spell
@@ -159,6 +167,8 @@ local seticon = function(btn)
 			end
 			if new and new == "item" then
 				updateitem(btn)
+			else
+				_G[btn:GetName().."Border"]:Hide()
 			end
 			updatecooldown(btn)
 		end
@@ -185,7 +195,7 @@ local btnenter = function(self)
 				GameTooltipTextRight1:Show()
 			end
 		elseif self.type == "item" then
-			GameTooltip:SetHyperlink(select(2, GetItemInfo(self.item)))
+			GameTooltip:SetHyperlink(select(2, GetItemInfo(self.spell)))
 		end
 
 		GameTooltip:Show()
@@ -240,6 +250,8 @@ end
 
 local btnreceivedrag = function(self)
 	if GetCursorInfo() and not InCombatLockdown() then
+		local oldtype = self.type
+		local oldspell = self.spell
 		local cursor, arg1, arg2 = GetCursorInfo()
 		local value = self:GetAttribute("state-parent")
 		if value == "0" then
@@ -288,6 +300,16 @@ local btnreceivedrag = function(self)
 			self:SetAttribute("*macro"..value, arg1)
 		end
 		ClearCursor()
+		
+		if oldtype and oldspell then
+			if oldtype == "spell" then
+				local id = Nurfed:getspell(oldspell)
+				PickupSpell(id, BOOKTYPE_SPELL)
+			elseif oldtype == "item" then
+			elseif oldtype == "macro" then
+				PickupMacro(oldspell)
+			end
+		end
 	end
 end
 
@@ -339,7 +361,7 @@ local getbtn = function()
 		cd.text:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
 		local flash = _G[btn:GetName().."Flash"]
 		flash:ClearAllPoints()
-		flash:SetAllPoints(cooldown)
+		flash:SetAllPoints(cd)
 		btn.flashtime = 0
 	end
 	table.insert(live, btn)
