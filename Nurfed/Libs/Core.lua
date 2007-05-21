@@ -406,6 +406,10 @@ end
 
 frame:SetScript("OnEvent", onevent)
 
+function util:sendevent(event, ...)
+	onevent(frame, event, ...)
+end
+
 ----------------------------------------------------------------
 -- OnUpdate database
 local timers, timerfuncs
