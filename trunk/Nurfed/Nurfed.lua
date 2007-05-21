@@ -123,65 +123,7 @@ local onupdate = function(self)
 		self:SetPoint("TOPLEFT", "Minimap", "TOPLEFT", 52-xpos, ypos-52)
 	end
 end
---[[
-local createbars = function()
-	local bar = Nurfed:create("Nurfed_bags", "actionbar")
-	local drag = _G["Nurfed_bagsdrag"]
-	_G["Nurfed_bagsdragtext"]:SetText("Nurfed_bags")
-	if not bar:IsUserPlaced() then
-		bar:SetPoint("CENTER")
-	end
-	drag:ClearAllPoints()
-	if bar:GetTop() >= GetScreenHeight() / 2 then
-		drag:SetPoint("TOPLEFT", bar, "BOTTOMLEFT")
-	else	
-		drag:SetPoint("BOTTOMLEFT", bar, "TOPLEFT")
-	end
 
-	bar = Nurfed:create("Nurfed_micro", "actionbar")
-	drag = _G["Nurfed_microdrag"]
-	_G["Nurfed_microdragtext"]:SetText("Nurfed_micro")
-	bar:SetHeight(37)
-	if not bar:IsUserPlaced() then
-		bar:SetPoint("CENTER")
-	end
-	drag:ClearAllPoints()
-	if bar:GetTop() >= GetScreenHeight() / 2 then
-		drag:SetPoint("TOPLEFT", bar, "BOTTOMLEFT")
-	else	
-		drag:SetPoint("BOTTOMLEFT", bar, "TOPLEFT")
-	end
-
-	bar = Nurfed:create("Nurfed_stance", "actionbar")
-	drag = _G["Nurfed_stancedrag"]
-	_G["Nurfed_stancedragtext"]:SetText("Nurfed_stance")
-	bar:SetHeight(30)
-	if not bar:IsUserPlaced() then
-		bar:SetPoint("CENTER")
-	end
-	drag:ClearAllPoints()
-	if bar:GetTop() >= GetScreenHeight() / 2 then
-		drag:SetPoint("TOPLEFT", bar, "BOTTOMLEFT")
-	else	
-		drag:SetPoint("BOTTOMLEFT", bar, "TOPLEFT")
-	end
-
-	bar = Nurfed:create("Nurfed_petbar", "actionbar")
-	drag = _G["Nurfed_petbardrag"]
-	_G["Nurfed_petbardragtext"]:SetText("Nurfed_petbar")
-	bar:SetAttribute("unit", "pet")
-	bar:SetHeight(30)
-	if not bar:IsUserPlaced() then
-		bar:SetPoint("CENTER")
-	end
-	drag:ClearAllPoints()
-	if bar:GetTop() >= GetScreenHeight() / 2 then
-		drag:SetPoint("TOPLEFT", bar, "BOTTOMLEFT")
-	else	
-		drag:SetPoint("BOTTOMLEFT", bar, "TOPLEFT")
-	end
-end
-]]
 local updatebind = function(key, selectedBinding, oldKey)
 	NURFED_BINDINGS[key] = nil
 end
@@ -276,7 +218,6 @@ local onevent = function()
 			Nurfed:unitimbue(f)
 		end
 
-		--createbars()
 		for k in pairs(NURFED_ACTIONBARS) do
 			Nurfed:createbar(k)
 		end

@@ -312,8 +312,7 @@ function util:createobj(name, layout, parent)
 			if type(v) == "function" then
 				obj:SetScript(k, v)
 			else
-				local func = assert(loadstring(v))
-				obj:SetScript(k, func())
+				obj:SetScript(k, assert(loadstring(v)))
 			end
 			if k == "OnLoad" then
 				onload = obj:GetScript("OnLoad")
