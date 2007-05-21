@@ -255,7 +255,7 @@ local onevent = function()
 
 		for k, v in pairs(UIOptionsFrameSliders) do
 			if v.text == "MAX_FOLLOW_DIST" then
-				v.maxValue = 3.5
+				v.maxValue = 4
 			end
 		end
 	end

@@ -2058,18 +2058,16 @@ local onevent = function(event, ...)
 	for _, frame in ipairs(units[event]) do
 		local unit = SecureButton_GetUnit(frame)
 		if UnitExists(unit) then
+			this = frame
 			if event == "UNIT_PET" then
 				if (arg1 == "player" and unit == "pet") or (arg1 == string.gsub(unit, "pet", "")) then
-					this = frame
 					events[event](frame, ...)
 				end
 			elseif string.find(event, "^UNIT_") then
 				if arg1 == unit then
-					this = frame
 					events[event](frame, ...)
 				end
 			else
-				this = frame
 				events[event](frame, ...)
 			end
 		end
