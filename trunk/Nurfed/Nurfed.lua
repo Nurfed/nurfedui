@@ -233,7 +233,7 @@ local onevent = function()
 	end
 end
 
-local tbl = {
+Nurfed:create("Nurfed_LockButton", {
 	type = "CheckButton",
 	size = { 33, 33 },
 	FrameStrata = "LOW",
@@ -287,13 +287,10 @@ local tbl = {
 		NURFED_SAVED["lock"] = { self:GetPoint() }
 		NURFED_SAVED["lock"][2] = "Minimap"
 	end,
-}
+}, Minimap)
 
---[[ Init ]]--
-local lock = Nurfed:create("Nurfed_LockButton", tbl, Minimap)
-lock:RegisterForClicks("AnyUp")
-lock:RegisterForDrag("LeftButton")
-tbl = nil
+Nurfed_LockButton:RegisterForClicks("AnyUp")
+Nurfed_LockButton:RegisterForDrag("LeftButton")
 
 -- Modify chat frames
 ChatTypeInfo["CHANNEL"].sticky = 1
