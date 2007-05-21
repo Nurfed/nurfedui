@@ -75,7 +75,7 @@ end
 local cooldowntext = function(btn)
 	local cd = _G[btn:GetName().."Cooldown"]
 	if cd.text and cd.cool then
-		local cdscale = cooldown:GetScale()
+		local cdscale = cd:GetScale()
 		local r, g, b = 1, 0, 0
 		local height = floor(22 / cdscale)
 		local fheight = select(2, cd.text:GetFont())
@@ -99,7 +99,7 @@ local cooldowntext = function(btn)
 			cd.text:SetText(remain)
 			cd.text:SetTextColor(r, g, b)
 			if height ~= fheight then
-				cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", height, "OUTLINE")
+				cd.text:SetFont("Fonts\\FRIZQT__.TTF", height, "OUTLINE")
 			end
 		else
 			cd.text:SetText(nil)
@@ -290,7 +290,7 @@ local btnreceivedrag = function(self)
 	end
 end
 
-local saveattrib(self, name, value)
+local saveattrib = function(self, name, value)
 	if string.find(name, "^%*") or string.find(name, "^shift") or string.find(name, "^ctrl") or string.find(name, "^alt") then
 		NURFED_ACTIONBARS[self:GetParent():GetName()].buttons[self:GetID()][name] = value
 		name = "state-parent"
@@ -389,7 +389,7 @@ local btnevents = {
 	["UPDATE_BINDINGS"] = function(btn)
 		local id = btn:GetID()
 		if id > 0 then
-			local key = GetBindingKey("CLICK "..this:GetName()..":LeftButton")
+			local key = GetBindingKey("CLICK "..btn:GetName()..":LeftButton")
 			_G[btn:GetName().."HotKey"]:SetText(key)
 		end
 	end,
@@ -451,7 +451,7 @@ local btnupdate = function()
 			seticon(btn)
 			btn.macro = nil
 		end
-		_G[self:GetName().."Icon"]:SetVertexColor(r, g, b)
+		_G[btn:GetName().."Icon"]:SetVertexColor(r, g, b)
 		cooldowntext(btn)
 	end
 end
@@ -525,6 +525,7 @@ function Nurfed:updatebar(hdr)
 	for _, child in ipairs({ hdr:GetChildren() }) do
 		if string.find(child:GetName(), "^Nurfed_Button") then
 			table.insert(btns, child:GetID(), child)
+		end
 	end
 	
 	local vals = NURFED_ACTIONBARS[hdr:GetName()]
@@ -634,14 +635,22 @@ function Nurfed:createbar(frame)
 	if hdr and type(hdr) == "table" then
 		hdr:SetScale(vals.scale)
 		hdr:SetAlpha(vals.alpha)
-		hdr:SetPoint(unpack(vals.Point or "CENTER"))
+		hdr:SetPoint(unpack(vals.Point or {"CENTER"}))
 		hdr:SetAttribute("unit", vals.unit)
 		hdr:SetAttribute("shown", vals.shown)
 		if vals.shown == "unit" then
 			RegisterUnitWatch(hdr)
-		elseif vals.shown == "always" or vals.shown == "nocombat" then
-			hdr:Show()
 		end
+
+		local drag = _G[frame.."drag"]
+		drag:ClearAllPoints()
+		if hdr:GetTop() >= GetScreenHeight() / 2 then
+			drag:SetPoint("TOPLEFT", hdr, "BOTTOMLEFT")
+		else	
+			drag:SetPoint("BOTTOMLEFT", hdr, "TOPLEFT")
+		end
+		
+		_G[frame.."dragtext"]:SetText(frame)
 
 		Nurfed:updatebar(hdr)
 	end
@@ -658,7 +667,8 @@ Nurfed:createtemp("actionbar", {
 			drag = {
 				type = "Frame",
 				Mouse = true,
-				size = { 18, 42 },
+				size = { 110, 13 },
+				Hide = true,
 				Backdrop = {
 					bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
 					edgeFile = nil,
@@ -668,20 +678,47 @@ Nurfed:createtemp("actionbar", {
 					insets = { left = 0, right = 0, top = 0, bottom = 0 }
 				},
 				BackdropColor = { 0, 0, 0 },
-				Point = { "BOTTOMLEFT", "$parent", "TOPLEFT" },
-				OnLoad = function(self) self:RegisterForDrag("LeftButton") end,
+				OnLoad = function(self)
+					self:RegisterForDrag("LeftButton")
+					if not NRF_LOCKED then
+						self:Show()
+					end
+				end,
 				OnDragStart = function(self) self:GetParent():StartMoving() end,
 				OnDragStop = function(self)
 						local parent = self:GetParent()
 						parent:StopMovingOrSizing()
 						NURFED_ACTIONBARS[parent:GetName()].Point = { parent:GetPoint() }
+
+						self:ClearAllPoints()
+						if self:GetTop() >= GetScreenHeight() / 2 then
+							self:SetPoint("TOPLEFT", parent, "BOTTOMLEFT")
+						else	
+							self:SetPoint("BOTTOMLEFT", parent, "TOPLEFT")
+						end
 					end,
+				children = {
+					text = {
+						type = "FontString",
+						Point = "all",
+						FontObject = "GameFontNormalSmall",
+						JustifyH = "CENTER",
+						TextColor = { 1, 1, 1 },
+					}
+				}
 			}
 		}
 	})
 	
 local barevents = {
 	["PLAYER_ENTERING_WORLD"] = function(bar)
+		if not bar.init then
+			local shown = bar:GetAttribute("shown")
+			if not shown or shown == "always" or (shown == "nocombat" and not InCombatLockdown()) then
+				bar:Show()
+			end
+			bar.init = true
+		end
 		--[[
 		local state = bar:GetAttribute("statemap-"..bar.init.."-"..bar:GetAttribute("state-"..bar.init))
 		bar:SetAttribute("state", state)
@@ -696,6 +733,13 @@ local barevents = {
 	["PLAYER_REGEN_DISABLED"] = function(bar)
 		if bar:GetAttribute("shown") == "combat" then
 			bar:Show()
+		end
+	end,
+	["NURFED_LOCK"] = function(bar)
+		if NRF_LOCKED then
+			_G[bar:GetName().."drag"]:Hide()
+		else
+			_G[bar:GetName().."drag"]:Show()
 		end
 	end,
 }

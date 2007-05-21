@@ -71,6 +71,7 @@ local onclick = function(button)
 		end
 		PlaySound("igMainMenuOption")
 		onenter()
+		Nurfed:sendevent("NURFED_LOCK")
 	else
 		this:SetChecked(NRF_LOCKED)
 		if button == "RightButton" then
