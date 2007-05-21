@@ -79,8 +79,9 @@ local cooldowntext = function(btn)
 		local r, g, b = 1, 0, 0
 		local height = floor(22 / cdscale)
 		local fheight = select(2, cd.text:GetFont())
-		local remain = math.round((cd.start + cd.duration) - GetTime())
+		local remain = (cd.start + cd.duration) - GetTime()
 		if remain >= 0 then
+			remain = math.round(remain)
 			if remain >= 3600 then
 				remain = math.floor(remain / 3600).."h"
 				r, g, b = 0.6, 0.6, 0.6
@@ -162,7 +163,7 @@ local seticon = function(btn)
 			updatecooldown(btn)
 		end
 			
-		if not texture then
+		if not texture and not btn.grid then
 			btn:SetAlpha(0)
 		end
 	end
@@ -173,12 +174,13 @@ end
 local btnenter = function(self)
 	local tooltip = Nurfed:getopt("tooltips")
 	if tooltip and self.type then
+		GameTooltip_SetDefaultAnchor(GameTooltip, self)
 		if self.type == "spell" then
 			local id = Nurfed:getspell(self.spell)
 			local rank = select(2, GetSpellName(id, BOOKTYPE_SPELL))
 			GameTooltip:SetSpell(id, BOOKTYPE_SPELL)
 			if rank then
-				GameTooltipTextRight1:SetText(spellRank)
+				GameTooltipTextRight1:SetText(rank)
 				GameTooltipTextRight1:SetTextColor(0.5, 0.5, 0.5)
 				GameTooltipTextRight1:Show()
 			end
@@ -186,7 +188,6 @@ local btnenter = function(self)
 			GameTooltip:SetHyperlink(select(2, GetItemInfo(self.item)))
 		end
 
-		GameTooltip_SetDefaultAnchor(GameTooltip, self)
 		GameTooltip:Show()
 	end
 end
@@ -403,10 +404,14 @@ local btnevents = {
 			btn.macro = true
 		end
 	end,
-	["ACTIONBAR_SHOWGRID"] = function(btn) btn:SetAlpha(1) end,
+	["ACTIONBAR_SHOWGRID"] = function(btn)
+		btn.grid = true
+		btn:SetAlpha(1)
+	end,
 	["ACTIONBAR_HIDEGRID"] = function(btn)
+		btn.grid = nil
 		if not _G[btn:GetName().."Icon"]:GetTexture() then
-			btn:SetAlpha(1)
+			btn:SetAlpha(0)
 		end
 	end,
 	["PLAYER_ENTER_COMBAT"] = function(btn) btn.flash = true end,
@@ -638,6 +643,8 @@ function Nurfed:createbar(frame)
 		hdr:SetPoint(unpack(vals.Point or {"CENTER"}))
 		hdr:SetAttribute("unit", vals.unit)
 		hdr:SetAttribute("shown", vals.shown)
+		hdr:SetAttribute("useunit", vals.useunit)
+
 		if vals.shown == "unit" then
 			RegisterUnitWatch(hdr)
 		end
@@ -688,13 +695,21 @@ Nurfed:createtemp("actionbar", {
 				OnDragStop = function(self)
 						local parent = self:GetParent()
 						parent:StopMovingOrSizing()
-						NURFED_ACTIONBARS[parent:GetName()].Point = { parent:GetPoint() }
+						if NURFED_ACTIONBARS[parent:GetName()] then
+							NURFED_ACTIONBARS[parent:GetName()].Point = { parent:GetPoint() }
+						else
+							parent:SetUserPlaced(true)
+						end
 
 						self:ClearAllPoints()
-						if self:GetTop() >= GetScreenHeight() / 2 then
-							self:SetPoint("TOPLEFT", parent, "BOTTOMLEFT")
-						else	
-							self:SetPoint("BOTTOMLEFT", parent, "TOPLEFT")
+						local top = self:GetTop()
+						local screen = GetScreenHeight() / 2
+						if top and screen then
+							if top >= screen then
+								self:SetPoint("TOPLEFT", parent, "BOTTOMLEFT")
+							else	
+								self:SetPoint("BOTTOMLEFT", parent, "TOPLEFT")
+							end
 						end
 					end,
 				children = {
@@ -756,6 +771,13 @@ end
 
 ----------------------------------------------------------------
 -- Built in bars
+local blizzbars = {
+	["bags"] = 36,
+	["micro"] = 37,
+	["stance"] = 30,
+	["petbar"] = 30,
+}
+
 function nrf_updatemainbar(bar)
 	local show = Nurfed:getopt(bar.."show")
 	local scale = Nurfed:getopt(bar.."scale")
@@ -813,6 +835,45 @@ function nrf_updatemainbar(bar)
 		bar:Hide()
 	end
 end
+
+local createblizz = function()
+	local bar, drag
+	for k, v in pairs(blizzbars) do
+		bar = Nurfed:create("Nurfed_"..k, "actionbar")
+		bar:SetHeight(v)
+		if not bar:IsUserPlaced() then
+			bar:SetPoint("CENTER")
+		end
+		if k == "petbar" then
+			bar:SetAttribute("unit", "pet")
+		end
+		
+		drag = _G["Nurfed_"..k.."drag"]
+		_G["Nurfed_"..k.."dragtext"]:SetText("Nurfed_"..k)
+		drag:ClearAllPoints()
+		if bar:GetTop() >= GetScreenHeight() / 2 then
+			drag:SetPoint("TOPLEFT", bar, "BOTTOMLEFT")
+		else	
+			drag:SetPoint("BOTTOMLEFT", bar, "TOPLEFT")
+		end
+	end
+end
+
+Nurfed:regevent("VARIABLES_LOADED", createblizz)
+
+Nurfed:regevent("NURFED_LOCK", function()
+		if NRF_LOCKED then
+			Nurfed_bagsdrag:Hide()
+			Nurfed_microdrag:Hide()
+			Nurfed_stancedrag:Hide()
+			Nurfed_petbardrag:Hide()
+		else
+			Nurfed_bagsdrag:Show()
+			Nurfed_microdrag:Show()
+			Nurfed_stancedrag:Show()
+			Nurfed_petbardrag:Show()
+		end
+	end)
 
 ----------------------------------------------------------------
 -- Toggle main action bar
@@ -887,10 +948,7 @@ function nrf_mainmenu()
 
 		MainMenuBarBackpackButton:SetParent(Nurfed_bags)
 		MainMenuBarBackpackButton:ClearAllPoints()
-		MainMenuBarBackpackButton:SetPoint("LEFT", 0, 0)
-		MainMenuBarBackpackButton:RegisterForDrag("LeftButton")
-		MainMenuBarBackpackButton:SetScript("OnDragStart", ondragstart)
-		MainMenuBarBackpackButton:SetScript("OnDragStop", ondragstop)
+		MainMenuBarBackpackButton:SetPoint("BOTTOMLEFT")
 
 		for i = 0, 3 do
 			local bag = getglobal("CharacterBag"..i.."Slot")
@@ -900,19 +958,13 @@ function nrf_mainmenu()
 
 		CharacterMicroButton:SetParent(Nurfed_micro)
 		CharacterMicroButton:ClearAllPoints()
-		CharacterMicroButton:SetPoint("LEFT", 0, 0)
-		CharacterMicroButton:SetScript("OnDragStart", ondragstart)
-		CharacterMicroButton:SetScript("OnDragStop", ondragstop)
-		CharacterMicroButton:RegisterForDrag("LeftButton")
+		CharacterMicroButton:SetPoint("BOTTOMLEFT")
 
 		local children = { MainMenuBarArtFrame:GetChildren() }
 		for _, child in ipairs(children) do
 			local name = child:GetName()
 			if (string.find(name, "MicroButton", 1, true)) then
 				child:SetParent(Nurfed_micro)
-				child:SetScript("OnDragStart", ondragstart)
-				child:SetScript("OnDragStop", ondragstop)
-				child:RegisterForDrag("LeftButton")
 			end
 		end
 
@@ -921,32 +973,28 @@ function nrf_mainmenu()
 			local cooldown = getglobal("ShapeshiftButton"..i.."Cooldown")
 			if not cooldown.text then
 				cooldown.text = cooldown:CreateFontString(nil, "OVERLAY")
-				cooldown.text:SetPoint("CENTER", 0, 0)
+				cooldown.text:SetPoint("CENTER")
 				cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
 			end
 			btn:SetParent(Nurfed_stance)
-			btn:SetScript("OnDragStart", ondragstart)
-			btn:SetScript("OnDragStop", ondragstop)
 			btn:SetScript("OnUpdate", cooldowntext)
-			btn:RegisterForDrag("LeftButton")
 			if i == 1 then
 				btn:ClearAllPoints()
-				btn:SetPoint("LEFT", 0, 0)
+				btn:SetPoint("BOTTOMLEFT")
 			end
 
 			btn = getglobal("PetActionButton"..i)
 			cooldown = getglobal("PetActionButton"..i.."Cooldown")
 			if not cooldown.text then
 				cooldown.text = cooldown:CreateFontString(nil, "OVERLAY")
-				cooldown.text:SetPoint("CENTER", 0, 0)
+				cooldown.text:SetPoint("CENTER")
 				cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
 			end
 			btn:SetParent(Nurfed_petbar)
-			btn:SetScript("OnDragStop", ondragstop)
 			btn:SetScript("OnUpdate", cooldowntext)
 			if i == 1 then
 				btn:ClearAllPoints()
-				btn:SetPoint("LEFT", 0, 0)
+				btn:SetPoint("BOTTOMLEFT")
 			end
 		end
 		nrf_updatemainbar("bags")

@@ -535,6 +535,7 @@ function util:getspell(spell, rank)
 	if rank then
 		spell = spell.."("..RANK.." "..rank..")"
 	end
+	spell = string.gsub(spell, "()", "")
 	return spells[spell]
 end
 

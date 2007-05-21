@@ -123,38 +123,65 @@ local onupdate = function(self)
 		self:SetPoint("TOPLEFT", "Minimap", "TOPLEFT", 52-xpos, ypos-52)
 	end
 end
-
+--[[
 local createbars = function()
-	CreateFrame("Frame", "Nurfed_bags", UIParent)
-	Nurfed_bags:SetClampedToScreen(true)
-	Nurfed_bags:SetMovable(true)
-	Nurfed_bags:SetWidth(37)
-	Nurfed_bags:SetHeight(37)
-	if not Nurfed_bags:IsUserPlaced() then Nurfed_bags:SetPoint("CENTER", 0, 0) end
+	local bar = Nurfed:create("Nurfed_bags", "actionbar")
+	local drag = _G["Nurfed_bagsdrag"]
+	_G["Nurfed_bagsdragtext"]:SetText("Nurfed_bags")
+	if not bar:IsUserPlaced() then
+		bar:SetPoint("CENTER")
+	end
+	drag:ClearAllPoints()
+	if bar:GetTop() >= GetScreenHeight() / 2 then
+		drag:SetPoint("TOPLEFT", bar, "BOTTOMLEFT")
+	else	
+		drag:SetPoint("BOTTOMLEFT", bar, "TOPLEFT")
+	end
 
-	CreateFrame("Frame", "Nurfed_micro", UIParent)
-	Nurfed_micro:SetClampedToScreen(true)
-	Nurfed_micro:SetMovable(true)
-	Nurfed_micro:SetWidth(29)
-	Nurfed_micro:SetHeight(37)
-	if not Nurfed_micro:IsUserPlaced() then Nurfed_micro:SetPoint("CENTER", 0, 0) end
+	bar = Nurfed:create("Nurfed_micro", "actionbar")
+	drag = _G["Nurfed_microdrag"]
+	_G["Nurfed_microdragtext"]:SetText("Nurfed_micro")
+	bar:SetHeight(37)
+	if not bar:IsUserPlaced() then
+		bar:SetPoint("CENTER")
+	end
+	drag:ClearAllPoints()
+	if bar:GetTop() >= GetScreenHeight() / 2 then
+		drag:SetPoint("TOPLEFT", bar, "BOTTOMLEFT")
+	else	
+		drag:SetPoint("BOTTOMLEFT", bar, "TOPLEFT")
+	end
 
-	CreateFrame("Frame", "Nurfed_stance", UIParent)
-	Nurfed_stance:SetClampedToScreen(true)
-	Nurfed_stance:SetMovable(true)
-	Nurfed_stance:SetWidth(30)
-	Nurfed_stance:SetHeight(30)
-	if not Nurfed_stance:IsUserPlaced() then Nurfed_stance:SetPoint("CENTER", 0, 0) end
+	bar = Nurfed:create("Nurfed_stance", "actionbar")
+	drag = _G["Nurfed_stancedrag"]
+	_G["Nurfed_stancedragtext"]:SetText("Nurfed_stance")
+	bar:SetHeight(30)
+	if not bar:IsUserPlaced() then
+		bar:SetPoint("CENTER")
+	end
+	drag:ClearAllPoints()
+	if bar:GetTop() >= GetScreenHeight() / 2 then
+		drag:SetPoint("TOPLEFT", bar, "BOTTOMLEFT")
+	else	
+		drag:SetPoint("BOTTOMLEFT", bar, "TOPLEFT")
+	end
 
-	CreateFrame("Frame", "Nurfed_petbar", UIParent, "SecureStateDriverTemplate")
-	Nurfed_petbar:SetAttribute("unit", "pet")
-	Nurfed_petbar:SetClampedToScreen(true)
-	Nurfed_petbar:SetMovable(true)
-	Nurfed_petbar:SetWidth(30)
-	Nurfed_petbar:SetHeight(30)
-	if not Nurfed_petbar:IsUserPlaced() then Nurfed_petbar:SetPoint("CENTER", 0, 0) end
+	bar = Nurfed:create("Nurfed_petbar", "actionbar")
+	drag = _G["Nurfed_petbardrag"]
+	_G["Nurfed_petbardragtext"]:SetText("Nurfed_petbar")
+	bar:SetAttribute("unit", "pet")
+	bar:SetHeight(30)
+	if not bar:IsUserPlaced() then
+		bar:SetPoint("CENTER")
+	end
+	drag:ClearAllPoints()
+	if bar:GetTop() >= GetScreenHeight() / 2 then
+		drag:SetPoint("TOPLEFT", bar, "BOTTOMLEFT")
+	else	
+		drag:SetPoint("BOTTOMLEFT", bar, "TOPLEFT")
+	end
 end
-
+]]
 local updatebind = function(key, selectedBinding, oldKey)
 	NURFED_BINDINGS[key] = nil
 end
@@ -249,7 +276,7 @@ local onevent = function()
 			Nurfed:unitimbue(f)
 		end
 
-		createbars()
+		--createbars()
 		for k in pairs(NURFED_ACTIONBARS) do
 			Nurfed:createbar(k)
 		end
