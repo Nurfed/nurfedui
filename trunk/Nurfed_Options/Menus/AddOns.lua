@@ -10,7 +10,49 @@ NURFED_MENUS["AddOns"] = {
 			OnShow = function() Nurfed_ScrollAddOns() end,
 		},
 	},
+	OnLoad = function() Nurfed_GenerateMenu("AddOns", "nrf_addons_row", 19) end,
 }
+
+Nurfed:createtemp("nrf_addons_row", {
+	type = "Frame",
+	size = { 400, 14 },
+	children = {
+		check = {
+			type = "CheckButton",
+			size = { 16, 16 },
+			uitemp = "UICheckButtonTemplate",
+			Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 2, 0 },
+			OnClick = function() Nurfed_ToggleAddOn() end,
+		},
+		name = {
+			type = "FontString",
+			layer = "ARTWORK",
+			size = { 190, 14 },
+			Anchor = { "LEFT", "$parentcheck", "RIGHT", 5, 0 },
+			FontObject = "GameFontNormal",
+			JustifyH = "LEFT",
+			TextColor = { 1, 1, 1 },
+		},
+		loaded = {
+			type = "FontString",
+			layer = "ARTWORK",
+			size = { 105, 14 },
+			Anchor = { "LEFT", "$parentname", "RIGHT", 5, 0 },
+			FontObject = "GameFontNormal",
+			JustifyH = "LEFT",
+			TextColor = { 1, 1, 1 },
+		},
+		reload = {
+			type = "FontString",
+			layer = "ARTWORK",
+			size = { 100, 14 },
+			Anchor = { "LEFT", "$parentloaded", "RIGHT", 5, 0 },
+			FontObject = "GameFontNormal",
+			JustifyH = "LEFT",
+			TextColor = { 1, 0, 0 },
+		},
+	},
+})
 
 function Nurfed_ToggleAddOn()
 	if (this:GetChecked()) then

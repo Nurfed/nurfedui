@@ -398,7 +398,7 @@ StaticPopupDialogs["NRF_BINDKEY"] = {
 	hideOnEscape = 1,
 }
 
-local rowtemp = {
+Nurfed:createtemp("nrf_bindings_row", {
 	type = "Button",
 	size = { 400, 14 },
 	children = {
@@ -438,8 +438,6 @@ local rowtemp = {
 	OnClick = function() if GetCursorInfo() then addcursoritem() else Nurfed_Binding_OnClick(arg1) end end,
 	OnKeyDown = function() Nurfed_Binding_OnKeyDown(arg1) end,
 	OnReceiveDrag = function() if GetCursorInfo() then addcursoritem() end end,
-}
-
-Nurfed:createtemp("nrf_bindings_row", rowtemp)
+})
 Nurfed:regevent("LEARNED_SPELL_IN_TAB", updatespells)
 Nurfed:regevent("UPDATE_MACROS", updatemacros)
