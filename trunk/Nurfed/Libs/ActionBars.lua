@@ -671,7 +671,7 @@ function Nurfed:createbar(frame)
 		else	
 			drag:SetPoint("BOTTOMLEFT", hdr, "TOPLEFT")
 		end
-		
+
 		_G[frame.."dragtext"]:SetText(frame)
 
 		Nurfed:updatebar(hdr)
@@ -702,6 +702,9 @@ Nurfed:createtemp("actionbar", {
 				BackdropColor = { 0, 0, 0 },
 				OnLoad = function(self)
 					self:RegisterForDrag("LeftButton")
+					if not NRF_LOCKED and IsLoggedIn() then
+						self:Show()
+					end
 				end,
 				OnDragStart = function(self) self:GetParent():StartMoving() end,
 				OnDragStop = function(self)
@@ -748,6 +751,7 @@ local barevents = {
 				bar.state = bar:GetAttribute("statemap-"..bar.state.."-"..hdr:GetAttribute("state-"..bar.state))
 			end
 			bar:SetAttribute("state", bar.state or "0")
+			_G[bar:GetName().."drag"]:Hide()
 			bar.init = true
 		end
 	end,
@@ -847,7 +851,11 @@ function nrf_updatemainbar(bar)
 	end
 end
 
-local createblizz = function()
+local createbars = function()
+	for k in pairs(NURFED_ACTIONBARS) do
+		Nurfed:createbar(k)
+	end
+
 	local bar, drag
 	for k, v in pairs(blizzbars) do
 		bar = Nurfed:create("Nurfed_"..k, "actionbar")
@@ -870,7 +878,7 @@ local createblizz = function()
 	end
 end
 
-Nurfed:regevent("VARIABLES_LOADED", createblizz)
+Nurfed:regevent("VARIABLES_LOADED", createbars)
 
 Nurfed:regevent("NURFED_LOCK", function()
 		if NRF_LOCKED then
