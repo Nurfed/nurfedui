@@ -630,24 +630,6 @@ function Nurfed:updatebar(hdr)
 		vals.buttons[count] = nil
 		count = count + 1
 	end
-
---[[
-		if not hdr.init then
-			if string.find(k, "^stance") then
-				hdr.init = "stance"
-			elseif string.find(k, "^actionbar") then
-				hdr.init = "actionbar"
-			elseif string.find(k, "^stealth") then
-				hdr.init = "stealth"
-			end
-		end
-	end
-
-	if hdr.init then
-		state = hdr:GetAttribute("statemap-"..hdr.init.."-"..hdr:GetAttribute("state-"..hdr.init))
-	end
-	hdr:SetAttribute("state", state or "0")
-]]
 end
 
 function Nurfed:deletebar(frame)
@@ -770,11 +752,6 @@ local barevents = {
 			bar:SetAttribute("state", bar.state or "0")
 			bar.init = true
 		end
-		--[[
-		local state = bar:GetAttribute("statemap-"..bar.init.."-"..bar:GetAttribute("state-"..bar.init))
-		bar:SetAttribute("state", state)
-		bar.init = nil
-		]]
 	end,
 	["PLAYER_REGEN_ENABLED"] = function(bar)
 		if bar:GetAttribute("shown") == "nocombat" then
