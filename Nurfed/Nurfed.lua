@@ -221,10 +221,6 @@ local onevent = function()
 			Nurfed:unitimbue(f)
 		end
 
-		for k in pairs(NURFED_ACTIONBARS) do
-			Nurfed:createbar(k)
-		end
-
 		for k, v in pairs(UIOptionsFrameSliders) do
 			if v.text == "MAX_FOLLOW_DIST" then
 				v.maxValue = 4
