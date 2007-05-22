@@ -561,7 +561,7 @@ function Nurfed:updatebar(hdr)
 		for k, v in pairs(vals.statemaps) do
 			hdr:SetAttribute("statemap-"..k, v)
 			statelist[v] = true
-			local state, value = string.split(k)
+			local state, value = string.split("-", k)
 			if not driver[state] then
 				driver[state] = {}
 			end
@@ -571,6 +571,9 @@ function Nurfed:updatebar(hdr)
 
 	for k, v in pairs(driver) do
 		RegisterStateDriver(hdr, k, table.concat(v, "; "))
+		if not hdr.state then
+			hdr.state = hdr:GetAttribute("statemap-"..k.."-"..hdr:GetAttribute("state-"..k))
+		end
 	end
 
 	for k in pairs(statelist) do
@@ -764,6 +767,7 @@ local barevents = {
 			if not shown or shown == "always" or (shown == "nocombat" and not InCombatLockdown()) then
 				bar:Show()
 			end
+			bar:SetAttribute("state", bar.state or "0")
 			bar.init = true
 		end
 		--[[
