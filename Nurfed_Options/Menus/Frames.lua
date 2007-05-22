@@ -10,7 +10,42 @@ NURFED_MENUS["Frames"] = {
 			OnShow = function() Nurfed_ScrollFrames() end,
 		},
 	},
+	OnLoad = function() Nurfed_GenerateMenu("Frames", "nrf_frames_row", 19) end,
 }
+
+Nurfed:createtemp("nrf_frames_row", {
+	type = "Button",
+	size = { 400, 14 },
+	children = {
+		icon = {
+			type = "Button",
+			layer = "ARTWORK",
+			size = { 14, 14 },
+			Anchor = { "LEFT", "$parent", "LEFT", 5, 0 },
+			NormalTexture = "Interface\\Buttons\\UI-PlusButton-Up",
+			PushedTexture = "Interface\\Buttons\\UI-PlusButton-Down",
+			HighlightTexture = "Interface\\Buttons\\UI-PlusButton-Hilight",
+			OnClick = function() Nurfed_ExpandFrame() end,
+		},
+		name = {
+			type = "FontString",
+			layer = "ARTWORK",
+			size = { 250, 14 },
+			Anchor = { "LEFT", "$parenticon", "RIGHT", 5, 0 },
+			FontObject = "GameFontNormal",
+			JustifyH = "LEFT",
+			TextColor = { 1, 1, 1 },
+		},
+		HighlightTexture = {
+			type = "Texture",
+			layer = "BACKGROUND",
+			Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
+			BlendMode = "ADD",
+			Anchor = "all",
+		},
+	},
+	OnClick = function() Nurfed_Frame_OnClick(arg1) end,
+})
 
 local framelist
 local methods = {}

@@ -10,7 +10,39 @@ NURFED_MENUS["Templates"] = {
 			OnShow = function() Nurfed_ScrollTemplates() end,
 		},
 	},
+	OnLoad = function() Nurfed_GenerateMenu("Templates", "nrf_frames_row", 19) end,
 }
+
+Nurfed:createtemp("nrf_templates_row", {
+	type = "Button",
+	size = { 400, 14 },
+	children = {
+		icon = {
+			type = "Texture",
+			Texture = "Interface\\Buttons\\UI-PlusButton-Up",
+			layer = "ARTWORK",
+			size = { 14, 14 },
+			Anchor = { "LEFT", "$parent", "LEFT", 5, 0 },
+		},
+		name = {
+			type = "FontString",
+			layer = "ARTWORK",
+			size = { 250, 14 },
+			Anchor = { "LEFT", "$parenticon", "RIGHT", 5, 0 },
+			FontObject = "GameFontNormal",
+			JustifyH = "LEFT",
+			TextColor = { 1, 1, 1 },
+		},
+		HighlightTexture = {
+			type = "Texture",
+			layer = "BACKGROUND",
+			Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
+			BlendMode = "ADD",
+			Anchor = "all",
+		},
+	},
+	OnClick = function() Nurfed_Template_OnClick(arg1) end,
+})
 
 local templist
 

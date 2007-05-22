@@ -47,7 +47,7 @@ local addstate = function()
 			return
 		end
 		statemaps[state] = map
-		nrf_updatebar(getglobal(bar))
+		Nurfed:updatebar(getglobal(bar))
 		Nurfed_ScrollActionBarsStates()
 		Nurfed_MenuActionBarsstatesstate:SetText("")
 		Nurfed_MenuActionBarsstatesmap:SetText("")
@@ -159,7 +159,7 @@ local updatebar = function()
 			if value == "" then value = nil end
 			if hdr:GetAttribute("unit") ~= value then
 				hdr:SetAttribute("unit", value)
-				nrf_updatebar(hdr)
+				Nurfed:updatebar(hdr)
 			end
 		elseif this.val == "alpha" then
 			local children = { hdr:GetChildren() }
@@ -183,7 +183,7 @@ local updatebar = function()
 				hdr:SetAttribute("combat", value)
 			end
 		else
-			nrf_updatebar(hdr)
+			Nurfed:updatebar(hdr)
 			Nurfed_ScrollActionBars()
 		end
 	end
@@ -351,13 +351,13 @@ NURFED_MENUS["ActionBars"] = {
 					template = "nrf_check",
 					Anchor = { "TOPRIGHT", "$parentunitadd", "BOTTOMRIGHT", 0, -8 },
 					OnClick = function() updatebar() end,
-					vars = { text = "Unit Toggle", val = "unitshow", right = true },
+					vars = { text = "Unit Toggle", val = "unitshow" },
 				},
 				combatshow = {
 					template = "nrf_check",
 					Anchor = { "RIGHT", "$parentunitshow", "LEFT", -85, 0 },
 					OnClick = function() updatebar() end,
-					vars = { text = "Combat Toggle", val = "combatshow", right = true },
+					vars = { text = "Combat Toggle", val = "combatshow" },
 				},
 				rows = {
 					template = "nrf_slider",
@@ -630,6 +630,7 @@ NURFED_MENUS["ActionBars"] = {
 			Hide = true,
 		},
 	},
+	OnLoad = function() Nurfed_GenerateMenu("ActionBars", "nrf_actionbars_row", 19) end,
 	OnHide = function()
 		Nurfed_MenuActionBarsbuttondefault:SetParent(Nurfed_MenuActionBarsbutton)
 		Nurfed_MenuActionBarsbuttonhelp:SetParent(Nurfed_MenuActionBarsbutton)
@@ -637,6 +638,70 @@ NURFED_MENUS["ActionBars"] = {
 	end,
 	vars = { expand = {} },
 }
+
+Nurfed:createtemp("nrf_actionbars_row",  {
+	type = "Button",
+	size = { 150, 14 },
+	children = {
+		expand = {
+			type = "Button",
+			layer = "ARTWORK",
+			size = { 14, 14 },
+			Anchor = { "LEFT", "$parent", "LEFT", 5, 0 },
+			NormalTexture = "Interface\\Buttons\\UI-PlusButton-Up",
+			PushedTexture = "Interface\\Buttons\\UI-PlusButton-Down",
+			HighlightTexture = "Interface\\Buttons\\UI-PlusButton-Hilight",
+			OnClick = function() Nurfed_ExpandBar() end,
+		},
+		name = {
+			type = "FontString",
+			layer = "ARTWORK",
+			size = { 105, 14 },
+			Anchor = { "BOTTOMLEFT", "$parentexpand", "BOTTOMRIGHT", 5, 0 },
+			FontObject = "GameFontNormal",
+			JustifyH = "LEFT",
+			TextColor = { 1, 1, 1 },
+		},
+		states = {
+			template = "nrf_check",
+			size = { 16, 16 },
+			Anchor = { "LEFT", "$parentname", "RIGHT", 5, 0 },
+			OnEnter = function()
+				GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
+				GameTooltip:AddLine("Show States", 1, 1, 0)
+				GameTooltip:Show()
+			end,
+			OnLeave = function() GameTooltip:Hide() end,
+			OnClick = function() Nurfed_ToggleStates() end,
+		},
+		delete = {
+			type = "Button",
+			layer = "ARTWORK",
+			size = { 14, 14 },
+			Anchor = { "LEFT", "$parentstates", "RIGHT", 5, 0 },
+			NormalTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Up",
+			PushedTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Down",
+			HighlightTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Highlight",
+			OnClick = function() Nurfed_DeleteBar() end,
+			OnEnter = function()
+				GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
+				GameTooltip:AddLine(DELETE, 1, 0, 0)
+				GameTooltip:Show()
+			end,
+			OnLeave = function() GameTooltip:Hide() end,
+		},
+		HighlightTexture = {
+			type = "Texture",
+			layer = "BACKGROUND",
+			Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
+			BlendMode = "ADD",
+			Anchor = "all",
+		},
+	},
+	OnClick = function() Nurfed_ActionBar_OnClick(arg1) end,
+	Hide = true,
+})
+
 
 function Nurfed_ScrollActionBarsStates()
 	local states = {}
@@ -794,7 +859,7 @@ function Nurfed_DeleteState()
 	local hdr = getglobal(bar)
 	NURFED_ACTIONBARS[bar].statemaps[state] = nil
 	hdr:SetAttribute("statemap-"..state, nil)
-	nrf_updatebar(hdr)
+	Nurfed:updatebar(hdr)
 	Nurfed_ScrollActionBarsStates()
 end
 

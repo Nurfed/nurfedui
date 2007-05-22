@@ -66,18 +66,20 @@ local onshow = function()
 	text = _G[this:GetName().."Text"]
 	value = _G[this:GetName().."value"]
 	objtype = this:GetObjectType()
-	right = this:GetParent():GetRight() - this:GetRight()
-
-	text:SetText(this.text)
-	if right < 50 and objtype ~= "EditBox" then
-		if value then
-			value:ClearAllPoints()
-			value:SetPoint("RIGHT", this, "LEFT", -3, 0)
-		else
-			text:ClearAllPoints()
-			text:SetPoint("RIGHT", this:GetName(), "LEFT", -1, 1)
+	if this:GetParent():GetRight() and this:GetRight() then
+		right = this:GetParent():GetRight() - this:GetRight()
+		if right < 50 and objtype ~= "EditBox" then
+			if value then
+				value:ClearAllPoints()
+				value:SetPoint("RIGHT", this, "LEFT", -3, 0)
+			else
+				text:ClearAllPoints()
+				text:SetPoint("RIGHT", this:GetName(), "LEFT", -1, 1)
+			end
 		end
 	end
+
+	text:SetText(this.text)
 
 	if this.color then
 		text:SetTextColor(unpack(this.color))
@@ -87,15 +89,17 @@ local onshow = function()
 		opt = Nurfed:getopt(this.option, addon)
 	end
 
-	if objtype == "CheckButton" then
+	if objtype == "CheckButton" and opt then
 		this:SetChecked(opt)
 	elseif objtype == "Slider" then
 		local low = _G[this:GetName().."Low"]
 		local high = _G[this:GetName().."High"]
 		this:SetMinMaxValues(this.min, this.max)
 		this:SetValueStep(this.step)
-		this:SetValue(opt)
-		
+		if opt then
+			this:SetValue(opt)
+		end
+
 		value.option = this.option
 		value.val = this.val
 		value.func = this.func
@@ -223,171 +227,6 @@ local templates = {
 		},
 		BackdropColor = { 0, 0, 0, 0.95 },
 		Alpha = 0,
-		Hide = true,
-	},
-	nrf_addons_row = {
-		type = "Frame",
-		size = { 400, 14 },
-		children = {
-			check = {
-				type = "CheckButton",
-				size = { 16, 16 },
-				uitemp = "UICheckButtonTemplate",
-				Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 2, 0 },
-				OnClick = function() Nurfed_ToggleAddOn() end,
-			},
-			name = {
-				type = "FontString",
-				layer = "ARTWORK",
-				size = { 190, 14 },
-				Anchor = { "LEFT", "$parentcheck", "RIGHT", 5, 0 },
-				FontObject = "GameFontNormal",
-				JustifyH = "LEFT",
-				TextColor = { 1, 1, 1 },
-			},
-			loaded = {
-				type = "FontString",
-				layer = "ARTWORK",
-				size = { 105, 14 },
-				Anchor = { "LEFT", "$parentname", "RIGHT", 5, 0 },
-				FontObject = "GameFontNormal",
-				JustifyH = "LEFT",
-				TextColor = { 1, 1, 1 },
-			},
-			reload = {
-				type = "FontString",
-				layer = "ARTWORK",
-				size = { 100, 14 },
-				Anchor = { "LEFT", "$parentloaded", "RIGHT", 5, 0 },
-				FontObject = "GameFontNormal",
-				JustifyH = "LEFT",
-				TextColor = { 1, 0, 0 },
-			},
-		},
-	},
-	nrf_templates_row = {
-		type = "Button",
-		size = { 400, 14 },
-		children = {
-			icon = {
-				type = "Texture",
-				Texture = "Interface\\Buttons\\UI-PlusButton-Up",
-				layer = "ARTWORK",
-				size = { 14, 14 },
-				Anchor = { "LEFT", "$parent", "LEFT", 5, 0 },
-			},
-			name = {
-				type = "FontString",
-				layer = "ARTWORK",
-				size = { 250, 14 },
-				Anchor = { "LEFT", "$parenticon", "RIGHT", 5, 0 },
-				FontObject = "GameFontNormal",
-				JustifyH = "LEFT",
-				TextColor = { 1, 1, 1 },
-			},
-			HighlightTexture = {
-				type = "Texture",
-				layer = "BACKGROUND",
-				Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
-				BlendMode = "ADD",
-				Anchor = "all",
-			},
-		},
-		OnClick = function() Nurfed_Template_OnClick(arg1) end,
-	},
-	nrf_frames_row = {
-		type = "Button",
-		size = { 400, 14 },
-		children = {
-			icon = {
-				type = "Button",
-				layer = "ARTWORK",
-				size = { 14, 14 },
-				Anchor = { "LEFT", "$parent", "LEFT", 5, 0 },
-				NormalTexture = "Interface\\Buttons\\UI-PlusButton-Up",
-				PushedTexture = "Interface\\Buttons\\UI-PlusButton-Down",
-				HighlightTexture = "Interface\\Buttons\\UI-PlusButton-Hilight",
-				OnClick = function() Nurfed_ExpandFrame() end,
-			},
-			name = {
-				type = "FontString",
-				layer = "ARTWORK",
-				size = { 250, 14 },
-				Anchor = { "LEFT", "$parenticon", "RIGHT", 5, 0 },
-				FontObject = "GameFontNormal",
-				JustifyH = "LEFT",
-				TextColor = { 1, 1, 1 },
-			},
-			HighlightTexture = {
-				type = "Texture",
-				layer = "BACKGROUND",
-				Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
-				BlendMode = "ADD",
-				Anchor = "all",
-			},
-		},
-		OnClick = function() Nurfed_Frame_OnClick(arg1) end,
-	},
-	nrf_actionbars_row = {
-		type = "Button",
-		size = { 150, 14 },
-		children = {
-			expand = {
-				type = "Button",
-				layer = "ARTWORK",
-				size = { 14, 14 },
-				Anchor = { "LEFT", "$parent", "LEFT", 5, 0 },
-				NormalTexture = "Interface\\Buttons\\UI-PlusButton-Up",
-				PushedTexture = "Interface\\Buttons\\UI-PlusButton-Down",
-				HighlightTexture = "Interface\\Buttons\\UI-PlusButton-Hilight",
-				OnClick = function() Nurfed_ExpandBar() end,
-			},
-			name = {
-				type = "FontString",
-				layer = "ARTWORK",
-				size = { 105, 14 },
-				Anchor = { "BOTTOMLEFT", "$parentexpand", "BOTTOMRIGHT", 5, 0 },
-				FontObject = "GameFontNormal",
-				JustifyH = "LEFT",
-				TextColor = { 1, 1, 1 },
-			},
-			states = {
-				template = "nrf_check",
-				size = { 16, 16 },
-				Anchor = { "LEFT", "$parentname", "RIGHT", 5, 0 },
-				OnEnter = function()
-					GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
-					GameTooltip:AddLine("Show States", 1, 1, 0)
-					GameTooltip:Show()
-				end,
-				OnLeave = function() GameTooltip:Hide() end,
-				OnClick = function() Nurfed_ToggleStates() end,
-			},
-			delete = {
-				type = "Button",
-				layer = "ARTWORK",
-				size = { 14, 14 },
-				Anchor = { "LEFT", "$parentstates", "RIGHT", 5, 0 },
-				NormalTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Up",
-				PushedTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Down",
-				HighlightTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Highlight",
-				OnClick = function() Nurfed_DeleteBar() end,
-				OnEnter = function()
-					GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
-					GameTooltip:AddLine(DELETE, 1, 0, 0)
-					GameTooltip:Show()
-				end,
-				OnLeave = function() GameTooltip:Hide() end,
-			},
-			HighlightTexture = {
-				type = "Texture",
-				layer = "BACKGROUND",
-				Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
-				BlendMode = "ADD",
-				Anchor = "all",
-			},
-		},
-		OnClick = function() Nurfed_ActionBar_OnClick(arg1) end,
 		Hide = true,
 	},
 	nrf_actionstates = {
