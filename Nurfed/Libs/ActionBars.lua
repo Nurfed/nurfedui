@@ -549,7 +549,7 @@ end
 -- Action bar management
 function Nurfed:updatebar(hdr)
 	local statestring = ""
-	local btns, statelist = {}, {}
+	local btns, statelist, driver = {}, {}, {}
 	for _, child in ipairs({ hdr:GetChildren() }) do
 		if string.find(child:GetName(), "^Nurfed_Button") then
 			table.insert(btns, child:GetID(), child)
@@ -561,7 +561,16 @@ function Nurfed:updatebar(hdr)
 		for k, v in pairs(vals.statemaps) do
 			hdr:SetAttribute("statemap-"..k, v)
 			statelist[v] = true
+			local state, value = string.split(k)
+			if not driver[state] then
+				driver[state] = {}
+			end
+			table.insert(driver[state], "["..state..":"..value.."] "..v)
 		end
+	end
+
+	for k, v in pairs(driver) do
+		RegisterStateDriver(hdr, k, table.concat(v, "; "))
 	end
 
 	for k in pairs(statelist) do
