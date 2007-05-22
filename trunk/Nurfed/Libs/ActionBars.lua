@@ -513,7 +513,7 @@ hooksecurefunc("UIParent_ManageFramePositions", function()
 			end
 		end
 	end)
-
+--[[
 function PetActionButton_OnDragStart()
 	if not NRF_LOCKED then
 		if IsControlKeyDown() then
@@ -526,7 +526,7 @@ function PetActionButton_OnDragStart()
 		end
 	end
 end
-
+]]
 ----------------------------------------------------------------
 -- Add cooldown text
 local updatecooling = function(this, start, duration, enable)
@@ -545,6 +545,10 @@ if not IsAddOnLoaded("OmniCC") then
 	hooksecurefunc("CooldownFrame_SetTimer", updatecooling)
 end
 
+hooksecurefunc("RegisterStateDriver", function(frame, state, values)
+	Nurfed:print(frame:GetName().." ("..state..") -"..values)
+end)
+
 ----------------------------------------------------------------
 -- Action bar management
 function Nurfed:updatebar(hdr)
@@ -555,7 +559,14 @@ function Nurfed:updatebar(hdr)
 			table.insert(btns, child:GetID(), child)
 		end
 	end
-	
+
+	UnregisterStateDriver(hdr, "shift")
+	UnregisterStateDriver(hdr, "ctrl")
+	UnregisterStateDriver(hdr, "alt")
+	UnregisterStateDriver(hdr, "actionbar")
+	UnregisterStateDriver(hdr, "stance")
+	UnregisterStateDriver(hdr, "stealth")
+
 	local vals = NURFED_ACTIONBARS[hdr:GetName()]
 	if vals.statemaps then
 		for k, v in pairs(vals.statemaps) do
@@ -680,7 +691,7 @@ end
 
 Nurfed:createtemp("actionbar", {
 		type = "Frame",
-		uitemp = "SecureStateDriverTemplate",
+		uitemp = "SecureStateHeaderTemplate",
 		size = { 36, 36 },
 		Movable = true,
 		Hide = true,
@@ -748,9 +759,10 @@ local barevents = {
 				bar:Show()
 			end
 			if bar.state then
-				bar.state = bar:GetAttribute("statemap-"..bar.state.."-"..hdr:GetAttribute("state-"..bar.state))
+				ChatFrame1:AddMessage(bar:GetAttribute("state"))
+				--bar.state = bar:GetAttribute("statemap-"..bar.state.."-"..bar:GetAttribute("state-"..bar.state))
 			end
-			bar:SetAttribute("state", bar.state or "0")
+			--bar:SetAttribute("state", bar.state or "0")
 			_G[bar:GetName().."drag"]:Hide()
 			bar.init = true
 		end
