@@ -537,6 +537,7 @@ local updatecooling = function(this, start, duration, enable)
 		this.duration = duration
 	else
 		this.cool = nil
+		this.text:SetText(nil)
 	end
 end
 
