@@ -572,7 +572,7 @@ function Nurfed:updatebar(hdr)
 	for k, v in pairs(driver) do
 		RegisterStateDriver(hdr, k, table.concat(v, "; "))
 		if not hdr.state then
-			hdr.state = hdr:GetAttribute("statemap-"..k.."-"..hdr:GetAttribute("state-"..k))
+			hdr.state = k
 		end
 	end
 
@@ -649,8 +649,6 @@ function Nurfed:deletebar(frame)
 end
 
 function Nurfed:createbar(frame)
-	local last, begin
-	local count = 1
 	local vals = NURFED_ACTIONBARS[frame]
 	local hdr = _G[frame] or Nurfed:create(frame, "actionbar")
 
@@ -704,9 +702,6 @@ Nurfed:createtemp("actionbar", {
 				BackdropColor = { 0, 0, 0 },
 				OnLoad = function(self)
 					self:RegisterForDrag("LeftButton")
-					if not NRF_LOCKED then
-						self:Show()
-					end
 				end,
 				OnDragStart = function(self) self:GetParent():StartMoving() end,
 				OnDragStop = function(self)
@@ -748,6 +743,9 @@ local barevents = {
 			local shown = bar:GetAttribute("shown")
 			if not shown or shown == "always" or (shown == "nocombat" and not InCombatLockdown()) then
 				bar:Show()
+			end
+			if bar.state then
+				bar.state = bar:GetAttribute("statemap-"..bar.state.."-"..hdr:GetAttribute("state-"..bar.state))
 			end
 			bar:SetAttribute("state", bar.state or "0")
 			bar.init = true
