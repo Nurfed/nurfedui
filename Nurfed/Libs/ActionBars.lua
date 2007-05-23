@@ -336,8 +336,9 @@ local getbtn = function()
 		btn:RegisterForClicks("AnyUp")
 		btn:RegisterForDrag("LeftButton")
 		btn:SetAttribute("checkselfcast", true)
-		btn:SetAttribute("useparent-unit", true)
-		btn:SetAttribute("useparent-statebutton", true)
+		--btn:SetAttribute("useparent-unit", true)
+		--btn:SetAttribute("useparent-statebutton", true)
+		btn:SetAttribute("useparent*", true)
 		btn:SetScript("OnEnter", function(self) btnenter(self) end)
 		btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 		btn:SetScript("OnDragStart", function(self) btndragstart(self) end)
@@ -503,7 +504,7 @@ end
 Nurfed:schedule(ATTACK_BUTTON_FLASH_TIME, btnflash, true)
 
 ----------------------------------------------------------------
--- Default button overrides
+-- Reset stance bar border
 hooksecurefunc("UIParent_ManageFramePositions", function()
 		if not MainMenuBar:IsShown() then
 			for i = 1, 10 do
@@ -513,20 +514,7 @@ hooksecurefunc("UIParent_ManageFramePositions", function()
 			end
 		end
 	end)
---[[
-function PetActionButton_OnDragStart()
-	if not NRF_LOCKED then
-		if IsControlKeyDown() then
-			local parent = this:GetParent()
-			parent:StartMoving()
-		else
-			this:SetChecked(0)
-			PickupPetAction(this:GetID())
-			PetActionBar_Update()
-		end
-	end
-end
-]]
+
 ----------------------------------------------------------------
 -- Add cooldown text
 local updatecooling = function(this, start, duration, enable)
@@ -544,10 +532,6 @@ end
 if not IsAddOnLoaded("OmniCC") then
 	hooksecurefunc("CooldownFrame_SetTimer", updatecooling)
 end
-
-hooksecurefunc("RegisterStateDriver", function(frame, state, values)
-	Nurfed:print(frame:GetName().." ("..state..") -"..values)
-end)
 
 ----------------------------------------------------------------
 -- Action bar management
@@ -759,7 +743,7 @@ local barevents = {
 				bar:Show()
 			end
 			if bar.state then
-				ChatFrame1:AddMessage(bar:GetAttribute("state"))
+				--ChatFrame1:AddMessage(bar:GetAttribute("state"))
 				--bar.state = bar:GetAttribute("statemap-"..bar.state.."-"..bar:GetAttribute("state-"..bar.state))
 			end
 			--bar:SetAttribute("state", bar.state or "0")
