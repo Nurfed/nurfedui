@@ -536,12 +536,12 @@ NURFED_MENUS["ActionBars"] = {
 		},
 		states = {
 			type = "Frame",
-			size = { 200, 100 },
+			size = { 220, 100 },
 			Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 0, 0 },
 			children = {
 				state = {
 					template = "nrf_editbox",
-					size = { 80, 18 },
+					size = { 160, 18 },
 					children = {
 						drop = {
 							template = "nrf_button",
@@ -556,7 +556,7 @@ NURFED_MENUS["ActionBars"] = {
 				},
 				map = {
 					template = "nrf_editbox",
-					size = { 120, 18 },
+					size = { 50, 18 },
 					children = {
 						add = {
 							template = "nrf_button",
@@ -703,6 +703,53 @@ Nurfed:createtemp("nrf_actionbars_row",  {
 	Hide = true,
 })
 
+Nurfed:createtemp("nrf_actionstates", {
+	type = "Button",
+	size = { 220, 14 },
+	children = {
+		delete = {
+			type = "Button",
+			layer = "ARTWORK",
+			size = { 14, 14 },
+			Anchor = { "LEFT", "$parent", "LEFT", 0, 0 },
+			NormalTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Up",
+			PushedTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Down",
+			HighlightTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Highlight",
+			OnClick = function() Nurfed_DeleteState() end,
+			OnEnter = function()
+				GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
+				GameTooltip:AddLine(DELETE, 1, 0, 0)
+				GameTooltip:Show()
+			end,
+			OnLeave = function() GameTooltip:Hide() end,
+		},
+		name = {
+			type = "FontString",
+			layer = "ARTWORK",
+			size = { 140, 14 },
+			Anchor = { "LEFT", "$parentdelete", "RIGHT", 5, 0 },
+			FontObject = "GameFontNormalSmall",
+			JustifyH = "LEFT",
+			TextColor = { 1, 1, 1 },
+		},
+		value = {
+			type = "FontString",
+			layer = "ARTWORK",
+			size = { 50, 14 },
+			Anchor = { "LEFT", "$parentname", "RIGHT", 5, 0 },
+			FontObject = "GameFontNormalSmall",
+			JustifyH = "RIGHT",
+			TextColor = { 1, 1, 1 },
+		},
+		HighlightTexture = {
+			type = "Texture",
+			layer = "BACKGROUND",
+			Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
+			BlendMode = "ADD",
+			Anchor = "all",
+		},
+	},
+})
 
 function Nurfed_ScrollActionBarsStates()
 	local states = {}

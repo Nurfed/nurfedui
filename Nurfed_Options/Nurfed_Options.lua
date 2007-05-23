@@ -231,53 +231,6 @@ local templates = {
 		Alpha = 0,
 		Hide = true,
 	},
-	nrf_actionstates = {
-		type = "Button",
-		size = { 160, 14 },
-		children = {
-			delete = {
-				type = "Button",
-				layer = "ARTWORK",
-				size = { 14, 14 },
-				Anchor = { "LEFT", "$parent", "LEFT", 0, 0 },
-				NormalTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Up",
-				PushedTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Down",
-				HighlightTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Highlight",
-				OnClick = function() Nurfed_DeleteState() end,
-				OnEnter = function()
-					GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
-					GameTooltip:AddLine(DELETE, 1, 0, 0)
-					GameTooltip:Show()
-				end,
-				OnLeave = function() GameTooltip:Hide() end,
-			},
-			name = {
-				type = "FontString",
-				layer = "ARTWORK",
-				size = { 70, 14 },
-				Anchor = { "BOTTOMLEFT", "$parentdelete", "BOTTOMRIGHT", 5, 0 },
-				FontObject = "GameFontNormalSmall",
-				JustifyH = "LEFT",
-				TextColor = { 1, 1, 1 },
-			},
-			value = {
-				type = "FontString",
-				layer = "ARTWORK",
-				size = { 70, 14 },
-				Anchor = { "BOTTOMLEFT", "$parentname", "BOTTOMRIGHT", 5, 0 },
-				FontObject = "GameFontNormalSmall",
-				JustifyH = "RIGHT",
-				TextColor = { 1, 1, 1 },
-			},
-			HighlightTexture = {
-				type = "Texture",
-				layer = "BACKGROUND",
-				Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
-				BlendMode = "ADD",
-				Anchor = "all",
-			},
-		},
-	},
 	nrf_button = {
 		type = "Button",
 		size = { 30, 18 },
