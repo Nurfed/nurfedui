@@ -1480,7 +1480,7 @@ local updateinfo = function(frame, stat)
 					text = string.gsub(text, "$rest", rest)
 				end
 				child:SetText(text)
-				if r and g and b and not child.static then
+				if r and g and b and child.color then
 					child:SetTextColor(r, g, b)
 				end
 			elseif objtype == "Texture" and child.fill then
@@ -1517,7 +1517,7 @@ local manacolor = function(frame)
 		elseif objtype == "Texture" then
 			child:SetVertexColor(color.r, color.g, color.b)
 		elseif objtype == "FontString" then
-			if not child.static then
+			if child.color then
 				child:SetTextColor(color.r, color.g, color.b)
 			end
 		end
