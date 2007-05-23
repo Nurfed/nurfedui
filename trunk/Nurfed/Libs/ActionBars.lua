@@ -765,12 +765,18 @@ Nurfed:createtemp("actionbar", {
 	
 local barevents = {
 	["PLAYER_REGEN_ENABLED"] = function(bar)
-		if bar:GetAttribute("shown") == "nocombat" then
+		local show = bar:GetAttribute("shown")
+		if show == "nocombat" then
 			bar:Show()
+		elseif show == "combat" then
+			bar:Hide()
 		end
 	end,
 	["PLAYER_REGEN_DISABLED"] = function(bar)
-		if bar:GetAttribute("shown") == "combat" then
+		local show = bar:GetAttribute("shown")
+		if show == "nocombat" then
+			bar:Hide()
+		elseif show == "combat" then
 			bar:Show()
 		end
 	end,
