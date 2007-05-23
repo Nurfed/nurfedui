@@ -1484,7 +1484,7 @@ local updateinfo = function(frame, stat)
 					child:SetTextColor(r, g, b)
 				end
 			elseif objtype == "Texture" and child.fill then
-				local size = child.bar * perc
+				local size = child.bar * (perc / 100)
 				local p_h1, p_h2
 				if size < 1 then
 					size = 1
