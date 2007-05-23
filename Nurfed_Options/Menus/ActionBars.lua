@@ -1,5 +1,5 @@
 local units = { "none", "focus", "party1", "party2", "party3", "party4", "pet", "player", "target", "targettarget" }
-local states = { "stance-", "stealth-", "actionbar-", "shift-", "ctrl-", "alt-" }
+local states = { "stance:", "stealth:", "actionbar:", "shift:", "ctrl:", "alt:" }
 
 local framedrop = function(tbl)
 	local drop = Nurfed_MenuActionBarsdropdown
