@@ -673,6 +673,10 @@ function Nurfed:createbar(frame)
 			RegisterUnitWatch(hdr)
 		end
 
+		if not vals.shown or vals.shown == "always" or (vals.shown == "nocombat" and not InCombatLockdown()) then
+			hdr:Show()
+		end
+
 		local drag = _G[frame.."drag"]
 		drag:ClearAllPoints()
 		if hdr:GetTop() >= GetScreenHeight() / 2 then
@@ -694,6 +698,11 @@ Nurfed:createtemp("actionbar", {
 		Movable = true,
 		Hide = true,
 		ClampedToScreen = true,
+		OnLoad = function(self)
+			if IsLoggedIn() then
+				
+			end
+		end,
 		children = {
 			drag = {
 				type = "Frame",
@@ -755,12 +764,6 @@ Nurfed:createtemp("actionbar", {
 	})
 	
 local barevents = {
-	["PLAYER_ENTERING_WORLD"] = function(bar)
-		local shown = bar:GetAttribute("shown")
-		if not shown or shown == "always" or (shown == "nocombat" and not InCombatLockdown()) then
-			bar:Show()
-		end
-	end,
 	["PLAYER_REGEN_ENABLED"] = function(bar)
 		if bar:GetAttribute("shown") == "nocombat" then
 			bar:Show()
