@@ -87,6 +87,8 @@ local onshow = function()
 	
 	if this.option then
 		opt = Nurfed:getopt(this.option, addon)
+	elseif this.default then
+		opt = this.default
 	end
 
 	if objtype == "CheckButton" and opt then
