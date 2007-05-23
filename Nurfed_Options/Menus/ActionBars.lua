@@ -124,8 +124,6 @@ local addnew = function()
 			cols = Nurfed_MenuActionBarsbarcols:GetValue(),
 			scale = Nurfed_MenuActionBarsbarscale:GetValue(),
 			alpha = Nurfed_MenuActionBarsbaralpha:GetValue(),
-			unitshow = Nurfed_MenuActionBarsbarunitshow:GetChecked(),
-			combatshow = Nurfed_MenuActionBarsbarcombatshow:GetChecked(),
 			xgap = Nurfed_MenuActionBarsbarxgap:GetValue(),
 			ygap = Nurfed_MenuActionBarsbarygap:GetValue(),
 			shown == Nurfed_MenuActionBarsbarshown:GetText(),
