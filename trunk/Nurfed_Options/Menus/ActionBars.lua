@@ -126,7 +126,7 @@ local addnew = function()
 			alpha = Nurfed_MenuActionBarsbaralpha:GetValue(),
 			xgap = Nurfed_MenuActionBarsbarxgap:GetValue(),
 			ygap = Nurfed_MenuActionBarsbarygap:GetValue(),
-			shown == Nurfed_MenuActionBarsbarshown:GetText(),
+			shown = Nurfed_MenuActionBarsbarshown:GetText(),
 			buttons = {},
 			statemaps = {},
 		}
@@ -914,7 +914,7 @@ function Nurfed_DeleteBar()
 	Nurfed:deletebar(bar)
 	NURFED_ACTIONBARS[bar] = nil
 	Nurfed_ScrollActionBars()
-	nrf_mainmenu()
+	Nurfed_MenuActionBars.bar = nil
 end
 
 function Nurfed_ExpandBar()
