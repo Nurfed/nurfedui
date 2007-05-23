@@ -44,19 +44,21 @@ NURFED_DEFAULT["microvert"] = false
 ----------------------------------------------------------------
 -- Button functions
 local updateitem = function(btn)
-	local count = _G[btn:GetName().."Count"]
-	local border = _G[btn:GetName().."Border"]
-	local num = GetItemCount(btn.spell)
-	if num > 1 then
-		count:SetText(num)
-	else
-		count:SetText(nil)
-	end
-	if IsEquippedItem(btn.spell) then
-		border:SetVertexColor(0, 1.0, 0, 0.35)
-		border:Show()
-	else
-		border:Hide()
+	if btn.spell then
+		local count = _G[btn:GetName().."Count"]
+		local border = _G[btn:GetName().."Border"]
+		local num = GetItemCount(btn.spell)
+		if num > 1 then
+			count:SetText(num)
+		else
+			count:SetText(nil)
+		end
+		if IsEquippedItem(btn.spell) then
+			border:SetVertexColor(0, 1.0, 0, 0.35)
+			border:Show()
+		else
+			border:Hide()
+		end
 	end
 end
 
@@ -557,8 +559,7 @@ function Nurfed:updatebar(hdr)
 
 			local add = true
 			local list = v..":"..v
-			local state, value = string.split(":", k)
-			table.insert(driver, "["..state..":"..value.."] "..v)
+			table.insert(driver, "["..k.."] "..v)
 
 			for _, l in ipairs(statelist) do
 				if l == list then
@@ -576,6 +577,12 @@ function Nurfed:updatebar(hdr)
 	driver = table.concat(driver, ";")
 	state = SecureCmdOptionParse(driver)
 	statelist = table.concat(statelist, ";")
+
+	if #driver == 0 then
+		state = "0"
+	end
+
+	ChatFrame1:AddMessage(driver.." "..state.." "..statelist)
 
 	RegisterStateDriver(hdr, "state", driver)
 	hdr:SetAttribute("statemap-state", "$input")
@@ -742,13 +749,9 @@ Nurfed:createtemp("actionbar", {
 	
 local barevents = {
 	["PLAYER_ENTERING_WORLD"] = function(bar)
-		if not bar.init then
-			local shown = bar:GetAttribute("shown")
-			if not shown or shown == "always" or (shown == "nocombat" and not InCombatLockdown()) then
-				bar:Show()
-			end
-			_G[bar:GetName().."drag"]:Hide()
-			bar.init = true
+		local shown = bar:GetAttribute("shown")
+		if not shown or shown == "always" or (shown == "nocombat" and not InCombatLockdown()) then
+			bar:Show()
 		end
 	end,
 	["PLAYER_REGEN_ENABLED"] = function(bar)

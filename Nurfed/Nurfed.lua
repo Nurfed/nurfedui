@@ -196,7 +196,8 @@ local onevent = function()
 			hooksecurefunc("KeyBindingFrame_SetBinding", updatebind)
 		end
 		
-	elseif event == "PLAYER_LOGIN" then
+	elseif event == "PLAYER_ENTERING_WORLD" then
+		this:UnregisterEvent(event)
 		for k, v in pairs(NURFED_BINDINGS) do
 			local func = getglobal("SetBinding"..v[1])
 			func(k, v[2])
@@ -242,7 +243,7 @@ Nurfed:create("Nurfed_LockButton", {
 		"MINIMAP_PING",
 		"CHAT_MSG_WHISPER",
 		"CHAT_MSG_SYSTEM",
-		"PLAYER_LOGIN",
+		"PLAYER_ENTERING_WORLD",
 		"VARIABLES_LOADED",
 	},
 	children = {
