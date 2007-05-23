@@ -1,5 +1,6 @@
 local units = { "none", "focus", "party1", "party2", "party3", "party4", "pet", "player", "target", "targettarget" }
 local states = { "stance:", "stealth:", "actionbar:", "shift:", "ctrl:", "alt:" }
+local shown = { "always", "never", "combat", "nocombat", "unit" }
 
 local framedrop = function(tbl)
 	local drop = Nurfed_MenuActionBarsdropdown
@@ -29,7 +30,7 @@ local updateoptions = function()
 		Nurfed_MenuActionBarsbarscale:SetValue(vals.scale)
 		Nurfed_MenuActionBarsbaralpha:SetValue(vals.alpha)
 		Nurfed_MenuActionBarsbarunit:SetText(vals.unit or "")
-		Nurfed_MenuActionBarsbarunitshow:SetChecked(vals.unitshow)
+		Nurfed_MenuActionBarsbarshown:SetText(vals.shown or "")
 		Nurfed_MenuActionBarsbarxgap:SetValue(vals.xgap)
 		Nurfed_MenuActionBarsbarygap:SetValue(vals.ygap)
 	end
@@ -127,6 +128,7 @@ local addnew = function()
 			combatshow = Nurfed_MenuActionBarsbarcombatshow:GetChecked(),
 			xgap = Nurfed_MenuActionBarsbarxgap:GetValue(),
 			ygap = Nurfed_MenuActionBarsbarygap:GetValue(),
+			shown == Nurfed_MenuActionBarsbarshown:GetText(),
 			buttons = {},
 			statemaps = {},
 		}
@@ -147,11 +149,12 @@ local updatebar = function()
 			value = this:GetChecked()
 		elseif objtype == "EditBox" then
 			value = this:GetText()
-			if this.val ~= "unit" then
+			if this.val ~= "unit" and this.val ~= "shown" then
 				value = tonumber(value)
 			end
 		end
 		NURFED_ACTIONBARS[bar][this.val] = value
+
 		local hdr = getglobal(bar)
 		if this.val == "scale" then
 			hdr:SetScale(value)
@@ -166,21 +169,15 @@ local updatebar = function()
 			for _, child in ipairs(children) do
 				child:SetAlpha(value)
 			end
-		elseif this.val == "unitshow" then
-			if value then
-				RegisterUnitWatch(hdr)
-			else
-				UnregisterUnitWatch(hdr)
+		elseif this.val == "shown" then
+			UnregisterUnitWatch(hdr)
+			hdr:SetAttribute("shown", value)
+			if value == "always" or (value == "nocombat" and not InCombatLockdown()) then
 				hdr:Show()
-			end
-		elseif this.val == "combatshow" then
-			if not InCombatLockdown() then
-				if value then
-					hdr:Hide()
-				else
-					hdr:Show()
-				end
-				hdr:SetAttribute("combat", value)
+			elseif value == "never" or (value == "combat" and not InCombatLockdown()) then
+				hdr:Hide()
+			elseif value == "unit" then
+				RegisterUnitWatch(hdr)
 			end
 		else
 			Nurfed:updatebar(hdr)
@@ -347,21 +344,25 @@ NURFED_MENUS["ActionBars"] = {
 					OnEnterPressed = function() updatebar() end,
 					vars = { val = "unit", default = "target" },
 				},
-				unitshow = {
-					template = "nrf_check",
-					Anchor = { "TOPRIGHT", "$parentunitadd", "BOTTOMRIGHT", 0, -8 },
-					OnClick = function() updatebar() end,
-					vars = { text = "Unit Toggle", val = "unitshow" },
-				},
-				combatshow = {
-					template = "nrf_check",
-					Anchor = { "RIGHT", "$parentunitshow", "LEFT", -85, 0 },
-					OnClick = function() updatebar() end,
-					vars = { text = "Combat Toggle", val = "combatshow" },
+				shown = {
+					template = "nrf_editbox",
+					size = { 100, 18 },
+					Anchor = { "TOPRIGHT", "$parentunit", "BOTTOMRIGHT", 0, -10 },
+					children = {
+						add = {
+							template = "nrf_button",
+							Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
+							Text = "Shown",
+							OnClick = function() framedrop(shown) end,
+						},
+					},
+					OnTextChanged = function() updatebar() end,
+					OnEnterPressed = function() updatebar() end,
+					vars = { val = "shown", default = "always" },
 				},
 				rows = {
 					template = "nrf_slider",
-					Anchor = { "TOPRIGHT", "$parentunitshow", "BOTTOMRIGHT", 0, -13 },
+					Anchor = { "TOPRIGHT", "$parentshown", "BOTTOMRIGHT", 0, -13 },
 					vars = {
 						text = "Rows",
 						val = "rows",
