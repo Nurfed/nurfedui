@@ -447,6 +447,11 @@ local btnevents = {
 	["START_AUTOREPEAT_SPELL"] = function(btn) btn.flash = true end,
 	["PLAYER_LEAVE_COMBAT"] = function(btn) btn.flash = nil end,
 	["STOP_AUTOREPEAT_SPELL"] = function(btn) btn.flash = nil end,
+	["UNIT_FACTION"] = function(btn, ...)
+		if SecureButton_GetUnit(btn) == arg1 then
+			seticon(btn)
+		end
+	end,
 }
 
 local btnevent = function(event, ...)
@@ -454,7 +459,7 @@ local btnevent = function(event, ...)
 		return
 	end	
 	for _, btn in ipairs(live) do
-		btnevents[event](btn)
+		btnevents[event](btn, ...)
 	end
 end
 
