@@ -69,9 +69,10 @@ local updatecooldown = function(btn)
 		elseif btn.type == "item" then
 			start, duration, enable = GetItemCooldown(btn.spell)
 		end
-		--if not start or not duration then return end
 	end
-	CooldownFrame_SetTimer(cooldown, start, duration, enable)
+	if start and duration then
+		CooldownFrame_SetTimer(cooldown, start, duration, enable)
+	end
 end
 
 local cooldowntext = function(btn)
