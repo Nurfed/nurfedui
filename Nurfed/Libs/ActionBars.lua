@@ -582,8 +582,6 @@ function Nurfed:updatebar(hdr)
 		state = "0"
 	end
 
-	ChatFrame1:AddMessage(driver.." "..state.." "..statelist)
-
 	RegisterStateDriver(hdr, "state", driver)
 	hdr:SetAttribute("statemap-state", "$input")
 	hdr:SetAttribute("statebutton", statelist)
@@ -636,6 +634,10 @@ function Nurfed:updatebar(hdr)
 	while vals.buttons[count] do
 		vals.buttons[count] = nil
 		count = count + 1
+	end
+
+	if NRF_LOCKED then
+		_G[hdr:GetName().."drag"]:Hide()
 	end
 end
 
@@ -711,6 +713,11 @@ Nurfed:createtemp("actionbar", {
 					self:RegisterForDrag("LeftButton")
 					if not NRF_LOCKED and IsLoggedIn() then
 						self:Show()
+					end
+				end,
+				OnAttributeChanged = function(self)
+					if NRF_LOCKED and IsLoggedIn() then
+						self:Hide()
 					end
 				end,
 				OnDragStart = function(self) self:GetParent():StartMoving() end,
@@ -896,7 +903,7 @@ Nurfed:regevent("NURFED_LOCK", function()
 ----------------------------------------------------------------
 -- Toggle main action bar
 function nrf_mainmenu()
-	if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos_ActionBar") then
+	if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") then
 		return
 	end
 
@@ -909,8 +916,6 @@ function nrf_mainmenu()
 		MainMenuBarBackpackButton:SetParent(MainMenuBarArtFrame)
 		MainMenuBarBackpackButton:ClearAllPoints()
 		MainMenuBarBackpackButton:SetPoint("BOTTOMRIGHT", -6, 2)
-		MainMenuBarBackpackButton:SetScript("OnDragStart", nil)
-		MainMenuBarBackpackButton:SetScript("OnDragStop", nil)
 
 		for i = 0, 3 do
 			local bag = getglobal("CharacterBag"..i.."Slot")
@@ -926,22 +931,18 @@ function nrf_mainmenu()
 		CharacterMicroButton:SetParent(MainMenuBarArtFrame)
 		CharacterMicroButton:ClearAllPoints()
 		CharacterMicroButton:SetPoint("BOTTOMLEFT", 552, 2)
-		CharacterMicroButton:SetScript("OnDragStart", nil)
-		CharacterMicroButton:SetScript("OnDragStop", nil)
 
 		local children = { Nurfed_micro:GetChildren() }
 		for _, child in ipairs(children) do
-			child:SetParent(MainMenuBarArtFrame)
-			child:SetScript("OnDragStart", nil)
-			child:SetScript("OnDragStop", nil)
+			if not string.find(child:GetName(), "^Nurfed") then
+				child:SetParent(MainMenuBarArtFrame)
+			end
 		end
 
 		for i = 1, 10 do
 			local btn = getglobal("ShapeshiftButton"..i)
 			btn:SetParent(ShapeshiftBarFrame)
 			btn:ClearAllPoints()
-			btn:SetScript("OnDragStart", nil)
-			btn:SetScript("OnDragStop", nil)
 			if i == 1 then
 				btn:SetPoint("BOTTOMLEFT", 11, 3)
 			else
@@ -951,7 +952,6 @@ function nrf_mainmenu()
 			btn = getglobal("PetActionButton"..i)
 			btn:SetParent(PetActionBarFrame)
 			btn:ClearAllPoints()
-			btn:SetScript("OnDragStop", nil)
 			if i == 1 then
 				btn:SetPoint("BOTTOMLEFT", 36, 2)
 			else
