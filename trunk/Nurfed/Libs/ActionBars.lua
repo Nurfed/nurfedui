@@ -188,12 +188,14 @@ local btnenter = function(self)
 		GameTooltip_SetDefaultAnchor(GameTooltip, self)
 		if self.type == "spell" then
 			local id = Nurfed:getspell(self.spell)
-			local rank = select(2, GetSpellName(id, BOOKTYPE_SPELL))
-			GameTooltip:SetSpell(id, BOOKTYPE_SPELL)
-			if rank then
-				GameTooltipTextRight1:SetText(rank)
-				GameTooltipTextRight1:SetTextColor(0.5, 0.5, 0.5)
-				GameTooltipTextRight1:Show()
+			if id then
+				local rank = select(2, GetSpellName(id, BOOKTYPE_SPELL))
+				GameTooltip:SetSpell(id, BOOKTYPE_SPELL)
+				if rank then
+					GameTooltipTextRight1:SetText(rank)
+					GameTooltipTextRight1:SetTextColor(0.5, 0.5, 0.5)
+					GameTooltipTextRight1:Show()
+				end
 			end
 		elseif self.type == "item" then
 			GameTooltip:SetHyperlink(select(2, GetItemInfo(self.spell)))
@@ -305,7 +307,9 @@ local btnreceivedrag = function(self)
 		if oldtype and oldspell then
 			if oldtype == "spell" then
 				local id = Nurfed:getspell(oldspell)
-				PickupSpell(id, BOOKTYPE_SPELL)
+				if id then
+					PickupSpell(id, BOOKTYPE_SPELL)
+				end
 			elseif oldtype == "item" then
 			elseif oldtype == "macro" then
 				PickupMacro(oldspell)
@@ -337,9 +341,8 @@ local getbtn = function()
 		btn:RegisterForClicks("AnyUp")
 		btn:RegisterForDrag("LeftButton")
 		btn:SetAttribute("checkselfcast", true)
-		--btn:SetAttribute("useparent-unit", true)
-		--btn:SetAttribute("useparent-statebutton", true)
-		btn:SetAttribute("useparent*", true)
+		btn:SetAttribute("useparent-unit", true)
+		btn:SetAttribute("useparent-statebutton", true)
 		btn:SetScript("OnEnter", function(self) btnenter(self) end)
 		btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 		btn:SetScript("OnDragStart", function(self) btndragstart(self) end)
@@ -537,7 +540,7 @@ end
 ----------------------------------------------------------------
 -- Action bar management
 function Nurfed:updatebar(hdr)
-	local statestring = ""
+	local state
 	local btns, statelist, driver = {}, {}, {}
 	for _, child in ipairs({ hdr:GetChildren() }) do
 		if string.find(child:GetName(), "^Nurfed_Button") then
@@ -545,37 +548,39 @@ function Nurfed:updatebar(hdr)
 		end
 	end
 
-	UnregisterStateDriver(hdr, "shift")
-	UnregisterStateDriver(hdr, "ctrl")
-	UnregisterStateDriver(hdr, "alt")
-	UnregisterStateDriver(hdr, "actionbar")
-	UnregisterStateDriver(hdr, "stance")
-	UnregisterStateDriver(hdr, "stealth")
-
 	local vals = NURFED_ACTIONBARS[hdr:GetName()]
 	if vals.statemaps then
 		for k, v in pairs(vals.statemaps) do
-			hdr:SetAttribute("statemap-"..k, v)
-			statelist[v] = true
-			local state, value = string.split("-", k)
-			if not driver[state] then
-				driver[state] = {}
+			if string.find(k, "%-") then
+				k = string.gsub(k, "%-", ":")
 			end
-			table.insert(driver[state], "["..state..":"..value.."] "..v)
+
+			local add = true
+			local list = v..":"..v
+			local state, value = string.split(":", k)
+			table.insert(driver, "["..state..":"..value.."] "..v)
+
+			for _, l in ipairs(statelist) do
+				if l == list then
+					add = nil
+					break
+				end
+			end
+
+			if add then
+				table.insert(statelist, v..":"..v)
+			end
 		end
 	end
 
-	for k, v in pairs(driver) do
-		RegisterStateDriver(hdr, k, table.concat(v, "; "))
-		if not hdr.state then
-			hdr.state = k
-		end
-	end
+	driver = table.concat(driver, ";")
+	state = SecureCmdOptionParse(driver)
+	statelist = table.concat(statelist, ";")
 
-	for k in pairs(statelist) do
-		statestring = statestring..k..":"..k..";"
-	end
-
+	RegisterStateDriver(hdr, "state", driver)
+	hdr:SetAttribute("statemap-state", "$input")
+	hdr:SetAttribute("statebutton", statelist)
+	hdr:SetAttribute("state", state)
 	hdr:SetWidth(vals.cols * (36 + vals.xgap) - vals.xgap)
 	hdr:SetHeight(vals.rows * (36 + vals.ygap) - vals.ygap)
 	
@@ -586,7 +591,6 @@ function Nurfed:updatebar(hdr)
 			local btn = table.remove(btns, 1) or getbtn()
 			btn:SetID(count)
 			hdr:SetAttribute("addchild", btn)
-			btn:SetAttribute("statebutton", statestring)
 			vals.buttons[count] = vals.buttons[count] or {}
 			
 			for k, v in pairs(vals.buttons[count]) do
@@ -743,11 +747,6 @@ local barevents = {
 			if not shown or shown == "always" or (shown == "nocombat" and not InCombatLockdown()) then
 				bar:Show()
 			end
-			if bar.state then
-				--ChatFrame1:AddMessage(bar:GetAttribute("state"))
-				--bar.state = bar:GetAttribute("statemap-"..bar.state.."-"..bar:GetAttribute("state-"..bar.state))
-			end
-			--bar:SetAttribute("state", bar.state or "0")
 			_G[bar:GetName().."drag"]:Hide()
 			bar.init = true
 		end
