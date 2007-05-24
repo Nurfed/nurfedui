@@ -402,9 +402,9 @@ local delbtn = function(btn)
 		btn:SetAttribute(k, nil)
 	end
 
+	btn:SetParent(UIParent)
 	btn:Hide()
 	btn:SetID(0)
-	btn:SetParent(UIParent)
 	_G[btn:GetName().."HotKey"]:SetText(nil)
 end
 
@@ -671,14 +671,11 @@ function Nurfed:updatebar(hdr)
 		delbtn(v)
 	end
 
-	while vals.buttons[count] do
-		vals.buttons[count] = nil
-		count = count + 1
-	end
-
 	if NRF_LOCKED then
 		_G[hdr:GetName().."drag"]:Hide()
 	end
+
+	return count
 end
 
 function Nurfed:deletebar(frame)
@@ -727,7 +724,12 @@ function Nurfed:createbar(frame)
 
 		_G[frame.."dragtext"]:SetText(frame)
 
-		Nurfed:updatebar(hdr)
+		local count = Nurfed:updatebar(hdr)
+
+		while vals.buttons[count] do
+			vals.buttons[count] = nil
+			count = count + 1
+		end
 	end
 end
 
