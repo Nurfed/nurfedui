@@ -31,6 +31,7 @@ local updateoptions = function()
 		Nurfed_MenuActionBarsbaralpha:SetValue(vals.alpha)
 		Nurfed_MenuActionBarsbarunit:SetText(vals.unit or "")
 		Nurfed_MenuActionBarsbarshown:SetText(vals.shown or "")
+		Nurfed_MenuActionBarsbaruseunit:SetChecked(vals.useunit)
 		Nurfed_MenuActionBarsbarxgap:SetValue(vals.xgap)
 		Nurfed_MenuActionBarsbarygap:SetValue(vals.ygap)
 	end
@@ -127,6 +128,7 @@ local addnew = function()
 			xgap = Nurfed_MenuActionBarsbarxgap:GetValue(),
 			ygap = Nurfed_MenuActionBarsbarygap:GetValue(),
 			shown = Nurfed_MenuActionBarsbarshown:GetText(),
+			useunit = Nurfed_MenuActionBarsbaruseunit:GetChecked(),
 			buttons = {},
 			statemaps = {},
 		}
@@ -162,6 +164,8 @@ local updatebar = function()
 				hdr:SetAttribute("unit", value)
 				Nurfed:updatebar(hdr)
 			end
+		elseif this.val == "useunit" then
+			hdr:SetAttribute("useunit", value)
 		elseif this.val == "alpha" then
 			local children = { hdr:GetChildren() }
 			for _, child in ipairs(children) do
@@ -323,17 +327,17 @@ NURFED_MENUS["ActionBars"] = {
 		},
 		bar = {
 			type = "Frame",
-			size = { 100, 100 },
+			size = { 235, 100 },
 			Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 0, 0 },
 			children = {
 				unit = {
 					template = "nrf_editbox",
-					size = { 100, 18 },
-					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -50, -10 },
+					size = { 75, 18 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, -7 },
 					children = {
 						add = {
 							template = "nrf_button",
-							Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
+							Anchor = { "LEFT", "$parent", "RIGHT", 0, 0 },
 							Text = "Unit",
 							OnClick = function() framedrop(units) end,
 						},
@@ -344,12 +348,12 @@ NURFED_MENUS["ActionBars"] = {
 				},
 				shown = {
 					template = "nrf_editbox",
-					size = { 100, 18 },
-					Anchor = { "TOPRIGHT", "$parentunit", "BOTTOMRIGHT", 0, -10 },
+					size = { 75, 18 },
+					Anchor = { "LEFT", "$parentunitadd", "RIGHT", 12, 0 },
 					children = {
 						add = {
 							template = "nrf_button",
-							Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
+							Anchor = { "LEFT", "$parent", "RIGHT", 0, 0 },
 							Text = "Shown",
 							OnClick = function() framedrop(shown) end,
 						},
@@ -358,9 +362,15 @@ NURFED_MENUS["ActionBars"] = {
 					OnEnterPressed = function() updatebar() end,
 					vars = { val = "shown", default = "always" },
 				},
+				useunit = {
+					template = "nrf_check",
+					Anchor = { "TOPRIGHT", "$parentshownadd", "BOTTOMRIGHT", -20, -4 },
+					OnClick = function() updatebar() end,
+					vars = { text = "Harm / Help", val = "useunit" },
+				},
 				rows = {
 					template = "nrf_slider",
-					Anchor = { "TOPRIGHT", "$parentshown", "BOTTOMRIGHT", 0, -13 },
+					Anchor = { "TOPRIGHT", "$parentuseunit", "BOTTOMRIGHT", 0, -13 },
 					vars = {
 						text = "Rows",
 						val = "rows",
