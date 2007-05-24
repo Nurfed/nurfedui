@@ -409,11 +409,14 @@ local templates = {
 	},
 }
 
--- Menu layout
-local layout = {
+-- Create menu frame
+for k, v in pairs(templates) do
+	Nurfed:createtemp(k, v)
+end
+
+local frame = Nurfed:create("Nurfed_Menu", {
 	type = "Frame",
 	size = { 500, 300 },
-	FrameStrata = "LOW",
 	Toplevel = true,
 	Movable = true,
 	Mouse = true,
@@ -492,20 +495,16 @@ local layout = {
 			Text = CLOSE,
 		},
 	},
+	OnLoad = function(self)
+		self:RegisterForDrag("LeftButton")
+		table.insert(UISpecialFrames, "Nurfed_Menu")
+		Nurfed_MenuHeaderTitle:SetText("Nurfed Options Menu")
+		Nurfed_MenuHeaderVersion:SetText(GetAddOnMetadata("Nurfed_Options", "Version"))
+	end,
 	OnDragStart = function() this:StartMoving() end,
 	OnDragStop = function() this:StopMovingOrSizing() end,
 	Hide = true,
-}
-
--- Create menu frame
-for k, v in pairs(templates) do
-	Nurfed:createtemp(k, v)
-end
-local frame = Nurfed:create("Nurfed_Menu", layout)
-frame:RegisterForDrag("LeftButton")
-Nurfed_MenuHeaderTitle:SetText("Nurfed Options Menu")
-Nurfed_MenuHeaderVersion:SetText(GetAddOnMetadata("Nurfed_Options", "Version"))
-table.insert(UISpecialFrames, "Nurfed_Menu")
+})
 
 -- Add menu buttons
 local tmp = {}
