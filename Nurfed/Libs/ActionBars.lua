@@ -70,6 +70,15 @@ local updatecooldown = function(btn)
 			start, duration, enable = GetSpellCooldown(btn.spell)
 		elseif btn.type == "item" then
 			start, duration, enable = GetItemCooldown(btn.spell)
+		elseif btn.type == "macro" then
+			local action = GetActionFromMacroText(GetMacroBody(btn.spell))
+			if action then
+				if GetItemInfo(action) then
+					start, duration, enable = GetItemCooldown(action)
+				else
+					start, duration, enable = GetSpellCooldown(action)
+				end
+			end
 		end
 	end
 	if start and duration then
@@ -172,6 +181,7 @@ local seticon = function(btn)
 				updateitem(btn)
 			else
 				_G[btn:GetName().."Border"]:Hide()
+				_G[btn:GetName().."Count"]:SetText(nil)
 			end
 			updatecooldown(btn)
 		end
@@ -420,6 +430,9 @@ local btnevents = {
 		local id = btn:GetID()
 		if id > 0 then
 			local key = GetBindingKey("CLICK "..btn:GetName()..":LeftButton")
+			if key then
+				key = Nurfed:binding(key)
+			end
 			_G[btn:GetName().."HotKey"]:SetText(key)
 		end
 	end,
@@ -486,9 +499,31 @@ local btnupdate = function()
 			elseif ItemHasRange(btn.spell) and IsItemInRange(btn.spell, unit) == 0 then
 				r, g, b = 1, 0, 0
 			end
-		elseif btn.type == "macro" and btn.macro then
-			seticon(btn)
-			btn.macro = nil
+		elseif btn.type == "macro" then
+			local action = GetActionFromMacroText(GetMacroBody(btn.spell))
+			if action then
+				if GetItemInfo(action) then
+					if not IsUsableItem(action) then
+						r, g, b = 0.4, 0.4, 0.4
+					elseif ItemHasRange(action) and IsItemInRange(action, unit) == 0 then
+						r, g, b = 1, 0, 0
+					end
+				else
+					local usable, nomana = IsUsableSpell(action)
+					if nomana then
+						r, g, b = 0.5, 0.5, 1
+					elseif not usable then
+						r, g, b = 0.4, 0.4, 0.4
+					elseif SpellHasRange(action) and IsSpellInRange(action, unit) == 0 then
+						r, g, b = 1, 0, 0
+					end
+				end
+			end
+
+			if btn.macro then
+				seticon(btn)
+				btn.macro = nil
+			end
 		end
 		_G[btn:GetName().."Icon"]:SetVertexColor(r, g, b)
 		cooldowntext(btn)

@@ -1497,7 +1497,7 @@ local updateinfo = function(frame, stat)
 				end
 
 				p_h2 = 1 - p_h1
-				cuttexture(child, size, child.fill, (1 - perc) * p_h1 + p_h2)
+				cuttexture(child, size, child.fill, (1 - (perc / 100)) * p_h1 + p_h2)
 				if r and g and b then
 					child:SetVertexColor(r, g, b)
 				end
