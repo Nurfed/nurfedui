@@ -1768,13 +1768,13 @@ end
 
 local updateauras = function(frame)
 	local unit = SecureButton_GetUnit(frame)
-	local button, name, rank, texture, app, dtype, color, total, width, fwidth, scale
+	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale
 
 	if frame.buff then
 		total = 0
 		for i = 1, #frame.buff do
 			button = _G[frame:GetName().."buff"..i]
-			name, rank, texture, app = UnitBuff(unit, i, frame.bfilter)
+			name, rank, texture, app, duration, left = UnitBuff(unit, i, frame.bfilter)
 			if name then
 				_G[button:GetName().."Icon"]:SetTexture(texture)
 				count = _G[button:GetName().."Count"]
@@ -1787,6 +1787,11 @@ local updateauras = function(frame)
 				button.filter = frame.bfilter
 				button:Show()
 				total = total + 1
+				if duration and duration > 0 then
+					CooldownFrame_SetTimer(_G[button:GetName().."Cooldown"], GetTime()-(duration-left), duration, 1)
+				else
+					_G[button:GetName().."Cooldown"]:Hide()
+				end
 			else
 				button:Hide()
 			end
@@ -1811,7 +1816,7 @@ local updateauras = function(frame)
 			if (unit == "target" or unit == "focus") and not UnitIsFriend("player", unit) then
 				filter = nil
 			end
-			name, rank, texture, app, dtype = UnitDebuff(unit, i, filter)
+			name, rank, texture, app, dtype, duration, left = UnitDebuff(unit, i, filter)
 			if name then
 				_G[button:GetName().."Icon"]:SetTexture(texture)
 				count = _G[button:GetName().."Count"]
@@ -1831,6 +1836,12 @@ local updateauras = function(frame)
 				border:SetVertexColor(color.r, color.g, color.b)
 				button.filter = frame.dfilter
 				button:Show()
+				
+				if duration and duration > 0 then
+					CooldownFrame_SetTimer(_G[button:GetName().."Cooldown"], GetTime()-(duration-left), duration, 1)
+				else
+					_G[button:GetName().."Cooldown"]:Hide()
+				end
 
 				local class = select(2, UnitClass("player"))
 				if UnitIsFriend("player", unit) and dtype and cure[dtype] and cure[dtype][class] then
