@@ -1745,6 +1745,33 @@ local updatepvp = function(frame)
 	end
 end
 
+local cooldowntext = function(frame)
+	local cd = _G[frame:GetName().."Cooldown"]
+	if cd.text and cd.cool then
+		local cdscale = cd:GetScale()
+		local r, g, b = 1, 0, 0
+		local height = floor(14 / cdscale)
+		local fheight = select(2, cd.text:GetFont())
+		local remain = (cd.start + cd.duration) - GetTime()
+		if remain >= 0 then
+			remain = math.round(remain)
+			if remain >= 60 then
+				remain = math.floor(remain / 60)
+				r, g, b = 1, 1, 0
+				height = floor(12 / cdscale)
+			end
+			cd.text:SetText(remain)
+			cd.text:SetTextColor(r, g, b)
+			if height ~= fheight then
+				cd.text:SetFont("Fonts\\FRIZQT__.TTF", height, "OUTLINE")
+			end
+		else
+			cd.text:SetText(nil)
+			cd.cool = nil
+		end
+	end
+end
+
 local aurafade = function(...)
 	local e = select(2, ...)
 	this.update = this.update + e
@@ -1764,6 +1791,7 @@ local aurafade = function(...)
 		this:SetAlpha(p)
 		this.update = 0
 	end
+	cooldowntext(...)
 end
 
 local updateauras = function(frame)
@@ -1787,6 +1815,7 @@ local updateauras = function(frame)
 				button.filter = frame.bfilter
 				button:Show()
 				total = total + 1
+				button:SetScript("OnUpdate", cooldowntext)
 				if duration and duration > 0 then
 					CooldownFrame_SetTimer(_G[button:GetName().."Cooldown"], GetTime()-(duration-left), duration, 1)
 				else
@@ -1806,7 +1835,7 @@ local updateauras = function(frame)
 			end
 		end
 	end
-		
+
 	if frame.debuff then
 		frame.cure = nil
 		total = 0
@@ -1836,6 +1865,7 @@ local updateauras = function(frame)
 				border:SetVertexColor(color.r, color.g, color.b)
 				button.filter = frame.dfilter
 				button:Show()
+				cd=_G[button:GetName().."Cooldown"]
 				
 				if duration and duration > 0 then
 					CooldownFrame_SetTimer(_G[button:GetName().."Cooldown"], GetTime()-(duration-left), duration, 1)
@@ -1850,10 +1880,11 @@ local updateauras = function(frame)
 						button.update = 0
 						button.flashdct = 1
 						button:SetScript("OnUpdate", aurafade)
+					
 					end
 					frame.cure = cure[dtype][class]
 				else
-					button:SetScript("OnUpdate", nil)
+					button:SetScript("OnUpdate", cooldowntext)
 					button:SetAlpha(1)
 				end
 			else
@@ -1959,17 +1990,49 @@ local updateloot = function(frame)
 	end
 end
 
+----------------------------------------------------------------
+-- Toggle party member frames
+local partysched
+function NRF_UpdateParty()
+	if InCombatLockdown() then
+		if not partysched then
+			partysched = true
+			Nurfed:schedule("combat", NRF_UpdateParty)
+		end
+	else
+		local size = Nurfed:getopt("raidsize")
+		if HIDE_PARTY_INTERFACE == "1" and GetNumRaidMembers() > size then
+			for _, frame in ipairs(partyframes) do
+				frame:Hide()
+			end
+		else
+			for _, frame in ipairs(partyframes) do
+				if frame:GetAttribute("state-unitexists") then
+					frame:Show()
+				else
+					frame:Hide()
+				end
+			end
+		end
+		partysched = nil
+	end
+end
+
+hooksecurefunc("RaidOptionsFrame_UpdatePartyFrames", NRF_UpdateParty)
+
 local showparty = function(self)
-	if not InCombatLockdown() then
+	if InCombatLockdown() then
+		if not partysched then
+			partysched = true
+			Nurfed:schedule("combat", NRF_UpdateParty)
+		end
+	else
 		local size = Nurfed:getopt("raidsize")
 		if not UnitExists(self.unit) or (HIDE_PARTY_INTERFACE == "1" and GetNumRaidMembers() > size) then
 			self:Hide()
 		else
 			self:Show()
 		end
-		self:SetScript("OnUpdate", nil)
-	else
-		self:SetScript("OnUpdate", showparty)
 	end
 end
 
@@ -2337,6 +2400,14 @@ function Nurfed:unitimbue(frame)
 				regstatus("feedback", child)
 			elseif objtype == "Button" then
 				if string.find(childname, "^buff") or string.find(childname, "^debuff") then
+					local cd = _G[child:GetName().."Cooldown"]
+					if not cd then
+						cd = CreateFrame("Cooldown", child:GetName().."Cooldown", child, "CooldownFrameTemplate")
+						cd:Hide()
+					end
+					cd.text = cd:CreateFontString(nil, "OVERLAY")
+					cd.text:SetPoint("CENTER")
+					cd.text:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE")
 					local border = _G[child:GetName().."Border"]
 					local count = _G[child:GetName().."Count"]
 					local icon = _G[child:GetName().."Icon"]
@@ -2462,33 +2533,3 @@ if Nurfed_Replace then
 	end
 	Nurfed_Replace = nil
 end
-
-----------------------------------------------------------------
--- Toggle party member frames
-local partysched
-function NRF_UpdateParty()
-	if InCombatLockdown() then
-		if not partysched then
-			partysched = true
-			Nurfed:schedule("combat", NRF_UpdateParty)
-		end
-	else
-		local size = Nurfed:getopt("raidsize")
-		if HIDE_PARTY_INTERFACE == "1" and GetNumRaidMembers() > size then
-			for _, frame in ipairs(partyframes) do
-				frame:Hide()
-			end
-		else
-			for _, frame in ipairs(partyframes) do
-				if frame:GetAttribute("state-unitexists") then
-					frame:Show()
-				else
-					frame:Hide()
-				end
-			end
-		end
-		partysched = nil
-	end
-end
-
-hooksecurefunc("RaidOptionsFrame_UpdatePartyFrames", NRF_UpdateParty)
