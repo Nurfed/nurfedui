@@ -1750,21 +1750,15 @@ local cooldowntext = function(frame)
 	if cd.text and cd.cool then
 		local cdscale = cd:GetScale()
 		local r, g, b = 1, 0, 0
-		local height = floor(14 / cdscale)
-		local fheight = select(2, cd.text:GetFont())
 		local remain = (cd.start + cd.duration) - GetTime()
 		if remain >= 0 then
 			remain = math.round(remain)
 			if remain >= 60 then
 				remain = math.floor(remain / 60)
 				r, g, b = 1, 1, 0
-				height = floor(12 / cdscale)
 			end
 			cd.text:SetText(remain)
 			cd.text:SetTextColor(r, g, b)
-			if height ~= fheight then
-				cd.text:SetFont("Fonts\\FRIZQT__.TTF", height, "OUTLINE")
-			end
 		else
 			cd.text:SetText(nil)
 			cd.cool = nil
@@ -2407,7 +2401,8 @@ function Nurfed:unitimbue(frame)
 					end
 					cd.text = cd:CreateFontString(nil, "OVERLAY")
 					cd.text:SetPoint("CENTER")
-					cd.text:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE")
+					local width = floor(child:GetWidth() * .65)
+					cd.text:SetFont("Fonts\\FRIZQT__.TTF", width, "OUTLINE")
 					local border = _G[child:GetName().."Border"]
 					local count = _G[child:GetName().."Count"]
 					local icon = _G[child:GetName().."Icon"]
