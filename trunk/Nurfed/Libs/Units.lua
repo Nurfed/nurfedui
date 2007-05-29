@@ -778,44 +778,6 @@ NURFED_FRAMES = NURFED_FRAMES or {
 	},
 }
 
-----------------------------------------------------------------
--- Icon coord tables
-local race = {
-	["HUMAN_MALE"]		= {0, 0.125, 0, 0.25},
-	["DWARF_MALE"]		= {0.125, 0.25, 0, 0.25},
-	["GNOME_MALE"]		= {0.25, 0.375, 0, 0.25},
-	["NIGHTELF_MALE"]	= {0.375, 0.5, 0, 0.25},
-	["TAUREN_MALE"]		= {0, 0.125, 0.25, 0.5},
-	["SCOURGE_MALE"]	= {0.125, 0.25, 0.25, 0.5},
-	["TROLL_MALE"]		= {0.25, 0.375, 0.25, 0.5},
-	["ORC_MALE"]		= {0.375, 0.5, 0.25, 0.5},
-	["HUMAN_FEMALE"]	= {0, 0.125, 0.5, 0.75},
-	["DWARF_FEMALE"]	= {0.125, 0.25, 0.5, 0.75},
-	["GNOME_FEMALE"]	= {0.25, 0.375, 0.5, 0.75},
-	["NIGHTELF_FEMALE"]	= {0.375, 0.5, 0.5, 0.75},
-	["TAUREN_FEMALE"]	= {0, 0.125, 0.75, 1.0},
-	["SCOURGE_FEMALE"]	= {0.125, 0.25, 0.75, 1.0},
-	["TROLL_FEMALE"]	= {0.25, 0.375, 0.75, 1.0},
-	["ORC_FEMALE"]		= {0.375, 0.5, 0.75, 1.0},
-	["BLOODELF_MALE"]	= {0.5, 0.625, 0.25, 0.5},
-	["BLOODELF_FEMALE"]	= {0.5, 0.625, 0.75, 1.0},
-	["DRAENEI_MALE"]	= {0.5, 0.625, 0, 0.25},
-	["DRAENEI_FEMALE"]	= {0.5, 0.625, 0.5, 0.75},
-}
-
-local class = {
-	["WARRIOR"] = {0, 0.25, 0, 0.25},
-	["MAGE"] = {0.25, 0.49609375, 0, 0.25},
-	["ROGUE"] = {0.49609375, 0.7421875, 0, 0.25},
-	["DRUID"] = {0.7421875, 0.98828125, 0, 0.25},
-	["HUNTER"] = {0, 0.25, 0.25, 0.5},
-	["SHAMAN"] = {0.25, 0.49609375, 0.25, 0.5},
-	["PRIEST"] = {0.49609375, 0.7421875, 0.25, 0.5},
-	["WARLOCK"] = {0.7421875, 0.98828125, 0.25, 0.5},
-	["PALADIN"] = {0, 0.25, 0.5, 0.75},
-	["PETS"] = {0, 1, 0, 1},
-}
-
 local cure = {
 	["Magic"] = {
 		["PRIEST"] = true,
@@ -866,7 +828,7 @@ local replace = {
 		local name = UnitName(this.unit)
 		local color
 		if UnitIsPlayer(this.unit) then
-			local _, eclass = UnitClass(this.unit)
+			local eclass = select(2, UnitClass(this.unit))
 			if eclass then
 				color = RAID_CLASS_COLORS[eclass].hex
 			end
@@ -1925,33 +1887,22 @@ local updatename = function(frame)
 	if frame.name then
 		formattext(frame.name)
 	end
+
 	if frame.class then
 		local info
 		local icon = frame.class
-		if UnitIsPlayer(unit) or UnitCreatureType(unit) == "Humanoid" then
-			local eclass = select(2, UnitClass(unit))
-			info = class[eclass]
-			icon:SetTexture("Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Classes")
-		else
-			info = class["PETS"]
-			icon:SetTexture("Interface\\RaidFrame\\UI-RaidFrame-Pets")
-		end
-		if info then
-			icon:SetTexCoord(unpack(info))
+		local texture, coords = Nurfed:getclassicon(unit)
+		if coords then
+			icon:SetTexture(texture)
+			icon:SetTexCoord(unpack(coords))
 		end
 	end
+
 	if frame.race then
 		local icon = frame.race
-		local erace = select(2, UnitRace(unit))
-		local gender = UnitSex(unit)
-		if gender == 1 then
-			gender = "MALE"
-		else
-			gender = "FEMALE"
-		end
-		local info = race[string.upper(erace).."_"..gender]
-		if info then
-			icon:SetTexCoord(unpack(info))
+		local coords = Nurfed:getraceicon(unit)
+		if coords then
+			icon:SetTexCoord(unpack(coords))
 		end
 	end
 end

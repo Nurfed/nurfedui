@@ -33,6 +33,8 @@ NURFED_DEFAULT["hidecasting"] = 1
 NURFED_DEFAULT["squareminimap"] = false
 NURFED_DEFAULT["raidsize"] = 5
 NURFED_DEFAULT["lock"] = { "CENTER", "Minimap", "CENTER", -12, -80 }
+NURFED_DEFAULT["hpcolor"] = "fade"
+NURFED_DEFAULT["hpscript"] = "return function(perc, unit)\nlocal r, g, b = 1, 1, 1\nreturn r, g, b\nend"
 
 local wowmenu = {
 	{ CHARACTER, function() ToggleCharacter("PaperDollFrame") end },
@@ -438,3 +440,55 @@ local flood = function()
 end
 
 Nurfed:schedule(0.5, flood, true)
+
+----------------------------------------------------------------
+-- Add point gain to team frame
+for i = 1, 3 do
+	local score = getglobal("PVPTeam"..i):CreateFontString("PVPTeam"..i.."points", "ARTWORK")
+	score:SetFont(STANDARD_TEXT_FONT, 10)
+	score:SetTextColor(0, 1, 0)
+	score:SetPoint("LEFT", 15, -4)
+end
+
+local rating = function()
+	local size, rating, score, points
+	local buttonIndex = 0
+	local ARENA_TEAMS = {};
+	ARENA_TEAMS[1] = {size = 2}
+	ARENA_TEAMS[2] = {size = 3}
+	ARENA_TEAMS[3] = {size = 5}
+
+	for index, value in pairs(ARENA_TEAMS) do
+		for i = 1, MAX_ARENA_TEAMS do
+			teamName, teamSize = GetArenaTeam(i)
+			if value.size == teamSize then
+				value.index = i
+			end
+		end
+	end
+
+	for index, value in pairs(ARENA_TEAMS) do
+		if value.index then
+			_, size, rating = GetArenaTeam(value.index);
+			buttonIndex = buttonIndex + 1
+			score = getglobal("PVPTeam"..buttonIndex.."points")
+
+			if rating > 1500 then
+				points = 2894 / (1 + 259 * math.pow(2.718281828459, (-0.0025 * rating)))
+			else
+				points = (0.206 * rating) + 99
+			end
+			points = points + 0.5
+
+			if size == 2 then
+				points = points * 0.7
+			elseif size == 3 then
+				points = points * 0.8
+			end
+
+			score:SetText(format("%d", points))
+		end
+	end
+end
+
+hooksecurefunc("PVPFrame_OnShow", rating)

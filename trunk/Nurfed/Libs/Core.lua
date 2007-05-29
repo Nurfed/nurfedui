@@ -2,7 +2,7 @@
 --		Nurfed Core Library
 ------------------------------------------
 
-local version = 1.0
+local version = 1.1
 local _G = getfenv(0)
 local util = _G["Nurfed"]
 
@@ -103,6 +103,68 @@ function util:getopt(opt, addon)
 	return val
 end
 
+function util:binding(bind)
+	bind = string.gsub(bind, "CTRL%-", "C-")
+	bind = string.gsub(bind, "ALT%-", "A-")
+	bind = string.gsub(bind, "SHIFT%-", "S-")
+	bind = string.gsub(bind, "Num Pad", "NP")
+	bind = string.gsub(bind, "NUMPAD", "NP")
+	bind = string.gsub(bind, "Backspace", "Bksp")
+	bind = string.gsub(bind, "Spacebar", "Space")
+	bind = string.gsub(bind, "Page", "Pg")
+	bind = string.gsub(bind, "Down", "Dn")
+	bind = string.gsub(bind, "Arrow", "")
+	bind = string.gsub(bind, "Insert", "Ins")
+	bind = string.gsub(bind, "Delete", "Del")
+	return bind
+end
+
+function util:formatgs(gstring, anchor)
+	gstring = string.gsub(gstring,"([%^%(%)%.%[%]%*%+%-%?])","%%%1")
+	gstring = string.gsub(gstring,"%%s","(.+)")
+	gstring = string.gsub(gstring,"%%d","(%-?%%d+)")
+	if anchor then gstring = "^"..gstring end
+	return gstring
+end
+
+----------------------------------------------------------------
+-- Unit functions
+local race = {
+	["HUMAN_MALE"]		= {0, 0.125, 0, 0.25},
+	["DWARF_MALE"]		= {0.125, 0.25, 0, 0.25},
+	["GNOME_MALE"]		= {0.25, 0.375, 0, 0.25},
+	["NIGHTELF_MALE"]	= {0.375, 0.5, 0, 0.25},
+	["TAUREN_MALE"]		= {0, 0.125, 0.25, 0.5},
+	["SCOURGE_MALE"]	= {0.125, 0.25, 0.25, 0.5},
+	["TROLL_MALE"]		= {0.25, 0.375, 0.25, 0.5},
+	["ORC_MALE"]		= {0.375, 0.5, 0.25, 0.5},
+	["HUMAN_FEMALE"]	= {0, 0.125, 0.5, 0.75},
+	["DWARF_FEMALE"]	= {0.125, 0.25, 0.5, 0.75},
+	["GNOME_FEMALE"]	= {0.25, 0.375, 0.5, 0.75},
+	["NIGHTELF_FEMALE"]	= {0.375, 0.5, 0.5, 0.75},
+	["TAUREN_FEMALE"]	= {0, 0.125, 0.75, 1.0},
+	["SCOURGE_FEMALE"]	= {0.125, 0.25, 0.75, 1.0},
+	["TROLL_FEMALE"]	= {0.25, 0.375, 0.75, 1.0},
+	["ORC_FEMALE"]		= {0.375, 0.5, 0.75, 1.0},
+	["BLOODELF_MALE"]	= {0.5, 0.625, 0.25, 0.5},
+	["BLOODELF_FEMALE"]	= {0.5, 0.625, 0.75, 1.0},
+	["DRAENEI_MALE"]	= {0.5, 0.625, 0, 0.25},
+	["DRAENEI_FEMALE"]	= {0.5, 0.625, 0.5, 0.75},
+}
+
+local class = {
+	["WARRIOR"]	= {0, 0.25, 0, 0.25},
+	["MAGE"]	= {0.25, 0.49609375, 0, 0.25},
+	["ROGUE"]	= {0.49609375, 0.7421875, 0, 0.25},
+	["DRUID"]	= {0.7421875, 0.98828125, 0, 0.25},
+	["HUNTER"]	= {0, 0.25, 0.25, 0.5},
+	["SHAMAN"]	= {0.25, 0.49609375, 0.25, 0.5},
+	["PRIEST"]	= {0.49609375, 0.7421875, 0.25, 0.5},
+	["WARLOCK"]	= {0.7421875, 0.98828125, 0.25, 0.5},
+	["PALADIN"]	= {0, 0.25, 0.5, 0.75},
+	["PETS"]	= {0, 1, 0, 1},
+}
+
 function util:getunit(name)
 	for i = 1, GetNumRaidMembers() do
 		local rname, rank, group = GetRaidRosterInfo(i)
@@ -149,42 +211,55 @@ function util:getunitstat(unit, stat)
 	missing = curr - max
 
 	if stat == "Health" then
-		if perc > 0.5 then
-			r = (1.0 - perc) * 2
-			g = 1.0
-		else
-			r = 1.0
-			g = perc * 2
+		local color = Nurfed:getopt("hpcolor")
+		if color == "class" then
+			local eclass = select(2, UnitClass(unit))
+			r = RAID_CLASS_COLORS[eclass].r
+			g = RAID_CLASS_COLORS[eclass].g
+			b = RAID_CLASS_COLORS[eclass].b
+		elseif color == "fade" then
+			if perc > 0.5 then
+				r = (1.0 - perc) * 2
+				g = 1.0
+			else
+				r = 1.0
+				g = perc * 2
+			end
+			b = 0.0
+		elseif color == "script" then
+			local script = Nurfed:getopt("hpscript")
+			local func = assert(loadstring(script))()
+			r, g, b = func(perc, unit)
 		end
-		b = 0.0
 	end
 
 	perc = format("%.0f", floor(perc * 100))
 	return curr, max, missing, perc, r, g, b
 end
 
-function util:binding(bind)
-	bind = string.gsub(bind, "CTRL%-", "C-")
-	bind = string.gsub(bind, "ALT%-", "A-")
-	bind = string.gsub(bind, "SHIFT%-", "S-")
-	bind = string.gsub(bind, "Num Pad", "NP")
-	bind = string.gsub(bind, "NUMPAD", "NP")
-	bind = string.gsub(bind, "Backspace", "Bksp")
-	bind = string.gsub(bind, "Spacebar", "Space")
-	bind = string.gsub(bind, "Page", "Pg")
-	bind = string.gsub(bind, "Down", "Dn")
-	bind = string.gsub(bind, "Arrow", "")
-	bind = string.gsub(bind, "Insert", "Ins")
-	bind = string.gsub(bind, "Delete", "Del")
-	return bind
+function util:getclassicon(unit)
+	local coords
+	local texture = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Classes"
+	if UnitIsPlayer(unit) or UnitCreatureType(unit) == "Humanoid" then
+		local eclass = select(2, UnitClass(unit))
+		coords = class[eclass]
+	else
+		coords = class["PETS"]
+		texture = "Interface\\RaidFrame\\UI-RaidFrame-Pets"
+	end
+	return texture, coords
 end
 
-function util:formatgs(gstring, anchor)
-	gstring = string.gsub(gstring,"([%^%(%)%.%[%]%*%+%-%?])","%%%1")
-	gstring = string.gsub(gstring,"%%s","(.+)")
-	gstring = string.gsub(gstring,"%%d","(%-?%%d+)")
-	if anchor then gstring = "^"..gstring end
-	return gstring
+function util:getraceicon(unit)
+	local erace = select(2, UnitRace(unit))
+	local gender = UnitSex(unit)
+	if gender == 1 then
+		gender = "MALE"
+	else
+		gender = "FEMALE"
+	end
+	local coords = race[string.upper(erace).."_"..gender]
+	return coords
 end
 
 ----------------------------------------------------------------
@@ -497,6 +572,11 @@ frame:SetScript("OnUpdate", onupdate)
 ----------------------------------------------------------------
 -- Spell database
 local spells
+local reagents
+
+CreateFrame("GameTooltip", "Nurfed_Tooltip", UIParent, "GameTooltipTemplate")
+Nurfed_Tooltip:Show()
+Nurfed_Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
 
 local updatespelltab = function(tab)
 	local spellid, name, rank
@@ -510,6 +590,20 @@ local updatespelltab = function(tab)
 				name = name.."("..rank..")"
 				spells[name] = spellid
 			end
+			Nurfed_Tooltip:ClearLines()
+			Nurfed_Tooltip:SetSpell(spellid, BOOKTYPE_SPELL)
+			for i = 1, Nurfed_Tooltip:NumLines() do
+				local text = _G["Nurfed_TooltipTextLeft"..i]:GetText()
+				if text and string.find(text, "^"..SPELL_REAGENTS) then
+					local reg = string.gsub(text, SPELL_REAGENTS, "")
+					if string.find(reg, "^|c") then
+						_, _, reg = string.find(reg, "|c%x+(.*)|r")
+					end
+					name = string.gsub(name, "%(%)", "")
+					reagents[name] = reg
+					break
+				end
+			end
 		end
 	end
 end
@@ -517,6 +611,7 @@ end
 local updatespells = function(event, arg1)
 	if not spells then
 		spells = {}
+		reagents = {}
 	end
 	if arg1 then
 		updatespelltab(arg1)
@@ -535,7 +630,7 @@ function util:getspell(spell, rank)
 		spell = spell.."("..RANK.." "..rank..")"
 	end
 	spell = string.gsub(spell, "%(%)", "")
-	return spells[spell]
+	return spells[spell], reagents[spell]
 end
 
 util:regevent("LEARNED_SPELL_IN_TAB", updatespells)
