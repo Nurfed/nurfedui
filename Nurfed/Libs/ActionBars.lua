@@ -777,14 +777,6 @@ function Nurfed:createbar(frame)
 			hdr:Show()
 		end
 
-		local drag = _G[frame.."drag"]
-		drag:ClearAllPoints()
-		if hdr:GetTop() >= GetScreenHeight() / 2 then
-			drag:SetPoint("TOPLEFT", hdr, "BOTTOMLEFT")
-		else	
-			drag:SetPoint("BOTTOMLEFT", hdr, "TOPLEFT")
-		end
-
 		_G[frame.."dragtext"]:SetText(frame)
 
 		local count = Nurfed:updatebar(hdr)
@@ -823,6 +815,7 @@ Nurfed:createtemp("actionbar", {
 					insets = { left = 0, right = 0, top = 0, bottom = 0 }
 				},
 				BackdropColor = { 0, 0, 0 },
+				Point = { "TOPLEFT", "$parent", "BOTTOMLEFT" },
 				OnLoad = function(self)
 					self:RegisterForDrag("LeftButton")
 					if not NRF_LOCKED and IsLoggedIn() then
@@ -836,25 +829,38 @@ Nurfed:createtemp("actionbar", {
 				end,
 				OnDragStart = function(self) self:GetParent():StartMoving() end,
 				OnDragStop = function(self)
-						local parent = self:GetParent()
-						parent:StopMovingOrSizing()
-						if NURFED_ACTIONBARS[parent:GetName()] then
-							NURFED_ACTIONBARS[parent:GetName()].Point = { parent:GetPoint() }
-						else
-							parent:SetUserPlaced(true)
-						end
+					local parent = self:GetParent()
+					parent:StopMovingOrSizing()
+					if NURFED_ACTIONBARS[parent:GetName()] then
+						NURFED_ACTIONBARS[parent:GetName()].Point = { parent:GetPoint() }
+					else
+						parent:SetUserPlaced(true)
+					end
 
+					local top = self:GetTop()
+					local screen = GetScreenHeight() / 2
+					if top and screen then
 						self:ClearAllPoints()
-						local top = self:GetTop()
-						local screen = GetScreenHeight() / 2
-						if top and screen then
-							if top >= screen then
-								self:SetPoint("TOPLEFT", parent, "BOTTOMLEFT")
-							else	
-								self:SetPoint("BOTTOMLEFT", parent, "TOPLEFT")
-							end
+						if top >= screen then
+							self:SetPoint("TOPLEFT", parent, "BOTTOMLEFT")
+						else	
+							self:SetPoint("BOTTOMLEFT", parent, "TOPLEFT")
 						end
-					end,
+					end
+				end,
+				OnShow = function(self)
+					local top = self:GetTop()
+					local screen = GetScreenHeight() / 2
+					if top and screen then
+						self:ClearAllPoints()
+						if top >= screen then
+							self:SetPoint("TOPLEFT", self:GetParent(), "BOTTOMLEFT")
+						else	
+							self:SetPoint("BOTTOMLEFT", self:GetParent(), "TOPLEFT")
+						end
+					end
+					self:SetScript("OnShow", nil)
+				end,
 				children = {
 					text = {
 						type = "FontString",
@@ -909,7 +915,7 @@ end
 local blizzbars = {
 	["bags"] = 36,
 	["micro"] = 37,
-	["stance"] = 30,
+	["stance"] = 36,
 	["petbar"] = 30,
 }
 
@@ -986,15 +992,7 @@ local createbars = function()
 		if k == "petbar" then
 			bar:SetAttribute("unit", "pet")
 		end
-		
-		drag = _G["Nurfed_"..k.."drag"]
 		_G["Nurfed_"..k.."dragtext"]:SetText("Nurfed_"..k)
-		drag:ClearAllPoints()
-		if bar:GetTop() >= GetScreenHeight() / 2 then
-			drag:SetPoint("TOPLEFT", bar, "BOTTOMLEFT")
-		else	
-			drag:SetPoint("BOTTOMLEFT", bar, "TOPLEFT")
-		end
 	end
 end
 
