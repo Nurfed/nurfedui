@@ -1016,6 +1016,8 @@ Nurfed:regevent("NURFED_LOCK", function()
 
 ----------------------------------------------------------------
 -- Toggle main action bar
+local old_ShapeshiftBar_Update = ShapeshiftBar_Update
+
 function nrf_mainmenu()
 	if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") then
 		return
@@ -1072,6 +1074,7 @@ function nrf_mainmenu()
 				btn:SetPoint("LEFT", "PetActionButton"..(i-1), "RIGHT", 8, 0)
 			end
 		end
+		ShapeshiftBar_Update = old_ShapeshiftBar_Update
 		MainMenuBar:Show()
 	else
 		KeyRingButton:SetParent(MainMenuBarBackpackButton)
@@ -1133,6 +1136,8 @@ function nrf_mainmenu()
 		nrf_updatemainbar("micro")
 		nrf_updatemainbar("stance")
 		nrf_updatemainbar("petbar")
+
+		ShapeshiftBar_Update = function() end
 		MainMenuBar:Hide()
 	end
 end
