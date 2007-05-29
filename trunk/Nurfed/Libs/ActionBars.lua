@@ -74,7 +74,7 @@ local updateitem = function(btn)
 			else
 				border:Hide()
 			end
-		elseif btn.type == "macro" then
+		elseif btn.type == "macro" and GetMacroBody(btn.spell) then
 			local action = GetActionFromMacroText(GetMacroBody(btn.spell))
 			if action then
 				if GetItemInfo(action) then
@@ -256,7 +256,7 @@ local btnenter = function(self)
 			end
 		elseif self.type == "item" then
 			GameTooltip:SetHyperlink(select(2, GetItemInfo(self.spell)))
-		elseif self.type == "macro" then
+		elseif self.type == "macro" and GetMacroBody(self.spell) then
 			local action = GetActionFromMacroText(GetMacroBody(self.spell))
 			if action then
 				if GetItemInfo(action) then
@@ -562,7 +562,7 @@ local btnupdate = function()
 			elseif ItemHasRange(btn.spell) and IsItemInRange(btn.spell, unit) == 0 then
 				r, g, b = 1, 0, 0
 			end
-		elseif btn.type == "macro" then
+		elseif btn.type == "macro" and GetMacroBody(btn.spell) then
 			local action = GetActionFromMacroText(GetMacroBody(btn.spell))
 			if action then
 				if GetItemInfo(action) then
