@@ -33,14 +33,6 @@ title:SetFont(STANDARD_TEXT_FONT, 10)
 title:SetPoint("CENTER", 0, 0)
 title:SetText("Nurfed Arena")
 
-for i = 1, 3 do
-	local score = getglobal("PVPTeam"..i):CreateFontString("PVPTeam"..i.."points", "ARTWORK")
-	score:SetFont(STANDARD_TEXT_FONT, 10)
-	score:SetTextColor(0, 1, 0)
-	score:SetPoint("LEFT", 15, -4)
-end
-
-
 for i = 1, 5 do
 	local button = CreateFrame("Button", "Nurfed_Arena"..i, frame, "SecureActionButtonTemplate")
 	button:SetWidth(145)
@@ -236,46 +228,3 @@ local onevent = function(self, event, ...)
 end
 
 frame:SetScript("OnEvent", onevent)
-
-local rating = function()
-	local size, rating, score, points
-	local buttonIndex = 0
-	local ARENA_TEAMS = {};
-	ARENA_TEAMS[1] = {size = 2}
-	ARENA_TEAMS[2] = {size = 3}
-	ARENA_TEAMS[3] = {size = 5}
-
-	for index, value in pairs(ARENA_TEAMS) do
-		for i = 1, MAX_ARENA_TEAMS do
-			teamName, teamSize = GetArenaTeam(i)
-			if value.size == teamSize then
-				value.index = i
-			end
-		end
-	end
-
-	for index, value in pairs(ARENA_TEAMS) do
-		if value.index then
-			_, size, rating = GetArenaTeam(value.index);
-			buttonIndex = buttonIndex + 1
-			score = getglobal("PVPTeam"..buttonIndex.."points")
-
-			if rating > 1500 then
-				points = 2894 / (1 + 259 * math.pow(2.718281828459, (-0.0025 * rating)))
-			else
-				points = (0.206 * rating) + 99
-			end
-			points = points + 0.5
-
-			if size == 2 then
-				points = points * 0.6
-			elseif size == 3 then
-				points = points * 0.8
-			end
-
-			score:SetText(format("%d", points))
-		end
-	end
-end
-
-hooksecurefunc("PVPFrame_OnShow", rating)
