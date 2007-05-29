@@ -47,17 +47,67 @@ local updateitem = function(btn)
 	if btn.spell then
 		local count = _G[btn:GetName().."Count"]
 		local border = _G[btn:GetName().."Border"]
-		local num = GetItemCount(btn.spell)
-		if num > 1 then
-			count:SetText(num)
-		else
-			count:SetText(nil)
-		end
-		if IsEquippedItem(btn.spell) then
-			border:SetVertexColor(0, 1.0, 0, 0.35)
-			border:Show()
-		else
+
+		if btn.type == "spell" then
+			local _, reg = Nurfed:getspell(btn.spell)
+			if reg then
+				local num = GetItemCount(reg)
+				if num > 1 then
+					count:SetText(num)
+				else
+					count:SetText(nil)
+				end
+			else
+				count:SetText(nil)
+			end
 			border:Hide()
+		elseif btn.type == "item" then
+			local num = GetItemCount(btn.spell)
+			if num > 1 then
+				count:SetText(num)
+			else
+				count:SetText(nil)
+			end
+			if IsEquippedItem(btn.spell) then
+				border:SetVertexColor(0, 1.0, 0, 0.35)
+				border:Show()
+			else
+				border:Hide()
+			end
+		elseif btn.type == "macro" then
+			local action = GetActionFromMacroText(GetMacroBody(btn.spell))
+			if action then
+				if GetItemInfo(action) then
+					local num = GetItemCount(action)
+					if num > 1 then
+						count:SetText(num)
+					else
+						count:SetText(nil)
+					end
+					if IsEquippedItem(action) then
+						border:SetVertexColor(0, 1.0, 0, 0.35)
+						border:Show()
+					else
+						border:Hide()
+					end
+				else
+					local _, reg = Nurfed:getspell(action)
+					if reg then
+						local num = GetItemCount(reg)
+						if num > 1 then
+							count:SetText(num)
+						else
+							count:SetText(nil)
+						end
+					else
+						count:SetText(nil)
+					end
+					border:Hide()
+				end
+			else
+				border:Hide()
+				count:SetText(nil)
+			end
 		end
 	end
 end
@@ -65,7 +115,7 @@ end
 local updatecooldown = function(btn)
 	local start, duration, enable = 0, 0, 0
 	local cooldown = _G[btn:GetName().."Cooldown"]
-	if btn.type and btn.spell then
+	if btn.spell then
 		if btn.type == "spell" then
 			start, duration, enable = GetSpellCooldown(btn.spell)
 		elseif btn.type == "item" then
@@ -177,12 +227,7 @@ local seticon = function(btn)
 					UIFrameFadeIn(icon, 0.35)
 				end
 			end
-			if new and new == "item" then
-				updateitem(btn)
-			else
-				_G[btn:GetName().."Border"]:Hide()
-				_G[btn:GetName().."Count"]:SetText(nil)
-			end
+			updateitem(btn)
 			updatecooldown(btn)
 		end
 			
@@ -211,6 +256,24 @@ local btnenter = function(self)
 			end
 		elseif self.type == "item" then
 			GameTooltip:SetHyperlink(select(2, GetItemInfo(self.spell)))
+		elseif self.type == "macro" then
+			local action = GetActionFromMacroText(GetMacroBody(self.spell))
+			if action then
+				if GetItemInfo(action) then
+					GameTooltip:SetHyperlink(select(2, GetItemInfo(action)))
+				else
+					local id = Nurfed:getspell(action)
+					if id then
+						local rank = select(2, GetSpellName(id, BOOKTYPE_SPELL))
+						GameTooltip:SetSpell(id, BOOKTYPE_SPELL)
+						if rank then
+							GameTooltipTextRight1:SetText(rank)
+							GameTooltipTextRight1:SetTextColor(0.5, 0.5, 0.5)
+							GameTooltipTextRight1:Show()
+						end
+					end
+				end
+			end
 		end
 
 		GameTooltip:Show()
@@ -436,10 +499,13 @@ local btnevents = {
 			_G[btn:GetName().."HotKey"]:SetText(key)
 		end
 	end,
-	["UNIT_INVENTORY_CHANGED"] = function(btn)
-		if btn.type == "item" then
-			updateitem(btn)
+	["UPDATE_MACROS"] = function(btn)
+		if btn.type == "macro" then
+			seticon(btn)
 		end
+	end,
+	["BAG_UPDATE"] = function(btn)
+		updateitem(btn)
 	end,
 	["UNIT_SPELLCAST_SUCCEEDED"] = function(btn)
 		if btn.type == "macro" then
@@ -468,9 +534,6 @@ local btnevents = {
 }
 
 local btnevent = function(event, ...)
-	if event == "UNIT_INVENTORY_CHANGED" and arg1 ~= "player" then
-		return
-	end	
 	for _, btn in ipairs(live) do
 		btnevents[event](btn, ...)
 	end
