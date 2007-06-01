@@ -255,7 +255,9 @@ local btnenter = function(self)
 				end
 			end
 		elseif self.type == "item" then
-			GameTooltip:SetHyperlink(select(2, GetItemInfo(self.spell)))
+			if GetItemInfo(self.spell) then
+				GameTooltip:SetHyperlink(select(2, GetItemInfo(self.spell)))
+			end
 		elseif self.type == "macro" and GetMacroBody(self.spell) then
 			local action = GetActionFromMacroText(GetMacroBody(self.spell))
 			if action then
