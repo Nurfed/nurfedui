@@ -2471,6 +2471,17 @@ table.insert(UnitPopupMenus["SELF"], "NRF_COMBATLOG")
 table.insert(UnitPopupMenus["PARTY"], "NRF_COMBATLOG")
 hooksecurefunc("UnitPopup_OnClick", combat)
 
+function Nurfed_UnitColors()
+	for k in pairs(NURFED_FRAMES.frames) do
+		local frame = _G[k]
+		local unit = SecureButton_GetUnit(frame)
+		if UnitExists(unit) then
+			if frame.Health then updateinfo(frame, "Health") end
+			if frame.Mana then manacolor(frame) end
+		end
+	end
+end
+
 ----------------------------------------------------------------
 -- Add custom layouts to locals
 if Nurfed_Replace then
