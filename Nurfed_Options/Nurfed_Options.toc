@@ -3,7 +3,7 @@
 ## Author: Tivoli, http://www.nurfed.com
 ## SavedVariablesPerCharacter: NURFED_ITEMS
 ## RequiredDeps: Nurfed
-## Version: 05.23.2007
+## Version: 06.02.2007
 ## LoadOnDemand: 1
 Localization.lua
 
@@ -12,6 +12,6 @@ Menus\Bindings.lua
 Menus\Frames.lua
 Menus\ActionBars.lua
 Menus\General.lua
-Menus\Templates.lua
+Menus\Units.lua
 
 Nurfed_Options.lua
