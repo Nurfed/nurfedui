@@ -34,7 +34,15 @@ NURFED_DEFAULT["squareminimap"] = false
 NURFED_DEFAULT["raidsize"] = 5
 NURFED_DEFAULT["lock"] = { "CENTER", "Minimap", "CENTER", -12, -80 }
 NURFED_DEFAULT["hpcolor"] = "fade"
-NURFED_DEFAULT["hpscript"] = "return function(perc, unit)\nlocal r, g, b = 1, 1, 1\nreturn r, g, b\nend"
+NURFED_DEFAULT["hpscript"] = "if perc > 0.6 then\n   r = 78/255\n   g = 106/255\n   b = 143/255\nelse\n   if perc > 0.2 then\n      r = (78+((0.6-perc)*100*(128/40)))/255\n      g = (106+((0.6-perc)*100*(-89/40)))/255\n      b = (143+((0.6-perc)*100*(-136/40)))/255\n   else\n      r = 206/255\n      g = 17/255\n      b = 17/255\n   end\nend"
+NURFED_DEFAULT[MANA] = { 0.00, 0.00, 1.00 }
+NURFED_DEFAULT[RAGE_POINTS] = { 1.00, 0.00, 0.00 }
+NURFED_DEFAULT[FOCUS_POINTS] = { 1.00, 0.50, 0.25 }
+NURFED_DEFAULT[ENERGY_POINTS] = { 1.00, 1.00, 0.00 }
+NURFED_DEFAULT[HAPPINESS_POINTS] = { 0.00, 1.00, 1.00 }
+NURFED_DEFAULT["cdbuff"] = true
+NURFED_DEFAULT["cddebuff"] = true
+NURFED_DEFAULT["cdaction"] = true
 
 local wowmenu = {
 	{ CHARACTER, function() ToggleCharacter("PaperDollFrame") end },
@@ -213,6 +221,13 @@ local onevent = function()
 			this:SetUserPlaced(nil)
 		end
 		this:SetPoint(unpack(Nurfed:getopt("lock")))
+
+		for i = 0, 4 do
+			local color = Nurfed:getopt(ManaBarColor[i].prefix)
+			ManaBarColor[i].r = color[1]
+			ManaBarColor[i].g = color[2]
+			ManaBarColor[i].b = color[3]
+		end
 
 		for k, v in pairs(NURFED_FRAMES.templates) do
 			Nurfed:createtemp(k, v)

@@ -32,6 +32,7 @@ local virtual = {}
 local pairs = pairs
 local ipairs = ipairs
 local type = type
+local hpfunc
 
 -- Add round function to math
 math.round = function(num, idp)
@@ -174,6 +175,11 @@ function util:getunit(name)
 	end
 end
 
+function util:sethpfunc()
+	local script = "return function(perc, unit)\n"..self:getopt("hpscript").."\nreturn r, g, b\nend"
+	hpfunc = assert(loadstring(script))()
+end
+
 function util:getunitstat(unit, stat)
 	local curr, max, missing, perc, r, g, b
 	if stat == "XP" then
@@ -211,7 +217,7 @@ function util:getunitstat(unit, stat)
 	missing = curr - max
 
 	if stat == "Health" then
-		local color = Nurfed:getopt("hpcolor")
+		local color = self:getopt("hpcolor")
 		if color == "class" then
 			local eclass = select(2, UnitClass(unit))
 			r = RAID_CLASS_COLORS[eclass].r
@@ -227,9 +233,10 @@ function util:getunitstat(unit, stat)
 			end
 			b = 0.0
 		elseif color == "script" then
-			local script = Nurfed:getopt("hpscript")
-			local func = assert(loadstring(script))()
-			r, g, b = func(perc, unit)
+			if not hpfunc then
+				self:sethpfunc()
+			end
+			r, g, b = hpfunc(perc, unit)
 		end
 	end
 
@@ -356,9 +363,13 @@ function util:createobj(name, layout, parent)
 		layout = self:copytable(virtual[layout])
 	end
 
-	if layout.template and virtual[layout.template] then
-		layout = self:mergetable(layout, virtual[layout.template])
-		layout.template = nil
+	if layout.template then
+		local template = layout.template
+		while template do
+			layout.template = nil
+			layout = self:mergetable(layout, virtual[template])
+			template = layout.template
+		end
 	end
 
 	objtype = rawget(layout, "type")
@@ -377,12 +388,6 @@ function util:createobj(name, layout, parent)
 	end
 
 	for k, v in pairs(layout) do
-		if type(v) == "table" and v.template then
-			v = virtual[v.template]
-		elseif type(v) == "string" and virtual[v] then
-			v = virtual[v]
-		end
-
 		if obj.HasScript and obj:HasScript(k) then
 			if type(v) == "function" then
 				obj:SetScript(k, v)
