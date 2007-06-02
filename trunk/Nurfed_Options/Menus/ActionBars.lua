@@ -1,25 +1,6 @@
-local units = { "none", "focus", "party1", "party2", "party3", "party4", "pet", "player", "target", "targettarget" }
+local units = { "", "focus", "party1", "party2", "party3", "party4", "pet", "player", "target", "targettarget" }
 local states = { "stance:", "stealth:", "actionbar:", "shift:", "ctrl:", "alt:" }
 local shown = { "always", "never", "combat", "nocombat", "unit" }
-
-local framedrop = function(tbl)
-	local drop = Nurfed_MenuActionBarsdropdown
-	local info = {}
-	local parent = this:GetParent()
-	drop.displayMode = "MENU"
-	drop.initialize = function()
-		for _, v in ipairs(tbl) do
-			info = {}
-			info.text = v
-			info.value = v
-			info.func = function() parent:SetText(this.value) end
-			info.isTitle = nil
-			info.notCheckable = 1
-			UIDropDownMenu_AddButton(info)
-		end
-	end
-	ToggleDropDownMenu(1, nil, drop, "cursor")
-end
 
 local updateoptions = function()
 	local bar = Nurfed_MenuActionBars.bar
@@ -138,40 +119,42 @@ local addnew = function()
 	end
 end
 
-local updatebar = function()
+local updatebar = function(self)
 	local bar = Nurfed_MenuActionBars.bar
 	if bar then
 		local value
-		local objtype = this:GetObjectType()
+		local objtype = self:GetObjectType()
 		if objtype == "Slider" then
-			value = this:GetValue()
+			value = self:GetValue()
 		elseif objtype == "CheckButton" then
-			value = this:GetChecked()
+			value = self:GetChecked()
 		elseif objtype == "EditBox" then
-			value = this:GetText()
-			if this.val ~= "unit" and this.val ~= "shown" then
+			value = self:GetText()
+			if self.val ~= "unit" then
 				value = tonumber(value)
 			end
+		elseif objtype == "Button" then
+			value = self:GetText()
 		end
-		NURFED_ACTIONBARS[bar][this.val] = value
+		NURFED_ACTIONBARS[bar][self.val] = value
 
 		local hdr = getglobal(bar)
-		if this.val == "scale" then
+		if self.val == "scale" then
 			hdr:SetScale(value)
-		elseif this.val == "unit" then
+		elseif self.val == "unit" then
 			if value == "" then value = nil end
 			if hdr:GetAttribute("unit") ~= value then
 				hdr:SetAttribute("unit", value)
 				Nurfed:updatebar(hdr)
 			end
-		elseif this.val == "useunit" then
+		elseif self.val == "useunit" then
 			hdr:SetAttribute("useunit", value)
-		elseif this.val == "alpha" then
+		elseif self.val == "alpha" then
 			local children = { hdr:GetChildren() }
 			for _, child in ipairs(children) do
 				child:SetAlpha(value)
 			end
-		elseif this.val == "shown" then
+		elseif self.val == "shown" then
 			UnregisterUnitWatch(hdr)
 			hdr:SetAttribute("shown", value)
 			if value == "always" or (value == "nocombat" and not InCombatLockdown()) then
@@ -295,7 +278,6 @@ end
 NURFED_MENUS["ActionBars"] = {
 	template = "nrf_options",
 	children = {
-		dropdown = { type = "Frame" },
 		scroll = {
 			type = "ScrollFrame",
 			size = { 165, 250 },
@@ -327,45 +309,35 @@ NURFED_MENUS["ActionBars"] = {
 		},
 		bar = {
 			type = "Frame",
-			size = { 235, 100 },
-			Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 0, 0 },
+			size = { 230, 100 },
+			Anchor = { "TOPRIGHT", -5, 0 },
 			children = {
 				unit = {
 					template = "nrf_editbox",
 					size = { 75, 18 },
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, -7 },
+					Anchor = { "TOPLEFT", 0, -7 },
 					children = {
 						add = {
 							template = "nrf_button",
 							Anchor = { "LEFT", "$parent", "RIGHT", 0, 0 },
 							Text = "Unit",
-							OnClick = function() framedrop(units) end,
+							OnClick = function() Nurfed_DropMenu(units) end,
 						},
 					},
-					OnTextChanged = function() updatebar() end,
-					OnEnterPressed = function() updatebar() end,
+					OnTextChanged = function(self) updatebar(self) end,
+					OnEnterPressed = function(self) updatebar(self) end,
 					vars = { val = "unit", default = "target" },
 				},
 				shown = {
-					template = "nrf_editbox",
-					size = { 75, 18 },
-					Anchor = { "LEFT", "$parentunitadd", "RIGHT", 12, 0 },
-					children = {
-						add = {
-							template = "nrf_button",
-							Anchor = { "LEFT", "$parent", "RIGHT", 0, 0 },
-							Text = "Shown",
-							OnClick = function() framedrop(shown) end,
-						},
-					},
-					OnTextChanged = function() updatebar() end,
-					OnEnterPressed = function() updatebar() end,
-					vars = { val = "shown", default = "always" },
+					template = "nrf_optbutton",
+					Anchor = { "TOPRIGHT", 0, -7 },
+					OnClick = function() Nurfed_DropMenu(shown) end,
+					vars = { text = "Shown", default = "always", val = "shown", alt = updatebar },
 				},
 				useunit = {
 					template = "nrf_check",
-					Anchor = { "TOPRIGHT", "$parentshownadd", "BOTTOMRIGHT", -20, -4 },
-					OnClick = function() updatebar() end,
+					Anchor = { "TOPRIGHT", "$parentshown", "BOTTOMRIGHT", -20, -4 },
+					OnClick = function(self) updatebar(self) end,
 					vars = { text = "Harm / Help", val = "useunit" },
 				},
 				rows = {
@@ -383,7 +355,7 @@ NURFED_MENUS["ActionBars"] = {
 						right = true,
 						default = 1,
 					},
-					OnMouseUp = function() updatebar() end,
+					OnMouseUp = function(self) updatebar(self) end,
 				},
 				cols = {
 					template = "nrf_slider",
@@ -400,7 +372,7 @@ NURFED_MENUS["ActionBars"] = {
 						right = true,
 						default = 12,
 					},
-					OnMouseUp = function() updatebar() end,
+					OnMouseUp = function(self) updatebar(self) end,
 				},
 				scale = {
 					template = "nrf_slider",
@@ -418,7 +390,7 @@ NURFED_MENUS["ActionBars"] = {
 						right = true,
 						default = 1,
 					},
-					OnMouseUp = function() updatebar() end,
+					OnMouseUp = function(self) updatebar(self) end,
 				},
 				alpha = {
 					template = "nrf_slider",
@@ -436,7 +408,7 @@ NURFED_MENUS["ActionBars"] = {
 						right = true,
 						default = 1,
 					},
-					OnMouseUp = function() updatebar() end,
+					OnMouseUp = function(self) updatebar(self) end,
 				},
 				xgap = {
 					template = "nrf_slider",
@@ -453,7 +425,7 @@ NURFED_MENUS["ActionBars"] = {
 						right = true,
 						default = 2,
 					},
-					OnMouseUp = function() updatebar() end,
+					OnMouseUp = function(self) updatebar(self) end,
 				},
 				ygap = {
 					template = "nrf_slider",
@@ -470,7 +442,7 @@ NURFED_MENUS["ActionBars"] = {
 						right = true,
 						default = 2,
 					},
-					OnMouseUp = function() updatebar() end,
+					OnMouseUp = function(self) updatebar(self) end,
 				},
 			},
 		},
@@ -555,7 +527,7 @@ NURFED_MENUS["ActionBars"] = {
 							template = "nrf_button",
 							Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
 							Text = "State",
-							OnClick = function() framedrop(states) end,
+							OnClick = function() Nurfed_DropMenu(states) end,
 						},
 					},
 					OnTabPressed = function() Nurfed_MenuActionBarsstatesmap:SetFocus() end,

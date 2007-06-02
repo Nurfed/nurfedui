@@ -19,35 +19,37 @@ StaticPopupDialogs["NRF_RELOADUI"] = {
 local _G = getfenv(0)
 local menus = {}
 local activemenu, addon
+local dropmenu = CreateFrame("Frame")
+dropmenu.displayMode = "MENU"
 
 -- Save Option
-local saveopt = function()
-	local value, objtype, func, opt, sound, tbl
-	objtype = this:GetObjectType()
-	func = this.func
-	opt = this.option
+local saveopt = function(self)
+	local value, objtype
+	objtype = self:GetObjectType()
 	
 	if objtype == "CheckButton" then
-		value = this:GetChecked() or false
+		value = self:GetChecked() or false
 		if value then
-			sound = "igMainMenuOptionCheckBoxOn"
+			PlaySound("igMainMenuOptionCheckBoxOn")
 		else
-			sound = "igMainMenuOptionCheckBoxOff"
+			PlaySound("igMainMenuOptionCheckBoxOff")
 		end
-		PlaySound(sound)
 	elseif objtype == "Slider" then
-		value = this:GetValue()
+		value = self:GetValue()
 	elseif objtype == "EditBox" then
-		if not this.focus then return end
-		value = this:GetText()
+		if not self.focus then return end
+		value = self:GetText()
+	elseif objtype == "Button" then
+		value = self:GetText()
 	end
 
 	if addon then
 		addon = "_"..string.upper(addon)
 	end
-	tbl = _G["NURFED"..(addon or "").."_SAVED"]
 	
-	if opt then
+	if self.option then
+		local opt = self.option
+		local tbl = _G["NURFED"..(addon or "").."_SAVED"]
 		if value == NURFED_DEFAULT[opt] then
 			tbl[opt] = nil
 		else
@@ -55,8 +57,8 @@ local saveopt = function()
 		end
 	end
 	
-	if func then
-		func()
+	if self.func then
+		self.func()
 	end
 end
 
@@ -79,10 +81,12 @@ local onshow = function()
 		end
 	end
 
-	text:SetText(this.text)
+	if text then
+		text:SetText(this.text)
 
-	if this.color then
-		text:SetTextColor(unpack(this.color))
+		if this.color then
+			text:SetTextColor(unpack(this.color))
+		end
 	end
 	
 	if this.option then
@@ -107,6 +111,24 @@ local onshow = function()
 		value.func = this.func
 	elseif objtype == "EditBox" then
 		this:SetText(opt or "")
+	elseif objtype == "Button" then
+		local swatch = _G[this:GetName().."bg"]
+		if swatch then
+			local frame = this
+			swatch:SetVertexColor(opt[1], opt[2], opt[3])
+			this.r = opt[1]
+			this.g = opt[2]
+			this.b = opt[3]
+			this.swatchFunc = function() Nurfed_Options_swatchSetColor(frame) end
+			this.cancelFunc = function(x) Nurfed_Options_swatchCancelColor(frame, x) end
+			if this.opacity then
+				this.hasOpacity = frame.opacity
+				this.opacityFunc = function() Nurfed_Options_swatchSetColor(frame) end
+				this.opacity = opt[4]
+			end
+		else
+			this:SetText(opt or "")
+		end
 	end
 	this:SetScript("OnShow", nil)
 end
@@ -171,6 +193,51 @@ local slidertext = function()
 	_G[this:GetName().."value"]:SetText(value)
 end
 
+-- color swatches
+function Nurfed_Options_swatchSetColor(frame)
+	local option = frame.option
+	local r, g, b = ColorPickerFrame:GetColorRGB()
+	local a = OpacitySliderFrame:GetValue()
+	local swatch = getglobal(frame:GetName().."bg")
+	swatch:SetVertexColor(r, g, b)
+	frame.r = r
+	frame.g = g
+	frame.b = b
+	NURFED_SAVED[frame.option] = { r, g, b, a }
+	if frame.func then
+		frame.func()
+	end
+end
+
+function Nurfed_Options_swatchCancelColor(frame, prev)
+	local option = frame.option
+	local r = prev.r
+	local g = prev.g
+	local b = prev.b
+	local a = prev.a
+	local swatch = getglobal(frame:GetName().."bg")
+	swatch:SetVertexColor(r, g, b)
+	frame.r = r
+	frame.g = g
+	frame.b = b
+	NURFED_SAVED[frame.option] = { r, g, b, a }
+	if frame.func then
+		frame.func()
+	end
+end
+
+function Nurfed_Options_swatchOpenColorPicker()
+	CloseMenus()
+	ColorPickerFrame.func = this.swatchFunc
+	ColorPickerFrame.hasOpacity = this.hasOpacity
+	ColorPickerFrame.opacityFunc = this.opacityFunc
+	ColorPickerFrame.opacity = this.opacity
+	ColorPickerFrame:SetColorRGB(this.r, this.g, this.b)
+	ColorPickerFrame.previousValues = {r = this.r, g = this.g, b = this.b, a = this.opacity}
+	ColorPickerFrame.cancelFunc = this.cancelFunc
+	ColorPickerFrame:Show()
+end
+
 function Nurfed_GenerateMenu(menu, template, rows)
 	local row, parent
 	parent = _G["Nurfed_Menu"..menu]
@@ -186,6 +253,30 @@ function Nurfed_GenerateMenu(menu, template, rows)
 			row:SetPoint("TOPLEFT", "Nurfed_"..menu.."Row"..(i - 1), "BOTTOMLEFT", 0, 0)
 		end
 	end
+end
+
+function Nurfed_DropMenu(tbl)
+	local info = {}
+	local btn = this
+	local func
+	if btn.alt then
+		func = function() btn:SetText(this.value) btn.alt(btn) end
+	elseif btn:GetParent():GetObjectType() == "EditBox" then
+		func = function() btn:GetParent():SetText(this.value) end
+	else
+		func = function() btn:SetText(this.value) saveopt(btn) end
+	end
+	dropmenu.initialize = function()
+		for _, v in ipairs(tbl) do
+			info.text = v
+			info.value = v
+			info.func = func
+			info.isTitle = nil
+			info.notCheckable = 1
+			UIDropDownMenu_AddButton(info)
+		end
+	end
+	ToggleDropDownMenu(1, nil, dropmenu, "cursor")
 end
 
 -- Menu templates
@@ -233,21 +324,28 @@ local templates = {
 	},
 	nrf_button = {
 		type = "Button",
-		size = { 30, 18 },
-		Backdrop = { bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = true, tileSize = 16, edgeSize = 10, insets = { left = 2, right = 2, top = 2, bottom = 2 }, },
+		size = { 60, 18 },
+		Backdrop = {
+			bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+			edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+			tile = true,
+			tileSize = 16,
+			edgeSize = 10,
+			insets = { left = 2, right = 2, top = 2, bottom = 2 },
+		},
 		BackdropColor = { 0, 0, 0, 0.75 },
-		Font = { "Fonts\\ARIALN.TTF", 10, "OUTLINE" },
-		TextColor = { 0.65, 0.65, 0.65 },
-		HighlightTextColor = { 1, 1, 1 },
+		Font = { "Fonts\\ARIALN.TTF", 12, "OUTLINE" },
+		TextColor = { 1, 1, 1 },
+		HighlightTextColor = { 0, 0.75, 1 },
 		PushedTextOffset = { 1, -1 },
-		OnShow = function() this:SetWidth(this:GetTextWidth() + 10) this:SetScript("OnShow", nil) end,
+		OnShow = function() this:SetWidth(this:GetTextWidth() + 12) this:SetScript("OnShow", nil) end,
 	},
 	nrf_check = {
 		type = "CheckButton",
 		size = { 20, 20 },
 		uitemp = "UICheckButtonTemplate",
 		OnShow = function() onshow() end,
-		OnClick = function() saveopt() end,
+		OnClick = function(self) saveopt(self) end,
 	},
 	nrf_radio = {
 		type = "CheckButton",
@@ -264,15 +362,16 @@ local templates = {
 				template = "nrf_editbox",
 				size = { 35, 18 },
 				Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
-				OnTextChanged = function()
-					if this.focus then
-						local value = tonumber(this:GetText())
-						local min, max = this:GetParent():GetMinMaxValues()
+				OnTextChanged = function(self)
+					if self.focus then
+						local parent = self:GetParent()
+						local value = tonumber(self:GetText())
+						local min, max = parent:GetMinMaxValues()
 						if not value or value < min then return end
 						if value > max then value = max end
-						this:GetParent():SetValue(value)
-						local func = this:GetParent():GetScript("OnMouseUp")
-						func()
+						parent:SetValue(value)
+						local func = parent:GetScript("OnMouseUp")
+						func(parent)
 					end
 				end,
 				OnEditFocusGained = function() this:HighlightText() this.focus = true end,
@@ -280,7 +379,7 @@ local templates = {
 			},
 		},
 		OnShow = function() onshow() end,
-		OnMouseUp = function() saveopt() end,
+		OnMouseUp = function(self) saveopt(self) end,
 		OnValueChanged = function() slidertext() end,
 	},
 	nrf_editbox = {
@@ -312,7 +411,67 @@ local templates = {
 		OnEscapePressed = function() this:ClearFocus() end,
 		OnEditFocusGained = function() this:HighlightText() this.focus = true end,
 		OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
-		OnTextChanged = function() saveopt() end,
+		OnTextChanged = function(self) saveopt(self) end,
+	},
+	nrf_multiedit = {
+		type = "ScrollFrame",
+		uitemp = "UIPanelScrollFrameTemplate",
+		children = {
+			edit = {
+				type = "EditBox",
+				AutoFocus = false,
+				MultiLine = true,
+				Backdrop = {
+					bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+					edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+					tile = true,
+					tileSize = 16,
+					edgeSize = 10,
+					insets = { left = 2, right = 2, top = 2, bottom = 2 },
+				},
+				BackdropColor = { 0, 0, 0.2, 0.75 },
+				FontObject = "GameFontNormalSmall",
+				TextColor = { 1, 1, 1 },
+				TextInsets = { 3, 3, 3, 3 },
+				OnShow = function(self) self.option = self:GetParent().option onshow() end,
+				OnEscapePressed = function(self) this:ClearFocus() end,
+				OnEditFocusGained = function() this.focus = true end,
+				OnEditFocusLost = function(self) saveopt(self) this.focus = nil end,
+				OnTabPressed = function(self) self:Insert("   ") end,
+				OnTextChanged = function(self)
+					local scrollBar = _G[self:GetParent():GetName().."ScrollBar"]
+					self:GetParent():UpdateScrollChildRect()
+					local min, max = scrollBar:GetMinMaxValues()
+					if max > 0 and (self.max ~= max) then
+						self.max = max
+						scrollBar:SetValue(max)
+					else
+						self:SetPoint("BOTTOM", 0, 0)
+					end
+				end,
+			},
+		},
+		OnLoad = function(self)
+			local child = _G[self:GetName().."edit"]
+			child:SetWidth(self:GetWidth())
+			self:SetScrollChild(child)
+			if self.func then
+				child.func = self.func
+			end
+		end,
+	},
+	nrf_optbutton = {
+		template = "nrf_button",
+		children = {
+			Text = {
+				type = "FontString",
+				layer = "ARTWORK",
+				Anchor = { "RIGHT", "$parent", "LEFT", -3, 0 },
+				FontObject = "GameFontNormalSmall",
+				JustifyH = "LEFT",
+			},
+		},
+		OnShow = function() onshow() end,
 	},
 	nrf_dropdown = {
 		type = "Frame",
@@ -338,7 +497,7 @@ local templates = {
 				JustifyH = "LEFT",
 			},
 		},
-		OnShow = function() Nurfed_Options_swatchOnShow() end,
+		OnShow = function() onshow() end,
 		OnClick = function() Nurfed_Options_swatchOpenColorPicker() end,
 	},
 	nrf_scroll = {
@@ -509,11 +668,12 @@ local frame = Nurfed:create("Nurfed_Menu", {
 -- Add menu buttons
 local tmp = {}
 for k in pairs(NURFED_MENUS) do
-    tmp[#tmp + 1] = k
+	tmp[#tmp + 1] = k
 end
 table.sort(tmp, function(a, b) return a < b end)
+
 for k, v in ipairs(tmp) do
-    local button = Nurfed:create("Nurfed_MenuButton"..k, "nrf_menu_button", Nurfed_Menu)
+	local button = Nurfed:create("Nurfed_MenuButton"..k, "nrf_menu_button", Nurfed_Menu)
 	button:SetScript("OnClick", menuclick)
 	button:SetText(v)
 	if k == 1 then
@@ -549,76 +709,6 @@ templates = nil
 -----------------------------------------------------------------------------------------
 --			Nurfed Options Functions
 -----------------------------------------------------------------------------------------
-
--- color swatches
-function Nurfed_Options_swatchSetColor(frame)
-	local option = frame.option
-	local r,g,b = ColorPickerFrame:GetColorRGB()
-	local a = OpacitySliderFrame:GetValue()
-	local swatch = getglobal(frame:GetName().."bg")
-	swatch:SetVertexColor(r, g, b)
-	frame.r = r
-	frame.g = g
-	frame.b = b
-	NURFED_SAVED[frame.option] = { r, g, b, a }
-	--Nurfed:SetOption(activemenu, frame.option, { r, g, b, a })
-	if (frame.func) then
-		frame.func()
-	end
-end
-
-function Nurfed_Options_swatchCancelColor(frame, prev)
-	local option = frame.option
-	local r = prev.r
-	local g = prev.g
-	local b = prev.b
-	local a = prev.a
-	local swatch = getglobal(frame:GetName().."bg")
-	swatch:SetVertexColor(r, g, b)
-	frame.r = r
-	frame.g = g
-	frame.b = b
-	NURFED_SAVED[frame.option] = { r, g, b, a }
-	--Nurfed:SetOption(activemenu, frame.option, { r, g, b, a })
-	if (frame.func) then
-		frame.func()
-	end
-end
-
-function Nurfed_Options_swatchOnShow()
-	if (this:IsShown()) then
-		local option = optionInit()
-		if (not option) then
-			return
-		end
-		local frame = this
-		local swatch = getglobal(this:GetName().."bg")
-		swatch:SetVertexColor(option[1], option[2], option[3])
-
-		this.r = option[1]
-		this.g = option[2]
-		this.b = option[3]
-		this.swatchFunc = function() Nurfed_Options_swatchSetColor(frame) end
-		this.cancelFunc = function(x) Nurfed_Options_swatchCancelColor(frame, x) end
-		if (frame.opacity) then
-			this.hasOpacity = frame.opacity
-			this.opacityFunc = function() Nurfed_Options_swatchSetColor(frame) end
-			this.opacity = option[4]
-		end
-	end
-end
-
-function Nurfed_Options_swatchOpenColorPicker()
-	CloseMenus()
-	ColorPickerFrame.func = this.swatchFunc
-	ColorPickerFrame.hasOpacity = this.hasOpacity
-	ColorPickerFrame.opacityFunc = this.opacityFunc
-	ColorPickerFrame.opacity = this.opacity
-	ColorPickerFrame:SetColorRGB(this.r, this.g, this.b)
-	ColorPickerFrame.previousValues = {r = this.r, g = this.g, b = this.b, a = this.opacity}
-	ColorPickerFrame.cancelFunc = this.cancelFunc
-	ColorPickerFrame:Show()
-end
 
 -- radios
 function Nurfed_Options_radioOnClick(frame, index, noupdate)
