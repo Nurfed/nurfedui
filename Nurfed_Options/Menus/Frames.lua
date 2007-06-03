@@ -1,4 +1,4 @@
-local layout, name
+local layout, received, sendname, acceptname
 
 local import = function()
 	local templates = Nurfed_UnitsLayout.templates
@@ -20,27 +20,97 @@ local import = function()
 		end
 	end
 
-	if Nurfed_UnitsLayout.Name and Nurfed_UnitsLayout.Author then
-		Nurfed:print(Nurfed_UnitsLayout.Name.." designed by "..Nurfed_UnitsLayout.Author.." imported.")
+	local out = "Nurfed Layout: |cffff0000Imported|r"
+
+	if Nurfed_UnitsLayout.Name then
+		out = out.." "..Nurfed_UnitsLayout.Name
 	end
+
+	if Nurfed_UnitsLayout.Author then
+		out = out.." designed by "..Nurfed_UnitsLayout.Author
+	end
+
+	Nurfed:print(out, 0, 0.75, 1)
 	StaticPopup_Show("NRF_RELOADUI")
 end
 
-local receive = function(msg)
+local checkonline = function()
+	for i = 1, GetNumFriends() do
+		local name, level, class, area, connected, status = GetFriendInfo(i)
+		if name == sendname then
+			return connected
+		end
+	end
+
+	for i = 1, GetNumGuildMembers() do
+		local name, rank, rankIndex, level, class, zone, note, officernote, online, status = GetGuildRosterInfo(i)
+		if name == sendname then
+			return online
+		end
+	end
 end
 
-Nurfed:addmsg("Lyt", receive)
+local accept = function()
+	received = {}
+	SendAddonMessage("Nurfed:Lyt", "receive", "WHISPER", acceptname)
+	Nurfed_MenuFramessend:Disable()
+	Nurfed_MenuFramesaccept:Disable()
+end
+
+local addonmsg = function(name, msg)
+	if msg == "send" then
+		Nurfed_MenuFramesaccept:Enable()
+		acceptname = name
+	elseif msg == "receive" then
+		layout = Nurfed:serialize("Nurfed_UnitsLayout", NURFED_FRAMES)
+		Nurfed_MenuFramesprogress:SetMinMaxValues(0, #layout)
+		Nurfed_MenuFramesprogress:SetValue(#layout)
+		Nurfed_MenuFramesprogress:Show()
+		Nurfed_MenuFramesprogressname:SetText(sendname)
+		Nurfed_MenuFramesprogresscount:SetText(#layout)
+		Nurfed_MenuFramesprogresstotal:SetText(#layout)
+		SendAddonMessage("Nurfed:Lyt", "count:"..#layout, "WHISPER", sendname)
+		Nurfed:schedule(0.05, Nurfed_SendLayout, true)
+	elseif msg == "complete" then
+		Nurfed_MenuFramessend:Enable()
+		received = table.concat(received, "")
+		Nurfed_UnitsLayout = loadstring(received)
+		Nurfed_UnitsLayout()
+		if Nurfed_UnitsLayout then
+			Nurfed_MenuFramesimport:Enable()
+		end
+		Nurfed_MenuFramesprogress:Hide()
+		received = nil
+		acceptname = nil
+	elseif string.find(msg, "^count") then
+		local _, count = string.split(":", msg)
+		Nurfed_MenuFramesprogress:SetMinMaxValues(0, tonumber(count))
+		Nurfed_MenuFramesprogress:SetValue(0)
+		Nurfed_MenuFramesprogress:Show()
+		Nurfed_MenuFramesprogressname:SetText(acceptname)
+		Nurfed_MenuFramesprogresscount:SetText(0)
+		Nurfed_MenuFramesprogresstotal:SetText(count)
+	elseif name == acceptname then
+		table.insert(received, msg)
+		Nurfed_MenuFramesprogress:SetValue(#received)
+		Nurfed_MenuFramesprogresscount:SetText(#received)
+	end
+end
+
+Nurfed:addmsg("Lyt", addonmsg)
 
 function Nurfed_SendLayout()
-	if layout > 0 then
+	if #layout > 0 then
 		local text = table.remove(layout, 1)
-		SendAddonMessage("Nurfed:Lyt", string.trim(text), "WHISPER", name)
+		Nurfed_MenuFramesprogress:SetValue(#layout)
+		Nurfed_MenuFramesprogresscount:SetText(#layout)
+		SendAddonMessage("Nurfed:Lyt", string.trim(text), "WHISPER", sendname)
 	else
-		Nurfed:unschedule(nrfsend, true)
-		Nurfed:print("Layout Sent To "..name)
-		SendAddonMessage("Nurfed:Lyt", "complete", "WHISPER", name)
+		Nurfed:unschedule(Nurfed_SendLayout, true)
+		SendAddonMessage("Nurfed:Lyt", "complete", "WHISPER", sendname)
+		Nurfed_MenuFramesprogress:Hide()
 		layout = nil
-		name = nil
+		sendname = nil
 	end
 	
 end
@@ -50,6 +120,7 @@ NURFED_MENUS["Frames"] = {
 	children = {
 		import = {
 			template = "nrf_button",
+			Text = "Import",
 			Point = { "BOTTOMRIGHT", -5, 5 },
 			OnClick = function() import() end,
 		},
@@ -63,20 +134,75 @@ NURFED_MENUS["Frames"] = {
 				Nurfed:print("Nurfed Layout: |cffff0000Exported|r", 0, 0.75, 1)
 			end,
 		},
+		accept = {
+			template = "nrf_button",
+			Text = ACCEPT,
+			Point = { "RIGHT", "$parentexport", "LEFT", -5, 0 },
+			OnClick = function() accept() end,
+		},
 		send = {
 			template = "nrf_button",
 			Text = "Send Layout",
-			Point = { "RIGHT", "$parentexport", "LEFT", -5, 0 },
+			Point = { "RIGHT", "$parentaccept", "LEFT", -5, 0 },
+			OnClick = function(self)
+				Nurfed_MenuFramessendname:ClearFocus()
+				sendname = string.trim(Nurfed_MenuFramessendname:GetText())
+				if checkonline() then
+					Nurfed:print("Nurfed Layout: |cffff0000Send|r "..sendname, 0, 0.75, 1)
+					SendAddonMessage("Nurfed:Lyt", "send", "WHISPER", sendname)
+				end
+			end,
+		},
+		sendname = {
+			template = "nrf_editbox",
+			size = { 105, 18 },
+			Point = { "RIGHT", "$parentsend", "LEFT", -5, 0 },
+		},
+		progress = {
+			type = "StatusBar",
+			size = { 405, 12 },
+			Hide = true,
+			Point = { "BOTTOMLEFT", 3, 24 },
+			StatusBarTexture = NRF_IMG.."statusbar5",
+			StatusBarColor = { 0, 0.5, 1 },
+			children = {
+				name = {
+					type = "FontString",
+					layer = "ARTWORK",
+					FontObject = "GameFontNormalSmall",
+					JustifyH = "LEFT",
+					ShadowColor = { 0, 0, 0, 0.75},
+					ShadowOffset = { -1, -1 },
+					Anchor = "all",
+				},
+				count = {
+					type = "FontString",
+					layer = "ARTWORK",
+					FontObject = "GameFontNormalSmall",
+					JustifyH = "CENTER",
+					ShadowColor = { 0, 0, 0, 0.75},
+					ShadowOffset = { -1, -1 },
+					Anchor = "all",
+				},
+				total = {
+					type = "FontString",
+					layer = "ARTWORK",
+					FontObject = "GameFontNormalSmall",
+					JustifyH = "RIGHT",
+					ShadowColor = { 0, 0, 0, 0.75},
+					ShadowOffset = { -1, -1 },
+					Anchor = "all",
+				},
+			},
 		},
 	},
 	OnLoad = function(self)
 		local import = getglobal(self:GetName().."import")
-		if Nurfed_UnitsLayout then
-			import:SetText("Import")
-		else
-			import:SetText("Disabled")
+		local accept = getglobal(self:GetName().."accept")
+		if not Nurfed_UnitsLayout then
 			import:Disable()
 		end
+		accept:Disable()
 	end,
 }
 
