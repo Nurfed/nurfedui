@@ -50,7 +50,7 @@ end
 
 ----------------------------------------------------------------
 -- Utility functions
-function util:print(msg, out, r, g, b)
+function util:print(msg, r, g, b, out)
 	out = _G["ChatFrame"..(out or 1)]
 	out:AddMessage(msg, (r or 1), (g or 1), (b or 1))
 end
@@ -112,7 +112,7 @@ function save(name, value, out, indent)
 			if type (k) == "string" and string.find (k, "^[_%a][_%a%d]*$") then
 				fieldname = k
 			else
-				fieldname  = string.format("[%s]", basicSerialize(k))
+				fieldname = string.format("[%s]", basicSerialize(k))
 			end
 			save(fieldname, v, out, indent + 2)
 		end
@@ -701,6 +701,25 @@ function Nurfed_ToggleOptions()
 end
 
 util:addslash(Nurfed_ToggleOptions, "/nurfed")
+
+----------------------------------------------------------------
+-- Addon message database
+local addonfunc = {}
+
+function util:addmsg(cmd, func)
+	addonfunc[cmd] = func
+end
+
+local addonmsg = function(event, ...)
+	if arg4 ~= UnitName("player") then
+		local check, cmd = string.split(":", arg1)
+		if check and check == "Nurfed" and addonfunc[cmd] then
+			addonfunc[cmd](arg2)
+		end
+	end
+end
+
+util:regevent("CHAT_MSG_ADDON", addonmsg)
 
 ----------------------------------------------------------------
 -- Add hex values to tables
