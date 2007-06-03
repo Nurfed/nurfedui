@@ -70,7 +70,7 @@ local addonmsg = function(name, msg)
 		Nurfed_MenuFramesprogresscount:SetText(#layout)
 		Nurfed_MenuFramesprogresstotal:SetText(#layout)
 		SendAddonMessage("Nurfed:Lyt", "count:"..#layout, "WHISPER", sendname)
-		Nurfed:schedule(0.05, Nurfed_SendLayout, true)
+		Nurfed:schedule(0.02, Nurfed_SendLayout, true)
 	elseif msg == "complete" then
 		Nurfed_MenuFramessend:Enable()
 		received = table.concat(received, "")
@@ -147,7 +147,9 @@ NURFED_MENUS["Frames"] = {
 			OnClick = function(self)
 				Nurfed_MenuFramessendname:ClearFocus()
 				sendname = string.trim(Nurfed_MenuFramessendname:GetText())
-				if checkonline() then
+				sendname = string.lower(sendname)
+				sendname = string.capital(sendname)
+				if sendname ~= UnitName("player") and checkonline() then
 					Nurfed:print("Nurfed Layout: |cffff0000Send|r "..sendname, 0, 0.75, 1)
 					SendAddonMessage("Nurfed:Lyt", "send", "WHISPER", sendname)
 				end
