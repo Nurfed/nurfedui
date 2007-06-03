@@ -427,6 +427,17 @@ function util:createobj(name, layout, parent)
 	end
 
 	for k, v in pairs(layout) do
+		if type(v) == "table" and v.template then
+			local template = v.template
+			while template do
+				v.template = nil
+				v = self:mergetable(v, virtual[template])
+				template = v.template
+			end
+		elseif type(v) == "string" and virtual[v] then
+			v = virtual[v]
+		end
+
 		if obj.HasScript and obj:HasScript(k) then
 			if type(v) == "function" then
 				obj:SetScript(k, v)
