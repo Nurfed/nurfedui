@@ -57,13 +57,20 @@ local accept = function()
 	Nurfed_MenuFramesaccept:Disable()
 end
 
-local cancel = function()
-	SendAddonMessage("Nurfed:Lyt", "cancel", "WHISPER", sendname)
-	Nurfed:unschedule(Nurfed_SendLayout, true)
+local cancel = function(nosend)
+	if not nosend then
+		SendAddonMessage("Nurfed:Lyt", "cancel", "WHISPER", sendname)
+	end
+	if sendname then
+		Nurfed:unschedule(Nurfed_SendLayout, true)
+	end
 	Nurfed_MenuFramesprogress:Hide()
 	Nurfed_MenuFramescancel:Disable()
+	Nurfed_MenuFramessend:Enable()
 	layout = nil
 	sendname = nil
+	received = nil
+	acceptname = nil
 end
 
 local addonmsg = function(name, msg)
@@ -79,6 +86,7 @@ local addonmsg = function(name, msg)
 		Nurfed_MenuFramesprogresscount:SetText(#layout)
 		Nurfed_MenuFramesprogresstotal:SetText(#layout)
 		Nurfed_MenuFramescancel:Enable()
+		Nurfed_MenuFramessend:Disable()
 		SendAddonMessage("Nurfed:Lyt", "count:"..#layout, "WHISPER", sendname)
 		Nurfed:schedule(0.01, Nurfed_SendLayout, true)
 	elseif msg == "complete" then
@@ -93,10 +101,7 @@ local addonmsg = function(name, msg)
 		received = nil
 		acceptname = nil
 	elseif msg == "cancel" then
-		Nurfed_MenuFramessend:Enable()
-		Nurfed_MenuFramesprogress:Hide()
-		received = nil
-		acceptname = nil
+		cancel(true)
 	elseif string.find(msg, "^count") then
 		local _, count = string.split(":", msg)
 		Nurfed_MenuFramesprogress:SetMinMaxValues(0, tonumber(count))
@@ -125,6 +130,7 @@ function Nurfed_SendLayout()
 		Nurfed:unschedule(Nurfed_SendLayout, true)
 		Nurfed_MenuFramesprogress:Hide()
 		Nurfed_MenuFramescancel:Disable()
+		Nurfed_MenuFramessend:Enable()
 		layout = nil
 		sendname = nil
 	end
