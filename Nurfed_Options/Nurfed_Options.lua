@@ -337,6 +337,7 @@ local templates = {
 		Font = { "Fonts\\ARIALN.TTF", 12, "OUTLINE" },
 		TextColor = { 1, 1, 1 },
 		HighlightTextColor = { 0, 0.75, 1 },
+		DisabledTextColor = { 1, 0, 0 },
 		PushedTextOffset = { 1, -1 },
 		OnShow = function() this:SetWidth(this:GetTextWidth() + 12) this:SetScript("OnShow", nil) end,
 	},
