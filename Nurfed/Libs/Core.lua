@@ -104,7 +104,7 @@ function save(name, value, out, indent)
 	indent = indent or 0
 	local iname = string.rep(" ", indent)..name
 	if type(value) == "number" or type(value) == "string" or type(value) == "boolean" then
-		table.insert(out, iname.." = "..basicSerialize(value))
+		table.insert(out, iname.." = "..basicSerialize(value)..",")
 	elseif type(value) == "table" then
 		table.insert(out, iname.." = {")
 		for k, v in pairs(value) do
@@ -116,7 +116,12 @@ function save(name, value, out, indent)
 			end
 			save(fieldname, v, out, indent + 2)
 		end
-		table.insert(out, string.rep(" ", indent).."}")
+		if indent == 0 then
+			table.insert(out, string.rep(" ", indent).."}")
+		else
+			table.insert(out, string.rep(" ", indent).."},")
+		end
+		
 	end
 end
 
@@ -714,7 +719,7 @@ local addonmsg = function(event, ...)
 	if arg4 ~= UnitName("player") then
 		local check, cmd = string.split(":", arg1)
 		if check and check == "Nurfed" and addonfunc[cmd] then
-			addonfunc[cmd](arg2)
+			addonfunc[cmd](arg4, arg2)
 		end
 	end
 end
