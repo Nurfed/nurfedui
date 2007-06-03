@@ -28,31 +28,11 @@
 --		glide
 ----------------------------------------------------------------------------------------
 
-function Nurfed_HealthPercColor(perc)
-	local color = {};
-	if(perc > 0.6) then
-		color.r = (78/255);
-		color.g = (106/255);
-		color.b = (143/255);
-	else
-		if(perc > 0.2) then
-			color.r = (( 78+((0.6-perc)*100*(128/40)))/255);
-			color.g = ((106+((0.6-perc)*100*(-89/40)))/255);
-			color.b = ((143+((0.6-perc)*100*(-136/40)))/255);
-		else
-			color.r = (206/255);
-			color.g = (17/255);
-			color.b = (17/255);
-		end
-	end
-	return color;
-end
-
-ManaBarColor[0] = { r = .498, g = .604, b = .722, prefix = TEXT(MANA) };	-- mana
-ManaBarColor[1] = { r = .498, g = .604, b = .722, prefix = TEXT(MANA) };	-- rage
-ManaBarColor[2] = { r = .498, g = .604, b = .722, prefix = TEXT(MANA) };	-- focus
-ManaBarColor[3] = { r = .498, g = .604, b = .722, prefix = TEXT(MANA) };	-- energy
-ManaBarColor[4] = { r = .498, g = .604, b = .722, prefix = TEXT(MANA) };	-- happiness
+Nurfed_UnitsLayout
+Name
+Author
+templates
+Layout
 
 if (not Nurfed_UnitsLayout) then
 
