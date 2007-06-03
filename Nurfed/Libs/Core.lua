@@ -92,6 +92,40 @@ function util:mergetable(target, source)
 	return target
 end
 
+local basicSerialize = function(o)
+	if type(o) == "number" or type(o) == "boolean" then
+		return tostring(o)
+	else
+		return string.format("%q", o)
+	end
+end
+
+function save(name, value, out, indent)
+	indent = indent or 0
+	local iname = string.rep(" ", indent)..name
+	if type(value) == "number" or type(value) == "string" or type(value) == "boolean" then
+		table.insert(out, iname.." = "..basicSerialize(value))
+	elseif type(value) == "table" then
+		table.insert(out, iname.." = {")
+		for k, v in pairs(value) do
+			local fieldname
+			if type (k) == "string" and string.find (k, "^[_%a][_%a%d]*$") then
+				fieldname = k
+			else
+				fieldname  = string.format("[%s]", basicSerialize(k))
+			end
+			save(fieldname, v, out, indent + 2)
+		end
+		table.insert(out, string.rep(" ", indent).."}")
+	end
+end
+
+function util:serialize(what, tbl)
+	local out = {}
+	save(what, tbl, out)
+	return out
+end
+
 function util:getopt(opt, addon)
 	if addon then
 		addon = "_"..string.upper(addon)
