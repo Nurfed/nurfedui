@@ -1,13 +1,45 @@
 local layout, name
 
+local import = function()
+	local templates = Nurfed_UnitsLayout.templates
+	local frames = Nurfed_UnitsLayout.Layout or Nurfed_UnitsLayout.frames
+
+	if templates then
+		for k, v in pairs(templates) do
+			NURFED_FRAMES.templates[k] = v
+		end
+	end
+
+	if frames then
+		for k, v in pairs(frames) do
+			local name = k
+			if not string.find(k, "^Nurfed") then
+				name = "Nurfed_"..k
+			end
+			NURFED_FRAMES.frames[name] = v
+		end
+	end
+
+	if Nurfed_UnitsLayout.Name and Nurfed_UnitsLayout.Author then
+		Nurfed:print(Nurfed_UnitsLayout.Name.." designed by "..Nurfed_UnitsLayout.Author.." imported.")
+	end
+	StaticPopup_Show("NRF_RELOADUI")
+end
+
+local receive = function(msg)
+end
+
+Nurfed:addmsg("Lyt", receive)
+
 function Nurfed_SendLayout()
 	if layout > 0 then
 		local text = table.remove(layout, 1)
-		SendAddonMessage("Nurfed", "Lyt:"..string.trim(text), "WHISPER", name)
+		SendAddonMessage("Nurfed:Lyt", string.trim(text), "WHISPER", name)
 	else
 		Nurfed:unschedule(nrfsend, true)
 		Nurfed:print("Layout Sent To "..name)
-		SendAddonMessage("Nurfed", "Lyt:complete", "WHISPER", name)
+		SendAddonMessage("Nurfed:Lyt", "complete", "WHISPER", name)
+		layout = nil
 		name = nil
 	end
 	
@@ -18,12 +50,23 @@ NURFED_MENUS["Frames"] = {
 	children = {
 		import = {
 			template = "nrf_button",
-			Point = { "BOTTOMRIGHT", -5, 5 }
+			Point = { "BOTTOMRIGHT", -5, 5 },
+			OnClick = function() import() end,
+		},
+		export = {
+			template = "nrf_button",
+			Text = "Export Layout",
+			Point = { "RIGHT", "$parentimport", "LEFT", -5, 0 },
+			OnClick = function()
+				NURFED_LAYOUT = Nurfed:copytable(NURFED_FRAMES)
+				NURFED_LAYOUT.Author = UnitName("player")
+				Nurfed:print("Nurfed Layout: |cffff0000Exported|r", 0, 0.75, 1)
+			end,
 		},
 		send = {
 			template = "nrf_button",
 			Text = "Send Layout",
-			Point = { "RIGHT", "$parentimport", "LEFT", -5, 0 }
+			Point = { "RIGHT", "$parentexport", "LEFT", -5, 0 },
 		},
 	},
 	OnLoad = function(self)
@@ -32,6 +75,7 @@ NURFED_MENUS["Frames"] = {
 			import:SetText("Import")
 		else
 			import:SetText("Disabled")
+			import:Disable()
 		end
 	end,
 }
@@ -56,7 +100,7 @@ NURFED_MENUS["Frames"] = {
 
 
 
-
+--[[
 Nurfed:createtemp("nrf_frames_row", {
 	type = "Button",
 	size = { 400, 14 },
@@ -309,7 +353,7 @@ local updateeditor = function()
 		table.sort(methods, function(a, b) return a < b end)
 		UIDropDownMenu_Initialize(Nurfed_MenuEditormethods, updatemethods)
 		Nurfed_Method_OnClick(1)
-		--[[
+--
 		local text = {}
 		for k, v in pairs(frame) do
 			if type(v) == "string" or type(v) == "number" then
@@ -317,7 +361,7 @@ local updateeditor = function()
 			end
 		end
 		Nurfed_MenuEditorvars:SetText(table.concat(text, "\n"))
-		]]
+--
 	else
 		hidemethods()
 		Nurfed_MenuEditorcreate:Show()
@@ -482,8 +526,10 @@ local frameupdate = function(edit, nosave)
 		end
 		if string.find(m, "Object") and not getglobal(val) then return end
 		if m == "Point" then
-			if not points[val[1]] then return end
-			if not points[val[3]] then return end
+]]
+			--if not points[val[1]] then return end
+			--if not points[val[3]] then return end
+--[[
 			string.gsub(val[2], "$parent", frame:GetParent():GetName())
 			if val[2] == "" then
 				val[2] = nil
@@ -792,7 +838,7 @@ function Nurfed_Method_OnClick(id)
 end
 
 
---[[ Frame Editor ]]--
+-- Frame Editor
 local layout = {
 	type = "Frame",
 	size = { 250, 300 },
@@ -1413,14 +1459,13 @@ local layout = {
 			Text = CREATE,
 			OnClick = function() framecreate() end,
 		},
-		--[[
+		--
 		vars = {
 			template = "nrf_editbox",
 			size = { 220, 270 },
 			Anchor = { "BOTTOM", "$parent", "BOTTOM", 0, 5 },
 			MultiLine = true,
 		},
-		]]
 	},
 	Hide = true,
 }
@@ -1529,3 +1574,4 @@ StaticPopupDialogs["NRF_CREATE"] = {
 	whileDead = 1,
 	hideOnEscape = 1,
 }
+]]
