@@ -55,11 +55,12 @@ local accept = function()
 	SendAddonMessage("Nurfed:Lyt", "receive", "WHISPER", acceptname)
 	Nurfed_MenuFramessend:Disable()
 	Nurfed_MenuFramesaccept:Disable()
+	Nurfed_MenuFramescancel:Enable()
 end
 
 local cancel = function(nosend)
 	if not nosend then
-		SendAddonMessage("Nurfed:Lyt", "cancel", "WHISPER", sendname)
+		SendAddonMessage("Nurfed:Lyt", "cancel", "WHISPER", (sendname or acceptname))
 	end
 	if sendname then
 		Nurfed:unschedule(Nurfed_SendLayout, true)
