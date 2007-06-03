@@ -57,6 +57,15 @@ local accept = function()
 	Nurfed_MenuFramesaccept:Disable()
 end
 
+local cancel = function()
+	SendAddonMessage("Nurfed:Lyt", "cancel", "WHISPER", sendname)
+	Nurfed:unschedule(Nurfed_SendLayout, true)
+	Nurfed_MenuFramesprogress:Hide()
+	Nurfed_MenuFramescancel:Disable()
+	layout = nil
+	sendname = nil
+end
+
 local addonmsg = function(name, msg)
 	if msg == "send" then
 		Nurfed_MenuFramesaccept:Enable()
@@ -69,8 +78,9 @@ local addonmsg = function(name, msg)
 		Nurfed_MenuFramesprogressname:SetText(sendname)
 		Nurfed_MenuFramesprogresscount:SetText(#layout)
 		Nurfed_MenuFramesprogresstotal:SetText(#layout)
+		Nurfed_MenuFramescancel:Enable()
 		SendAddonMessage("Nurfed:Lyt", "count:"..#layout, "WHISPER", sendname)
-		Nurfed:schedule(0.02, Nurfed_SendLayout, true)
+		Nurfed:schedule(0.01, Nurfed_SendLayout, true)
 	elseif msg == "complete" then
 		Nurfed_MenuFramessend:Enable()
 		received = table.concat(received, "")
@@ -79,6 +89,11 @@ local addonmsg = function(name, msg)
 		if Nurfed_UnitsLayout then
 			Nurfed_MenuFramesimport:Enable()
 		end
+		Nurfed_MenuFramesprogress:Hide()
+		received = nil
+		acceptname = nil
+	elseif msg == "cancel" then
+		Nurfed_MenuFramessend:Enable()
 		Nurfed_MenuFramesprogress:Hide()
 		received = nil
 		acceptname = nil
@@ -106,13 +121,13 @@ function Nurfed_SendLayout()
 		Nurfed_MenuFramesprogresscount:SetText(#layout)
 		SendAddonMessage("Nurfed:Lyt", string.trim(text), "WHISPER", sendname)
 	else
-		Nurfed:unschedule(Nurfed_SendLayout, true)
 		SendAddonMessage("Nurfed:Lyt", "complete", "WHISPER", sendname)
+		Nurfed:unschedule(Nurfed_SendLayout, true)
 		Nurfed_MenuFramesprogress:Hide()
+		Nurfed_MenuFramescancel:Disable()
 		layout = nil
 		sendname = nil
 	end
-	
 end
 
 NURFED_MENUS["Frames"] = {
@@ -121,13 +136,13 @@ NURFED_MENUS["Frames"] = {
 		import = {
 			template = "nrf_button",
 			Text = "Import",
-			Point = { "BOTTOMRIGHT", -5, 5 },
+			Point = { "BOTTOMRIGHT", -3, 3 },
 			OnClick = function() import() end,
 		},
 		export = {
 			template = "nrf_button",
 			Text = "Export Layout",
-			Point = { "RIGHT", "$parentimport", "LEFT", -5, 0 },
+			Point = { "RIGHT", "$parentimport", "LEFT", -3, 0 },
 			OnClick = function()
 				NURFED_LAYOUT = Nurfed:copytable(NURFED_FRAMES)
 				NURFED_LAYOUT.Author = UnitName("player")
@@ -137,13 +152,13 @@ NURFED_MENUS["Frames"] = {
 		accept = {
 			template = "nrf_button",
 			Text = ACCEPT,
-			Point = { "RIGHT", "$parentexport", "LEFT", -5, 0 },
+			Point = { "RIGHT", "$parentexport", "LEFT", -3, 0 },
 			OnClick = function() accept() end,
 		},
 		send = {
 			template = "nrf_button",
 			Text = "Send Layout",
-			Point = { "RIGHT", "$parentaccept", "LEFT", -5, 0 },
+			Point = { "RIGHT", "$parentaccept", "LEFT", -3, 0 },
 			OnClick = function(self)
 				Nurfed_MenuFramessendname:ClearFocus()
 				sendname = string.trim(Nurfed_MenuFramessendname:GetText())
@@ -157,14 +172,20 @@ NURFED_MENUS["Frames"] = {
 		},
 		sendname = {
 			template = "nrf_editbox",
-			size = { 105, 18 },
-			Point = { "RIGHT", "$parentsend", "LEFT", -5, 0 },
+			size = { 100, 18 },
+			Point = { "RIGHT", "$parentsend", "LEFT", -1, 0 },
+		},
+		cancel = {
+			template = "nrf_button",
+			Text = CANCEL,
+			Point = { "RIGHT", "$parentsendname", "LEFT", -3, 0 },
+			OnClick = function() cancel() end,
 		},
 		progress = {
 			type = "StatusBar",
 			size = { 405, 12 },
 			Hide = true,
-			Point = { "BOTTOMLEFT", 3, 24 },
+			Point = { "BOTTOMLEFT", 3, 22 },
 			StatusBarTexture = NRF_IMG.."statusbar5",
 			StatusBarColor = { 0, 0.5, 1 },
 			children = {
@@ -201,9 +222,11 @@ NURFED_MENUS["Frames"] = {
 	OnLoad = function(self)
 		local import = getglobal(self:GetName().."import")
 		local accept = getglobal(self:GetName().."accept")
+		local cancel = getglobal(self:GetName().."cancel")
 		if not Nurfed_UnitsLayout then
 			import:Disable()
 		end
+		cancel:Disable()
 		accept:Disable()
 	end,
 }
