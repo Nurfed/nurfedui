@@ -1,17 +1,61 @@
+local layout, name
+
+function Nurfed_SendLayout()
+	if layout > 0 then
+		local text = table.remove(layout, 1)
+		SendAddonMessage("Nurfed", "Lyt:"..string.trim(text), "WHISPER", name)
+	else
+		Nurfed:unschedule(nrfsend, true)
+		Nurfed:print("Layout Sent To "..name)
+		SendAddonMessage("Nurfed", "Lyt:complete", "WHISPER", name)
+		name = nil
+	end
+	
+end
+
 NURFED_MENUS["Frames"] = {
 	template = "nrf_options",
 	children = {
-		scroll = {
-			type = "ScrollFrame",
-			size = { 388, 270 },
-			Anchor = { "LEFT", "$parent", "LEFT" },
-			uitemp = "FauxScrollFrameTemplate",
-			OnVerticalScroll = function() FauxScrollFrame_OnVerticalScroll(14, Nurfed_ScrollFrames) end,
-			OnShow = function() Nurfed_ScrollFrames() end,
+		import = {
+			template = "nrf_button",
+			Point = { "BOTTOMRIGHT", -5, 5 }
+		},
+		send = {
+			template = "nrf_button",
+			Text = "Send Layout",
+			Point = { "RIGHT", "$parentimport", "LEFT", -5, 0 }
 		},
 	},
-	OnLoad = function() Nurfed_GenerateMenu("Frames", "nrf_frames_row", 19) end,
+	OnLoad = function(self)
+		local import = getglobal(self:GetName().."import")
+		if Nurfed_UnitsLayout then
+			import:SetText("Import")
+		else
+			import:SetText("Disabled")
+		end
+	end,
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Nurfed:createtemp("nrf_frames_row", {
 	type = "Button",
