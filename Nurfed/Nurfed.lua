@@ -154,7 +154,7 @@ local onevent = function()
 		if show then
 			local name = UnitName(arg1)
 			if name ~= UnitName("player") and not pingflood[name] then
-				Nurfed:print(name.." Ping.", nil, 1, 1, 0)
+				Nurfed:print(name.." Ping.", 1, 1, 0)
 				pingflood[name] = GetTime()
 			end
 		end
