@@ -92,7 +92,7 @@ local addonmsg = function(name, msg)
 		Nurfed:schedule(0.01, Nurfed_SendLayout, true)
 	elseif msg == "complete" then
 		Nurfed_MenuFramessend:Enable()
-		received = table.concat(received, "")
+		received = table.concat(received)
 		Nurfed_UnitsLayout = loadstring(received)
 		Nurfed_UnitsLayout()
 		if Nurfed_UnitsLayout then
