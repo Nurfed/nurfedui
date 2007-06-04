@@ -123,9 +123,20 @@ Nurfed:addmsg("Lyt", addonmsg)
 function Nurfed_SendLayout()
 	if #layout > 0 then
 		local text = table.remove(layout, 1)
+		text = string.trim(text)
+		local size = string.len(text)
+		if size > 240 then
+			local count = ceil(size / 240)
+			for i = 1, count do
+				local snip = string.sub(text, 1, 240)
+				text = string.sub(text, 241)
+				table.insert(layout, 1, snip)
+			end
+			text = table.remove(layout, 1)
+		end
 		Nurfed_MenuFramesprogress:SetValue(#layout)
 		Nurfed_MenuFramesprogresscount:SetText(#layout)
-		SendAddonMessage("Nurfed:Lyt", string.trim(text), "WHISPER", sendname)
+		SendAddonMessage("Nurfed:Lyt", text, "WHISPER", sendname)
 	else
 		SendAddonMessage("Nurfed:Lyt", "complete", "WHISPER", sendname)
 		Nurfed:unschedule(Nurfed_SendLayout, true)
