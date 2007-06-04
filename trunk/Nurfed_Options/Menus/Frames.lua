@@ -129,14 +129,14 @@ function Nurfed_SendLayout()
 			local count = ceil(size / 240)
 			for i = 1, count do
 				local snip = string.sub(text, 1, 240)
+				SendAddonMessage("Nurfed:Lyt", snip, "WHISPER", sendname)
 				text = string.sub(text, 241)
-				table.insert(layout, 1, snip)
 			end
-			text = table.remove(layout, 1)
+		else
+			SendAddonMessage("Nurfed:Lyt", text, "WHISPER", sendname)
 		end
 		Nurfed_MenuFramesprogress:SetValue(#layout)
 		Nurfed_MenuFramesprogresscount:SetText(#layout)
-		SendAddonMessage("Nurfed:Lyt", text, "WHISPER", sendname)
 	else
 		SendAddonMessage("Nurfed:Lyt", "complete", "WHISPER", sendname)
 		Nurfed:unschedule(Nurfed_SendLayout, true)
