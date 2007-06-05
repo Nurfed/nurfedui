@@ -198,7 +198,7 @@ local onevent = function()
 		end
 	elseif event == "TRAINER_SHOW" then
 		local avail = Nurfed:getopt("traineravailable")
-		if avail then SetTrainerServiceTypeFilter("unavailable",0) end
+		if avail then SetTrainerServiceTypeFilter("unavailable", 0) end
 	elseif event == "ADDON_LOADED" then
 		if arg1 == "Blizzard_InspectUI" then
 			InspectPaperDollFrame:SetScript("OnShow", Nurfed_InspectOnShow)
@@ -221,6 +221,14 @@ local onevent = function()
 			this:SetUserPlaced(nil)
 		end
 		this:SetPoint(unpack(Nurfed:getopt("lock")))
+
+		for _, val in pairs(RAID_CLASS_COLORS) do
+			val.hex = Nurfed:rgbhex(val.r, val.g, val.b)
+		end
+
+		for _, val in ipairs(UnitReactionColor) do
+			val.hex = Nurfed:rgbhex(val.r, val.g, val.b)
+		end
 
 		for i = 0, 4 do
 			local color = Nurfed:getopt(ManaBarColor[i].prefix)

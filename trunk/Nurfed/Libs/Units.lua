@@ -885,7 +885,7 @@ local replace = {
 			local class, eclass = UnitClass(this.unit)
 			if UnitIsPlayer(this.unit) then
 				if RAID_CLASS_COLORS[eclass] then
-					local color = RAID_CLASS_COLORS[eclass].hex
+					local color = RAID_CLASS_COLORS[eclass].hex or "|cffffffff"
 					class = color..class.."|r"
 				end
 			else
