@@ -89,7 +89,7 @@ local addonmsg = function(name, msg)
 		Nurfed_MenuFramescancel:Enable()
 		Nurfed_MenuFramessend:Disable()
 		SendAddonMessage("Nurfed:Lyt", "count:"..#layout, "WHISPER", sendname)
-		Nurfed:schedule(0.01, Nurfed_SendLayout, true)
+		Nurfed:schedule(0.03, Nurfed_SendLayout, true)
 	elseif msg == "complete" then
 		Nurfed_MenuFramessend:Enable()
 		received = table.concat(received)
