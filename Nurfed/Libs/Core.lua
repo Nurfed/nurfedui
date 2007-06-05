@@ -736,13 +736,3 @@ local addonmsg = function(event, ...)
 end
 
 util:regevent("CHAT_MSG_ADDON", addonmsg)
-
-----------------------------------------------------------------
--- Add hex values to tables
-for _, val in pairs(RAID_CLASS_COLORS) do
-	val.hex = Nurfed:rgbhex(val.r, val.g, val.b)
-end
-
-for _, val in ipairs(UnitReactionColor) do
-	val.hex = Nurfed:rgbhex(val.r, val.g, val.b)
-end
