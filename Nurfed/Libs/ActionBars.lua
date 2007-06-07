@@ -19,6 +19,7 @@ NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
 		ygap = 2,
 		buttons = {},
 		statemaps = {},
+		shown = "always",
 	},
 }
 
