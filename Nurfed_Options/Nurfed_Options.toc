@@ -4,7 +4,7 @@
 ## SavedVariables: NURFED_LAYOUT
 ## SavedVariablesPerCharacter: NURFED_ITEMS
 ## RequiredDeps: Nurfed
-## Version: 06.03.2007
+## Version: 06.07.2007
 ## LoadOnDemand: 1
 Localization.lua
 
