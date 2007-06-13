@@ -1,5 +1,5 @@
 ------------------------------------------
---		Nurfed Bindings
+--	Nurfed Bindings
 ------------------------------------------
 
 -- Saved item links for bindings
