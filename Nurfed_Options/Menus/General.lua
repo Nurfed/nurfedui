@@ -63,7 +63,7 @@ NURFED_MENUS["General"] = {
 		check12 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck11", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Suppress Raid Clicks", option = "raidclicks", page = 1 },
+			vars = { text = "Square Minimap", option = "squareminimap", page = 1 },
 		},
 
 		slider1 = {
@@ -164,11 +164,6 @@ NURFED_MENUS["General"] = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck22", "BOTTOMLEFT", 0, -2 },
 			vars = { text = "Vertical Pet Bar", option = "petbarvert", func = function() nrf_updatemainbar("petbar") end, page = 2 },
-		},
-		check24 = {
-			template = "nrf_check",
-			Anchor = { "TOPLEFT", "$parentcheck23", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Square Minimap", option = "squareminimap", page = 2 },
 		},
 
 		slider3 = {

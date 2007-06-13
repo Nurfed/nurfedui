@@ -30,7 +30,7 @@ local import = function()
 		out = out.." designed by "..Nurfed_UnitsLayout.Author
 	end
 
-	Nurfed:print(out, 0, 0.75, 1)
+	Nurfed:print(out, 1, 0, 0.75, 1)
 	StaticPopup_Show("NRF_RELOADUI")
 end
 
@@ -74,11 +74,11 @@ local cancel = function(nosend)
 	acceptname = nil
 end
 
-local addonmsg = function(name, msg)
-	if msg == "send" then
+local addonmsg = function(name, cmd)
+	if cmd == "send" then
 		Nurfed_MenuFramesaccept:Enable()
 		acceptname = name
-	elseif msg == "receive" then
+	elseif cmd == "receive" then
 		layout = Nurfed:serialize("Nurfed_UnitsLayout", NURFED_FRAMES)
 		Nurfed_MenuFramesprogress:SetMinMaxValues(0, #layout)
 		Nurfed_MenuFramesprogress:SetValue(#layout)
@@ -90,7 +90,7 @@ local addonmsg = function(name, msg)
 		Nurfed_MenuFramessend:Disable()
 		SendAddonMessage("Nurfed:Lyt", "count:"..#layout, "WHISPER", sendname)
 		Nurfed:schedule(0.03, Nurfed_SendLayout, true)
-	elseif msg == "complete" then
+	elseif cmd == "complete" then
 		Nurfed_MenuFramessend:Enable()
 		received = table.concat(received)
 		Nurfed_UnitsLayout = loadstring(received)
@@ -101,10 +101,10 @@ local addonmsg = function(name, msg)
 		Nurfed_MenuFramesprogress:Hide()
 		received = nil
 		acceptname = nil
-	elseif msg == "cancel" then
+	elseif cmd == "cancel" then
 		cancel(true)
-	elseif string.find(msg, "^count") then
-		local _, count = string.split(":", msg)
+	elseif string.find(cmd, "^count") then
+		local _, count = string.split(":", cmd)
 		Nurfed_MenuFramesprogress:SetMinMaxValues(0, tonumber(count))
 		Nurfed_MenuFramesprogress:SetValue(0)
 		Nurfed_MenuFramesprogress:Show()
@@ -112,7 +112,7 @@ local addonmsg = function(name, msg)
 		Nurfed_MenuFramesprogresscount:SetText(0)
 		Nurfed_MenuFramesprogresstotal:SetText(count)
 	elseif name == acceptname then
-		table.insert(received, msg)
+		table.insert(received, cmd)
 		Nurfed_MenuFramesprogress:SetValue(#received)
 		Nurfed_MenuFramesprogresscount:SetText(#received)
 	end
@@ -164,7 +164,7 @@ NURFED_MENUS["Frames"] = {
 			OnClick = function()
 				NURFED_LAYOUT = Nurfed:copytable(NURFED_FRAMES)
 				NURFED_LAYOUT.Author = UnitName("player")
-				Nurfed:print("Nurfed Layout: |cffff0000Exported|r", 0, 0.75, 1)
+				Nurfed:print("Nurfed Layout: |cffff0000Exported|r", 1, 0, 0.75, 1)
 			end,
 		},
 		accept = {
@@ -183,7 +183,7 @@ NURFED_MENUS["Frames"] = {
 				sendname = string.lower(sendname)
 				sendname = string.capital(sendname)
 				if sendname ~= UnitName("player") and checkonline() then
-					Nurfed:print("Nurfed Layout: |cffff0000Send|r "..sendname, 0, 0.75, 1)
+					Nurfed:print("Nurfed Layout: |cffff0000Send|r "..sendname, 1, 0, 0.75, 1)
 					SendAddonMessage("Nurfed:Lyt", "send", "WHISPER", sendname)
 				end
 			end,

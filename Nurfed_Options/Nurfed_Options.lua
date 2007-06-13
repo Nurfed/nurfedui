@@ -42,95 +42,90 @@ local saveopt = function(self)
 	elseif objtype == "Button" then
 		value = self:GetText()
 	end
-
-	if addon then
-		addon = "_"..string.upper(addon)
-	end
 	
 	if self.option then
 		local opt = self.option
-		local tbl = _G["NURFED"..(addon or "").."_SAVED"]
 		if value == NURFED_DEFAULT[opt] then
-			tbl[opt] = nil
+			NURFED_SAVED[opt] = nil
 		else
-			tbl[opt] = value
+			NURFED_SAVED[opt] = value
 		end
 	end
 	
 	if self.func then
-		self.func()
+		self.func(value)
 	end
 end
 
 -- Init option display
-local onshow = function()
+local onshow = function(self)
 	local text, value, objtype, opt, right
-	text = _G[this:GetName().."Text"]
-	value = _G[this:GetName().."value"]
-	objtype = this:GetObjectType()
-	if this:GetParent():GetRight() and this:GetRight() then
-		right = this:GetParent():GetRight() - this:GetRight()
+	text = _G[self:GetName().."Text"]
+	value = _G[self:GetName().."value"]
+	objtype = self:GetObjectType()
+	if self:GetParent():GetRight() and self:GetRight() then
+		right = self:GetParent():GetRight() - self:GetRight()
 		if right < 50 and objtype ~= "EditBox" then
 			if value then
 				value:ClearAllPoints()
-				value:SetPoint("RIGHT", this, "LEFT", -3, 0)
+				value:SetPoint("RIGHT", self, "LEFT", -3, 0)
 			else
 				text:ClearAllPoints()
-				text:SetPoint("RIGHT", this:GetName(), "LEFT", -1, 1)
+				text:SetPoint("RIGHT", self:GetName(), "LEFT", -1, 1)
 			end
 		end
 	end
 
 	if text then
-		text:SetText(this.text)
+		text:SetText(self.text)
 
-		if this.color then
-			text:SetTextColor(unpack(this.color))
+		if self.color then
+			text:SetTextColor(unpack(self.color))
 		end
 	end
 	
-	if this.option then
-		opt = Nurfed:getopt(this.option, addon)
-	elseif this.default then
-		opt = this.default
+	if self.option then
+		opt = Nurfed:getopt(self.option)
+	elseif self.default then
+		opt = self.default
 	end
 
 	if objtype == "CheckButton" and opt then
-		this:SetChecked(opt)
+		self:SetChecked(opt)
 	elseif objtype == "Slider" then
-		local low = _G[this:GetName().."Low"]
-		local high = _G[this:GetName().."High"]
-		this:SetMinMaxValues(this.min, this.max)
-		this:SetValueStep(this.step)
+		local low = _G[self:GetName().."Low"]
+		local high = _G[self:GetName().."High"]
+		self:SetMinMaxValues(self.min, self.max)
+		self:SetValueStep(self.step)
 		if opt then
-			this:SetValue(opt)
+			self:SetValue(opt)
 		end
 
-		value.option = this.option
-		value.val = this.val
-		value.func = this.func
+		value.option = self.option
+		value.val = self.val
+		value.func = self.func
 	elseif objtype == "EditBox" then
-		this:SetText(opt or "")
+		self:SetText(opt or "")
 	elseif objtype == "Button" then
-		local swatch = _G[this:GetName().."bg"]
+		local swatch = _G[self:GetName().."bg"]
 		if swatch then
-			local frame = this
+			local frame = self
 			swatch:SetVertexColor(opt[1], opt[2], opt[3])
-			this.r = opt[1]
-			this.g = opt[2]
-			this.b = opt[3]
-			this.swatchFunc = function() Nurfed_Options_swatchSetColor(frame) end
-			this.cancelFunc = function(x) Nurfed_Options_swatchCancelColor(frame, x) end
-			if this.opacity then
-				this.hasOpacity = frame.opacity
-				this.opacityFunc = function() Nurfed_Options_swatchSetColor(frame) end
-				this.opacity = opt[4]
+			self.r = opt[1]
+			self.g = opt[2]
+			self.b = opt[3]
+			self.swatchFunc = function() Nurfed_Options_swatchSetColor(frame) end
+			self.cancelFunc = function(x) Nurfed_Options_swatchCancelColor(frame, x) end
+			if self.opacity then
+				self.hasOpacity = frame.opacity
+				self.opacityFunc = function() Nurfed_Options_swatchSetColor(frame) end
+				self.opacity = opt[4]
 			end
 		else
-			this:SetText(opt or "")
+			self:SetText(opt or "")
 		end
 	end
-	this:SetScript("OnShow", nil)
+	self:SetScript("OnShow", nil)
 end
 
 -- Select options menu
@@ -345,14 +340,14 @@ local templates = {
 		type = "CheckButton",
 		size = { 20, 20 },
 		uitemp = "UICheckButtonTemplate",
-		OnShow = function() onshow() end,
+		OnShow = function(self) onshow(self) end,
 		OnClick = function(self) saveopt(self) end,
 	},
 	nrf_radio = {
 		type = "CheckButton",
 		size = { 14, 14 },
 		uitemp = "UIRadioButtonTemplate",
-		OnShow = function() onshow() end,
+		OnShow = function(self) onshow(self) end,
 		OnClick = function() Nurfed_Options_radioOnClick() end,
 	},
 	nrf_slider = {
@@ -379,7 +374,7 @@ local templates = {
 				OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
 			},
 		},
-		OnShow = function() onshow() end,
+		OnShow = function(self) onshow(self) end,
 		OnMouseUp = function(self) saveopt(self) end,
 		OnValueChanged = function() slidertext() end,
 	},
@@ -408,7 +403,7 @@ local templates = {
 				JustifyH = "LEFT",
 			},
 		},
-		OnShow = function() onshow() end,
+		OnShow = function(self) onshow(self) end,
 		OnEscapePressed = function() this:ClearFocus() end,
 		OnEditFocusGained = function() this:HighlightText() this.focus = true end,
 		OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
@@ -418,6 +413,13 @@ local templates = {
 		type = "ScrollFrame",
 		uitemp = "UIPanelScrollFrameTemplate",
 		children = {
+			Text = {
+				type = "FontString",
+				layer = "ARTWORK",
+				Anchor = { "BOTTOMLEFT", "$parent", "TOPLEFT", 3, 0 },
+				FontObject = "GameFontNormalSmall",
+				JustifyH = "LEFT",
+			},
 			edit = {
 				type = "EditBox",
 				AutoFocus = false,
@@ -434,7 +436,15 @@ local templates = {
 				FontObject = "GameFontNormalSmall",
 				TextColor = { 1, 1, 1 },
 				TextInsets = { 3, 3, 3, 3 },
-				OnShow = function(self) self.option = self:GetParent().option onshow() end,
+				OnShow = function(self)
+					local parent = self:GetParent()
+					self.option = parent.option
+					self.func = parent.func
+					if parent.ltrs then
+						self:SetMaxLetters(parent.ltrs)
+					end
+					onshow(self)
+				end,
 				OnEscapePressed = function(self) this:ClearFocus() end,
 				OnEditFocusGained = function() this.focus = true end,
 				OnEditFocusLost = function(self) saveopt(self) this.focus = nil end,
@@ -447,18 +457,17 @@ local templates = {
 						self.max = max
 						scrollBar:SetValue(max)
 					else
-						self:SetPoint("BOTTOM", 0, 0)
+						self:SetPoint("BOTTOM")
 					end
 				end,
 			},
 		},
 		OnLoad = function(self)
 			local child = _G[self:GetName().."edit"]
+			local text = _G[self:GetName().."Text"]
 			child:SetWidth(self:GetWidth())
+			text:SetText(self.text)
 			self:SetScrollChild(child)
-			if self.func then
-				child.func = self.func
-			end
 		end,
 	},
 	nrf_optbutton = {
@@ -472,7 +481,7 @@ local templates = {
 				JustifyH = "LEFT",
 			},
 		},
-		OnShow = function() onshow() end,
+		OnShow = function(self) onshow(self) end,
 	},
 	nrf_dropdown = {
 		type = "Frame",
@@ -498,7 +507,7 @@ local templates = {
 				JustifyH = "LEFT",
 			},
 		},
-		OnShow = function() onshow() end,
+		OnShow = function(self) onshow(self) end,
 		OnClick = function() Nurfed_Options_swatchOpenColorPicker() end,
 	},
 	nrf_scroll = {
