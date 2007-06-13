@@ -1,8 +1,12 @@
 NURFED_DEFAULT["arenascale"] = 1
+NURFED_DEFAULT["arenaassist2"] = ""
+NURFED_DEFAULT["arenaassist3"] = ""
+NURFED_DEFAULT["arenaassist5"] = ""
 NURFED_DEFAULT["arenamacro1"] = "/target $name"
 NURFED_DEFAULT["arenamacro2"] = "/target $name\n/assist"
 
 local _G = getfenv(0)
+local tsize
 local teams, targets = {}, {}
 local queued = { {}, {}, {} }
 local slain = Nurfed:formatgs(SELFKILLOTHER, true)
@@ -78,17 +82,35 @@ local updateunit = function(unit, name, class, health, isdead)
 			end
 		end
 
+		local aname
+		local assist = Nurfed:getopt("arenaassist"..tsize)
+		for i = 1, GetNumPartyMembers() do
+			if UnitName("party"..i) == assist then
+				if UnitExists("party"..i.."target") and name == UnitName("party"..i.."target") then
+					aname = true
+				end
+				break
+			end
+		end
+
 		local r, g, b
 		local perc = health / 100
-		if perc > 0.5 then
+
+		if aname then
+			r = 1
+			g = 0
+			b = 1
+		elseif perc > 0.5 then
 			r = (1.0 - perc) * 2
 			g = 1.0
+			b = 0
 		else
 			r = 1.0
 			g = perc * 2
+			b = 0
 		end
 		btn.hp:SetValue(health)
-		btn.hp:SetStatusBarColor(r, g, 0)
+		btn.hp:SetStatusBarColor(r, g, b)
 
 		if isdead then
 			btn:SetAlpha(0.25)
@@ -149,6 +171,9 @@ local events = {
 					id = 3
 				end
 				SendAddonMessage("Nurfed:Arn", status..":"..id..":"..team..":"..teamSize, "GUILD")
+			end
+			if status == "active" and teamSize > 0 then
+				tsize = teamSize
 			end
 		end
 	end,
