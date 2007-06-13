@@ -405,6 +405,7 @@ local templates = {
 		},
 		OnShow = function(self) onshow(self) end,
 		OnEscapePressed = function() this:ClearFocus() end,
+		OnEnterPressed = function() this:ClearFocus() end,
 		OnEditFocusGained = function() this:HighlightText() this.focus = true end,
 		OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
 		OnTextChanged = function(self) saveopt(self) end,
