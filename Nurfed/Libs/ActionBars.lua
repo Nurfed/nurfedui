@@ -641,7 +641,7 @@ local updatecooling = function(this, start, duration, enable)
 	end
 end
 
-if not IsAddOnLoaded("OmniCC") then
+if not IsAddOnLoaded("OmniCC") and not IsAddOnLoaded("CooldownCount") then
 	hooksecurefunc("CooldownFrame_SetTimer", updatecooling)
 end
 
