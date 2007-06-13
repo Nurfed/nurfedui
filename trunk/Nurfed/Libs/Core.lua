@@ -50,7 +50,7 @@ end
 
 ----------------------------------------------------------------
 -- Utility functions
-function util:print(msg, r, g, b, out)
+function util:print(msg, out, r, g, b)
 	out = _G["ChatFrame"..(out or 1)]
 	out:AddMessage(msg, (r or 1), (g or 1), (b or 1))
 end
@@ -131,12 +131,8 @@ function util:serialize(what, tbl)
 	return out
 end
 
-function util:getopt(opt, addon)
-	if addon then
-		addon = "_"..string.upper(addon)
-	end
-	local tbl = _G["NURFED"..(addon or "").."_SAVED"]
-	local val = tbl[opt]
+function util:getopt(opt)
+	local val = NURFED_SAVED[opt]
 	if val == nil then
 		val = NURFED_DEFAULT[opt]
 	end
@@ -283,15 +279,19 @@ function util:getunitstat(unit, stat)
 	return curr, max, missing, perc, r, g, b
 end
 
-function util:getclassicon(unit)
+function util:getclassicon(unit, isclass)
 	local coords
 	local texture = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Classes"
-	if UnitIsPlayer(unit) or UnitCreatureType(unit) == "Humanoid" then
-		local eclass = select(2, UnitClass(unit))
-		coords = class[eclass]
+	if isclass then
+		coords = class[unit]
 	else
-		coords = class["PETS"]
-		texture = "Interface\\RaidFrame\\UI-RaidFrame-Pets"
+		if UnitIsPlayer(unit) or UnitCreatureType(unit) == "Humanoid" then
+			local eclass = select(2, UnitClass(unit))
+			coords = class[eclass]
+		else
+			coords = class["PETS"]
+			texture = "Interface\\RaidFrame\\UI-RaidFrame-Pets"
+		end
 	end
 	return texture, coords
 end
@@ -341,6 +341,7 @@ local frameinit = {
 }
 
 local framecomp = {
+	Text = {},
 	Anchor = {},
 	BackdropColor = {},
 	BackdropBorderColor = {},
@@ -364,7 +365,12 @@ function util:create(name, layout, parent)
 		tbl = framecomp.Anchor[i]
 		tbl[1]:ClearAllPoints()
 		if type(tbl[2]) ~= "table" then
-			tbl[1]:SetAllPoints(tbl[1]:GetParent())
+			if tbl[2] == "all" then
+				tbl[1]:SetAllPoints(tbl[1]:GetParent())
+			else
+				tbl[1]:SetPoint(tbl[2])
+			end
+			
 			table.remove(framecomp.Anchor, i)
 		else
 			anchor = self:copytable(tbl[2])
@@ -388,6 +394,12 @@ function util:create(name, layout, parent)
 		tbl = framecomp.BackdropBorderColor[i]
 		tbl[1]:SetBackdropBorderColor(unpack(tbl[2]))
 		table.remove(framecomp.BackdropBorderColor, i)
+	end
+
+	for i = #framecomp.Text, 1, -1 do
+		tbl = framecomp.Text[i]
+		tbl[1]:SetText(tbl[2])
+		table.remove(framecomp.Text, i)
 	end
 
 	return obj

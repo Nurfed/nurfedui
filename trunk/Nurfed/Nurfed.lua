@@ -28,7 +28,6 @@ NURFED_DEFAULT["repairlimit"] = 20
 NURFED_DEFAULT["timestamps"] = 1
 NURFED_DEFAULT["timestampsformat"] = "[%I:%M:%S]"
 NURFED_DEFAULT["traineravailable"] = 1
-NURFED_DEFAULT["raidclicks"] = 1
 NURFED_DEFAULT["hidecasting"] = 1
 NURFED_DEFAULT["squareminimap"] = false
 NURFED_DEFAULT["raidsize"] = 5
@@ -40,9 +39,10 @@ NURFED_DEFAULT[RAGE_POINTS] = { 1.00, 0.00, 0.00 }
 NURFED_DEFAULT[FOCUS_POINTS] = { 1.00, 0.50, 0.25 }
 NURFED_DEFAULT[ENERGY_POINTS] = { 1.00, 1.00, 0.00 }
 NURFED_DEFAULT[HAPPINESS_POINTS] = { 0.00, 1.00, 1.00 }
-NURFED_DEFAULT["cdbuff"] = true
-NURFED_DEFAULT["cddebuff"] = true
-NURFED_DEFAULT["cdaction"] = true
+NURFED_DEFAULT["showmap"] = 1
+NURFED_DEFAULT["cdbuff"] = 1
+NURFED_DEFAULT["cddebuff"] = 1
+NURFED_DEFAULT["cdaction"] = 1
 
 local wowmenu = {
 	{ CHARACTER, function() ToggleCharacter("PaperDollFrame") end },
@@ -154,7 +154,7 @@ local onevent = function()
 		if show then
 			local name = UnitName(arg1)
 			if name ~= UnitName("player") and not pingflood[name] then
-				Nurfed:print(name.." Ping.", 1, 1, 0)
+				Nurfed:print(name.." Ping.", 1, 1, 1, 0)
 				pingflood[name] = GetTime()
 			end
 		end
@@ -237,14 +237,18 @@ local onevent = function()
 			ManaBarColor[i].b = color[3]
 		end
 
-		for k, v in pairs(NURFED_FRAMES.templates) do
-			Nurfed:createtemp(k, v)
+		if NURFED_FRAMES.templates then
+			for k, v in pairs(NURFED_FRAMES.templates) do
+				Nurfed:createtemp(k, v)
+			end
 		end
 
-		for k, v in pairs(NURFED_FRAMES.frames) do
-			local f = Nurfed:create(k, v)
-			if not v.Point then f:SetPoint("CENTER", UIParent, "CENTER") end
-			Nurfed:unitimbue(f)
+		if NURFED_FRAMES.frames then
+			for k, v in pairs(NURFED_FRAMES.frames) do
+				local f = Nurfed:create(k, v)
+				if not v.Point then f:SetPoint("CENTER", UIParent, "CENTER") end
+				Nurfed:unitimbue(f)
+			end
 		end
 
 		for k, v in pairs(UIOptionsFrameSliders) do
@@ -400,15 +404,6 @@ function nrf_togglechat()
 		chatframe:SetFading(fade)
 		chatframe:SetTimeVisible(fadetime)
 	end
-end
-
-local nrf_PlaySound = PlaySound
-function PlaySound(snd)
-	local raid = Nurfed:getopt("raidclicks")
-	if snd == "igCharacterInfoTab" and raid then
-		return
-	end
-	nrf_PlaySound(snd)
 end
 
 for i = 1, 7 do
