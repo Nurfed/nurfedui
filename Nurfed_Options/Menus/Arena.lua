@@ -1,6 +1,21 @@
 NURFED_MENUS["Arena"] = {
 	template = "nrf_options",
 	children = {
+		input1 = {
+			template = "nrf_editbox",
+			Anchor = { "TOPLEFT", 3, -15 },
+			vars = { text = "2's Assist", option = "arenaassist2" },
+		},
+		input2 = {
+			template = "nrf_editbox",
+			Anchor = { "TOPRIGHT", "$parentinput1", "BOTTOMRIGHT", 0, -15 },
+			vars = { text = "3's Assist", option = "arenaassist3" },
+		},
+		input3 = {
+			template = "nrf_editbox",
+			Anchor = { "TOPRIGHT", "$parentinput2", "BOTTOMRIGHT", 0, -15 },
+			vars = { text = "5's Assist", option = "arenaassist5" },
+		},
 
 		slider1 = {
 			template = "nrf_slider",

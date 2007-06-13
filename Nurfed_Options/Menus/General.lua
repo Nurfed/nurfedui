@@ -7,7 +7,7 @@ NURFED_MENUS["General"] = {
 		},
 		check1 = {
 			template = "nrf_check",
-			Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 3, -3 },
+			Anchor = { "TOPLEFT", 3, -3 },
 			vars = { text = NRF_AUTOREPAIR, option = "repair", page = 1 },
 		},
 		check2 = {
