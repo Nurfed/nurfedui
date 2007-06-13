@@ -21,15 +21,10 @@ local getteam = function(size)
 	end
 end
 
-local inparty = function(name)
-	for i = 1, GetNumPartyMembers() do
-		if UnitName("party"..i) == name then
-			return true
-		end
-	end
-end
-
 local updateunit = function(unit, name, class, health, isdead)
+	if GetPlayerBuffName("Arena Preparation") then
+		return
+	end
 	if unit then
 		if UnitIsEnemy("player", unit) and UnitIsPlayer(unit) then
 			name = UnitName(unit)
@@ -124,25 +119,19 @@ end
 
 local events = {
 	["UPDATE_MOUSEOVER_UNIT"] = function()
-		if select(2, IsInInstance()) == "arena" then
-			if not inparty(UnitName("mouseover")) then
-				updateunit("mouseover")
-			end
+		if select(2, IsInInstance()) == "arena" and not UnitInParty("mouseover") then
+			updateunit("mouseover")
 		end
 	end,
 	["PLAYER_TARGET_CHANGED"] = function()
-		if select(2, IsInInstance()) == "arena" then
-			if not inparty(UnitName("target")) then
-				updateunit("target")
-			end
+		if select(2, IsInInstance()) == "arena" and not UnitInParty("target") then
+			updateunit("target")
 		end
 	end,
 	["UNIT_HEALTH"] = function(event, ...)
-		if select(2, IsInInstance()) == "arena" then
+		if select(2, IsInInstance()) == "arena" and not UnitInParty(arg1) then
 			if arg1 == "mouseover" or arg1 == "target" or arg1 == "focus" then
-				if not inparty(UnitName(arg1)) then
-					updateunit(arg1)
-				end
+				updateunit(arg1)
 			end
 		end
 	end,
