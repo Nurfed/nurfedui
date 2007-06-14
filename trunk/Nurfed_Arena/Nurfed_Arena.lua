@@ -22,9 +22,6 @@ local getteam = function(size)
 end
 
 local updateunit = function(unit, name, class, health, isdead)
-	if GetPlayerBuffName("Arena Preparation") then
-		return
-	end
 	if unit then
 		if UnitIsEnemy("player", unit) and UnitIsPlayer(unit) then
 			name = UnitName(unit)
@@ -180,6 +177,19 @@ local events = {
 				end
 			end
 			targets = {}
+		end
+	end,
+	["PARTY_MEMBERS_CHANGED"] = function()
+		if select(2, IsInInstance()) == "arena" then
+			if #targets > 0 then
+				for i = 1, #targets do
+					local btn = _G["Nurfed_Arena"..i]
+					if btn then
+						btn:Hide()
+					end
+				end
+				targets = {}
+			end
 		end
 	end,
 	["PLAYER_LOGIN"] = function()
