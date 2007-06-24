@@ -6,7 +6,7 @@ NURFED_DEFAULT["arenamacro1"] = "/target $name"
 NURFED_DEFAULT["arenamacro2"] = "/target $name\n/assist"
 
 local _G = getfenv(0)
-local tsize
+local tracking, tsize
 local teams, targets = {}, {}
 local queued = { {}, {}, {} }
 local slain = Nurfed:formatgs(SELFKILLOTHER, true)
@@ -43,23 +43,12 @@ local updateunit = function(unit, name, class, health, isdead)
 		local id = targets[name]
 		local btn = _G["Nurfed_Arena"..id]
 
-		if not btn then
-			btn = Nurfed:create("Nurfed_Arena"..id, "arena_unit", Nurfed_Arena)
-			if id == 1 then
-				btn:SetPoint("TOP", Nurfed_Arena, "BOTTOM", 0, 1)
-			else
-				btn:SetPoint("TOP", _G["Nurfed_Arena"..(id - 1)], "BOTTOM", 0, 0)
-			end
-			btn:SetAttribute("*type1", "macro")
-			btn:SetAttribute("*type2", "macro")
-			btn.hp = _G["Nurfed_Arena"..id.."hp"]
-			btn.perc = _G["Nurfed_Arena"..id.."hpperc"]
-		end
-
-		if not btn:IsShown() then
+		if not btn:IsShown() or btn.name ~= name then
 			btn.name = name
 			local _, coords = Nurfed:getclassicon(class, true)
+			local color = RAID_CLASS_COLORS[class]
 			_G["Nurfed_Arena"..id.."hpname"]:SetText(name)
+			_G["Nurfed_Arena"..id.."hpname"]:SetTextColor(color.r, color.g, color.b)
 			if coords then
 				_G["Nurfed_Arena"..id.."icon"]:SetTexCoord(unpack(coords))
 			end
@@ -74,25 +63,10 @@ local updateunit = function(unit, name, class, health, isdead)
 			end
 		end
 
-		local aname
-		local assist = Nurfed:getopt("arenaassist"..tsize)
-		for i = 1, GetNumPartyMembers() do
-			if UnitName("party"..i) == assist then
-				if UnitExists("party"..i.."target") and name == UnitName("party"..i.."target") then
-					aname = true
-				end
-				break
-			end
-		end
-
 		local r, g, b
 		local perc = health / 100
 
-		if aname then
-			r = 1
-			g = 0
-			b = 1
-		elseif perc > 0.5 then
+		if perc > 0.5 then
 			r = (1.0 - perc) * 2
 			g = 1.0
 			b = 0
@@ -120,11 +94,6 @@ local events = {
 			updateunit("mouseover")
 		end
 	end,
-	["PLAYER_TARGET_CHANGED"] = function()
-		if select(2, IsInInstance()) == "arena" and not UnitInParty("target") then
-			updateunit("target")
-		end
-	end,
 	["UNIT_HEALTH"] = function(event, ...)
 		if select(2, IsInInstance()) == "arena" and not UnitInParty(arg1) then
 			if arg1 == "mouseover" or arg1 == "target" or arg1 == "focus" then
@@ -148,6 +117,10 @@ local events = {
 		local status, mapName, instanceID, levelRangeMin, levelRangeMax, teamSize, registeredMatch
 		for i = 1, MAX_BATTLEFIELD_QUEUES do
 			status, mapName, instanceID, levelRangeMin, levelRangeMax, teamSize, registeredMatch = GetBattlefieldStatus(i)
+			if status == "active" then
+				tsize = teamSize
+			end
+
 			if registeredMatch then
 				local team = getteam(teamSize)
 				local id = 1
@@ -158,38 +131,41 @@ local events = {
 				end
 				SendAddonMessage("Nurfed:Arn", status..":"..id..":"..team..":"..teamSize, "GUILD")
 			end
-			if status == "active" and teamSize > 0 then
-				tsize = teamSize
+		end
+
+		if GetBattlefieldWinner() then
+			for i = 1, 5 do
+				local btn = _G["Nurfed_Arena"..i]
+				if not InCombatLockdown() then
+					btn:Hide()
+				else
+					btn:RegisterEvent("PLAYER_REGEN_ENABLED")
+					btn:SetScript("OnEvent", function(self, event)
+							self:UnregisterEvent(event)
+							self:Hide()
+						end)
+				end
+			end
+			targets = {}
+			tracking = nil
+		end
+	end,
+	["RAID_ROSTER_UPDATE"] = function()
+		if select(2, IsInInstance()) == "arena" then
+			if #targets > 0 then
+				for i = 1, 5 do
+					local btn = _G["Nurfed_Arena"..i]
+					btn:Hide()
+				end
+				targets = {}
 			end
 		end
 	end,
 	["PLAYER_ENTERING_WORLD"] = function()
 		if select(2, IsInInstance()) == "arena" then
 			Nurfed_Arena:Show()
-		else
-			if NRF_LOCKED then
-				Nurfed_Arena:Hide()
-			end
-			for i = 1, #targets do
-				local btn = _G["Nurfed_Arena"..i]
-				if btn then
-					btn:Hide()
-				end
-			end
-			targets = {}
-		end
-	end,
-	["PARTY_MEMBERS_CHANGED"] = function()
-		if select(2, IsInInstance()) == "arena" then
-			if #targets > 0 then
-				for i = 1, #targets do
-					local btn = _G["Nurfed_Arena"..i]
-					if btn then
-						btn:Hide()
-					end
-				end
-				targets = {}
-			end
+		elseif NRF_LOCKED then
+			Nurfed_Arena:Hide()
 		end
 	end,
 	["PLAYER_LOGIN"] = function()
@@ -206,6 +182,39 @@ local events = {
 				Nurfed_Arena:Hide()
 			else
 				Nurfed_Arena:Show()
+			end
+		end
+	end,
+	["UNIT_TARGET"] = function(event, ...)
+		if select(2, IsInInstance()) == "arena" then
+			local unit = arg1.."target"
+			if not UnitInParty(unit) then
+				updateunit(unit)
+			end
+
+			local assist = Nurfed:getopt("arenaassist"..tsize)
+			if UnitName(arg1) == assist then
+				local name = UnitName(unit)
+				if tracking ~= name then
+					if not targets[name] then
+						if tracking then
+							local id = targets[tracking]
+							_G["Nurfed_Arena"..id.."icon"]:SetVertexColor(1, 1, 1)
+						end
+						return
+					end
+
+					if tracking then
+						local id = targets[tracking]
+						_G["Nurfed_Arena"..id.."icon"]:SetVertexColor(1, 1, 1)
+					end
+
+					local id = targets[name]
+					if id then
+						tracking = name
+						_G["Nurfed_Arena"..id.."icon"]:SetVertexColor(1, 0, 0)
+					end
+				end
 			end
 		end
 	end,
@@ -226,9 +235,12 @@ local addonmsg = function(name, cmd)
 			queued[id][team] = nil
 			local myteam = getteam(size)
 			if not myteam then
-				Nurfed:print("Nurfed Arena: |cffff0000"..team.."|r No Longer In Queue ("..size.."v"..size..")!", 1, 0, 0.75, 1)
+				Nurfed:print("Nurfed Arena: |cffff0000"..team.."|r No Longer In Queue (|cffffffff"..size.."|rv|cffffffff"..size.."|r)!", 1, 0, 0.75, 1)
 			end
 		end
+	elseif cm == "unit" then
+		local name, class, health = string.split(":", arg)
+		updateunit(nil, name, class, health)
 	end
 end
 
@@ -303,15 +315,25 @@ Nurfed:createtemp("arena_unit", {
 			children = {
 				name = {
 					type = "FontString",
-					Anchor = "all",
-					Font = { STANDARD_TEXT_FONT, 10 },
+					size = { 100, 10 },
+					Anchor = "TOPLEFT",
+					Font = { "Fonts\\ARIALN.TTF", 10, "OUTLINE" },
 					JustifyH = "LEFT",
 				},
 				perc = {
 					type = "FontString",
-					Anchor = "all",
-					Font = { STANDARD_TEXT_FONT, 10 },
+					size = { 75, 9 },
+					Anchor = "RIGHT",
+					Font = { "Fonts\\ARIALN.TTF", 9, "OUTLINE" },
 					JustifyH = "RIGHT",
+					TextColor = { 0.8, 0, 0 },
+				},
+				bg = {
+					type = "Texture",
+					layer = "BACKGROUND",
+					Texture = NRF_IMG.."statusbar5",
+					VertexColor = { 0, 0, 0, 0.25 },
+					Anchor = "all",
 				},
 			},
 		},
@@ -325,3 +347,16 @@ Nurfed:createtemp("arena_unit", {
 		self:SetAttribute("macrotext2", macro2)
 	end,
 })
+
+for i = 1, 5 do
+	local btn = Nurfed:create("Nurfed_Arena"..i, "arena_unit", Nurfed_Arena)
+	if i == 1 then
+		btn:SetPoint("TOP", Nurfed_Arena, "BOTTOM", 0, 1)
+	else
+		btn:SetPoint("TOP", _G["Nurfed_Arena"..(i - 1)], "BOTTOM", 0, 0)
+	end
+	btn:SetAttribute("*type1", "macro")
+	btn:SetAttribute("*type2", "macro")
+	btn.hp = _G["Nurfed_Arena"..i.."hp"]
+	btn.perc = _G["Nurfed_Arena"..i.."hpperc"]
+end
