@@ -65,6 +65,11 @@ NURFED_MENUS["General"] = {
 			Anchor = { "TOPLEFT", "$parentcheck11", "BOTTOMLEFT", 0, -2 },
 			vars = { text = "Square Minimap", option = "squareminimap", page = 1 },
 		},
+		check13 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck17", "BOTTOMLEFT", 0, -2 },
+			vars = { text = "Aura Cooldowns", option = "cdaura", page = 1 },
+		},
 
 		slider1 = {
 			template = "nrf_slider",
@@ -109,60 +114,60 @@ NURFED_MENUS["General"] = {
 			Anchor = { "TOPRIGHT", "$parentinput1", "BOTTOMRIGHT", 0, -15 },
 			vars = { text = NRF_KEYWORD, option = "keyword", page = 1 },
 		},
-		check13 = {
+		check14 = {
 			template = "nrf_check",
 			Anchor = { "TOPRIGHT", "$parentinput2", "BOTTOMRIGHT", 0, -15 },
 			vars = { text = "Disable Casting Bar", option = "hidecasting", right = true, func = function() nrf_togglcast() end, page = 1 },
 		},
-		check14 = {
-			template = "nrf_check",
-			Anchor = { "TOPRIGHT", "$parentcheck13", "BOTTOMRIGHT", 0, -2 },
-			vars = { text = "Show Action Tooltips", option = "tooltips", right = true, page = 1 },
-		},
 		check15 = {
 			template = "nrf_check",
 			Anchor = { "TOPRIGHT", "$parentcheck14", "BOTTOMRIGHT", 0, -2 },
-			vars = { text = "Fade In Actions", option = "fadein", right = true, page = 1 },
+			vars = { text = "Show Action Tooltips", option = "tooltips", right = true, page = 1 },
 		},
 		check16 = {
 			template = "nrf_check",
 			Anchor = { "TOPRIGHT", "$parentcheck15", "BOTTOMRIGHT", 0, -2 },
+			vars = { text = "Fade In Actions", option = "fadein", right = true, page = 1 },
+		},
+		check17 = {
+			template = "nrf_check",
+			Anchor = { "TOPRIGHT", "$parentcheck16", "BOTTOMRIGHT", 0, -2 },
 			vars = { text = "Hide Main Bar", option = "hidemain", right = true, func = function() nrf_mainmenu() end, page = 1 },
 		},
 
-		check17 = {
+		check18 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 3, -3 },
 			vars = { text = "Show Bags", option = "bagsshow", func = function() nrf_updatemainbar("bags") end, page = 2 },
 		},
-		check18 = {
-			template = "nrf_check",
-			Anchor = { "TOPLEFT", "$parentcheck17", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Vertical Bags", option = "bagsvert", func = function() nrf_updatemainbar("bags") end, page = 2 },
-		},
 		check19 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck18", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Show Micro", option = "microshow", func = function() nrf_updatemainbar("micro") end, page = 2 },
+			vars = { text = "Vertical Bags", option = "bagsvert", func = function() nrf_updatemainbar("bags") end, page = 2 },
 		},
 		check20 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck19", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Show Stance", option = "stanceshow", func = function() nrf_updatemainbar("stance") end, page = 2 },
+			vars = { text = "Show Micro", option = "microshow", func = function() nrf_updatemainbar("micro") end, page = 2 },
 		},
 		check21 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck20", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Vertical Stance", option = "stancevert", func = function() nrf_updatemainbar("stance") end, page = 2 },
+			vars = { text = "Show Stance", option = "stanceshow", func = function() nrf_updatemainbar("stance") end, page = 2 },
 		},
 		check22 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck21", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Show Pet Bar", option = "petbarshow", func = function() nrf_updatemainbar("petbar") end, page = 2 },
+			vars = { text = "Vertical Stance", option = "stancevert", func = function() nrf_updatemainbar("stance") end, page = 2 },
 		},
 		check23 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck22", "BOTTOMLEFT", 0, -2 },
+			vars = { text = "Show Pet Bar", option = "petbarshow", func = function() nrf_updatemainbar("petbar") end, page = 2 },
+		},
+		check24 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck23", "BOTTOMLEFT", 0, -2 },
 			vars = { text = "Vertical Pet Bar", option = "petbarvert", func = function() nrf_updatemainbar("petbar") end, page = 2 },
 		},
 
