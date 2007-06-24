@@ -146,7 +146,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					ShadowColor = { 0, 0, 0, 0.75 },
 					ShadowOffset = { -1, -1 },
 					Anchor = "all",
-					vars = { format = "$cur/$max$rest" },
+					vars = { format = "$cur/$max ($rest)" },
 				},
 				text2 = {
 					type = "FontString",
