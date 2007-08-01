@@ -10,7 +10,6 @@ local ingroup = Nurfed:formatgs(ERR_ALREADY_IN_GROUP_S, true)
 
 -- Default Options
 NURFED_SAVED = NURFED_SAVED or {}
-NURFED_BINDINGS = NURFED_BINDINGS or {}
 
 NURFED_DEFAULT["chatfade"] = 1
 NURFED_DEFAULT["chatprefix"] = false
@@ -133,10 +132,6 @@ local onupdate = function(self)
 	end
 end
 
-local updatebind = function(key, selectedBinding, oldKey)
-	NURFED_BINDINGS[key] = nil
-end
-
 local onevent = function()
 	if event == "CHAT_MSG_WHISPER" then
 		local invite = Nurfed:getopt("autoinvite")
@@ -207,11 +202,6 @@ local onevent = function()
 		
 	elseif event == "PLAYER_ENTERING_WORLD" then
 		this:UnregisterEvent(event)
-		for k, v in pairs(NURFED_BINDINGS) do
-			local func = getglobal("SetBinding"..v[1])
-			func(k, v[2])
-		end
-		SaveBindings(GetCurrentBindingSet())
 		nrf_togglechat()
 		nrf_togglcast()
 		nrf_mainmenu()
