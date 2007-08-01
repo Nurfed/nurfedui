@@ -339,12 +339,10 @@ end
 
 function Nurfed_Binding_Save(key, spell, type)
 	SetBinding(key)
-	NURFED_BINDINGS[key] = nil
 	if spell then
 		type = string.capital(type)
 		local func = getglobal("SetBinding"..type)
 		func(key, spell)
-		NURFED_BINDINGS[key] = { type, spell }
 		if type == "Click" then
 			local btn = getglobal(spell)
 			local id = btn:GetID()
@@ -356,7 +354,6 @@ function Nurfed_Binding_Save(key, spell, type)
 		for _, v in ipairs(old) do
 			if v ~= key then
 				SetBinding(v)
-				NURFED_BINDINGS[v] = nil
 			end
 		end
 	end
