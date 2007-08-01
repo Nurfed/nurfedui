@@ -1,7 +1,7 @@
 ## Interface: 20100
 ## Title: Nurfed UI Suite
 ## Author: Tivoli
-## SavedVariablesPerCharacter: NURFED_SAVED, NURFED_FRAMES, NURFED_BINDINGS, NURFED_ACTIONBARS
+## SavedVariablesPerCharacter: NURFED_SAVED, NURFED_FRAMES, NURFED_ACTIONBARS
 ## X-Website: http://www.nurfedui.net
 
 Libs\Core.lua

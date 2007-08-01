@@ -706,12 +706,7 @@ function Nurfed:updatebar(hdr)
 			
 			for k, v in pairs(vals.buttons[count]) do
 				if k == "bind" then
-					if NURFED_BINDINGS[v] then
-						NURFED_BINDINGS[v] = { "Click", btn:GetName(), "LeftButton" }
-						SetBindingClick(v, btn:GetName(), "LeftButton")
-					else
-						vals.buttons[count]["bind"] = nil
-					end
+					SetBindingClick(v, btn:GetName(), "LeftButton")
 				else
 					btn:SetAttribute(k, v)
 				end
