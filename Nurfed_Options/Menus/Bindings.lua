@@ -137,6 +137,7 @@ function Nurfed_ScrollBindings()
 		local name = getglobal(row:GetName().."name")
 		local binding = getglobal(row:GetName().."binding")
 		local icon = getglobal(row:GetName().."icon")
+		local hl = getglobal(row:GetName().."HighlightTexture")
 		binding:SetText(nil)
 		icon:Hide()
 		row.ranks = nil
@@ -148,10 +149,12 @@ function Nurfed_ScrollBindings()
 			row.spell = spell
 			if Nurfed_MenuBindings.spell == spell then
 				row:LockHighlight()
+				hl:SetVertexColor(1, 0, 0)
 				row:EnableKeyboard(true)
 				bind = listing[num][3]
 			else
 				row:UnlockHighlight()
+				hl:SetVertexColor(1, 1, 0)
 				row:EnableKeyboard(nil)
 			end
 			if listing[num][3] == "SPELL" then
