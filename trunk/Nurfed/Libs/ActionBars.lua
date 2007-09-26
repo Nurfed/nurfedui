@@ -19,7 +19,7 @@ NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
 		ygap = 2,
 		buttons = {},
 		statemaps = {},
-		shown = "always",
+		visible = "show",
 	},
 }
 
@@ -76,7 +76,7 @@ local updateitem = function(btn)
 				border:Hide()
 			end
 		elseif btn.type == "macro" and GetMacroBody(btn.spell) then
-			local action = GetActionFromMacroText(GetMacroBody(btn.spell))
+			local action = SecureCmdOptionParse(GetMacroBody(btn.spell))
 			if action then
 				if GetItemInfo(action) then
 					local num = GetItemCount(action)
@@ -122,7 +122,7 @@ local updatecooldown = function(btn)
 		elseif btn.type == "item" then
 			start, duration, enable = GetItemCooldown(btn.spell)
 		elseif btn.type == "macro" then
-			local action = GetActionFromMacroText(GetMacroBody(btn.spell))
+			local action = SecureCmdOptionParse(GetMacroBody(btn.spell))
 			if action then
 				if GetItemInfo(action) then
 					start, duration, enable = GetItemCooldown(action)
@@ -260,7 +260,7 @@ local btnenter = function(self)
 				GameTooltip:SetHyperlink(select(2, GetItemInfo(self.spell)))
 			end
 		elseif self.type == "macro" and GetMacroBody(self.spell) then
-			local action = GetActionFromMacroText(GetMacroBody(self.spell))
+			local action = SecureCmdOptionParse(GetMacroBody(self.spell))
 			if action then
 				if GetItemInfo(action) then
 					GameTooltip:SetHyperlink(select(2, GetItemInfo(action)))
@@ -566,7 +566,7 @@ local btnupdate = function()
 				r, g, b = 1, 0, 0
 			end
 		elseif btn.type == "macro" and GetMacroBody(btn.spell) then
-			local action = GetActionFromMacroText(GetMacroBody(btn.spell))
+			local action = SecureCmdOptionParse(GetMacroBody(btn.spell))
 			if action then
 				if GetItemInfo(action) then
 					if not IsUsableItem(action) then
@@ -641,14 +641,14 @@ local updatecooling = function(this, start, duration, enable)
 	end
 end
 
-if not IsAddOnLoaded("OmniCC") and not IsAddOnLoaded("CooldownCount") then
+if not GetAddOnMetadata("OmniCC", "Version") and not IsAddOnLoaded("CooldownCount") then
 	hooksecurefunc("CooldownFrame_SetTimer", updatecooling)
 end
 
 ----------------------------------------------------------------
 -- Action bar management
 function Nurfed:updatebar(hdr)
-	local state
+	local state, visible
 	local btns, statelist, driver = {}, {}, {}
 	for _, child in ipairs({ hdr:GetChildren() }) do
 		if string.find(child:GetName(), "^Nurfed_Button") then
@@ -688,7 +688,19 @@ function Nurfed:updatebar(hdr)
 		state = "0"
 	end
 
+	if not vals.visible or vals.visible =="" then
+		vals.visible = "show"
+	end
+
+	visible = vals.visible
+
+	if vals.visible ~= "hide" and vals.visible ~= "show" then
+		visible = "["..vals.visible.."]".." show; hide"
+	end
+
+
 	RegisterStateDriver(hdr, "state", driver)
+	RegisterStateDriver(hdr, "visibility", visible)
 	hdr:SetAttribute("statemap-state", "$input")
 	hdr:SetAttribute("statebutton", statelist)
 	hdr:SetAttribute("state", state)
@@ -743,7 +755,7 @@ function Nurfed:deletebar(frame)
 	local hdr = _G[frame]
 	UnregisterUnitWatch(hdr)
 	hdr:SetAttribute("unit", nil)
-	hdr:SetAttribute("shown", nil)
+	RegisterStateDriver(hdr, "visibility", "hide")
 	hdr:Hide()
 
 	local children = { hdr:GetChildren() }
@@ -764,16 +776,7 @@ function Nurfed:createbar(frame)
 		hdr:SetAlpha(vals.alpha)
 		hdr:SetPoint(unpack(vals.Point or {"CENTER"}))
 		hdr:SetAttribute("unit", vals.unit)
-		hdr:SetAttribute("shown", vals.shown)
 		hdr:SetAttribute("useunit", vals.useunit)
-
-		if vals.shown == "unit" then
-			RegisterUnitWatch(hdr)
-		end
-
-		if not vals.shown or vals.shown == "always" or (vals.shown == "nocombat" and not InCombatLockdown()) then
-			hdr:Show()
-		end
 
 		_G[frame.."dragtext"]:SetText(frame)
 
@@ -873,22 +876,6 @@ Nurfed:createtemp("actionbar", {
 	})
 	
 local barevents = {
-	["PLAYER_REGEN_ENABLED"] = function(bar)
-		local show = bar:GetAttribute("shown")
-		if show == "nocombat" then
-			bar:Show()
-		elseif show == "combat" then
-			bar:Hide()
-		end
-	end,
-	["PLAYER_REGEN_DISABLED"] = function(bar)
-		local show = bar:GetAttribute("shown")
-		if show == "nocombat" then
-			bar:Hide()
-		elseif show == "combat" then
-			bar:Show()
-		end
-	end,
 	["NURFED_LOCK"] = function(bar)
 		if NRF_LOCKED then
 			_G[bar:GetName().."drag"]:Hide()

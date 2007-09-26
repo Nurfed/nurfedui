@@ -907,9 +907,8 @@ local replace = {
 	["$guild"] = function(t)
 			local guild = GetGuildInfo(this.unit)
 			if guild then
-				local pguild = GetGuildInfo("player")
 				local color = "|cff00bfff"
-				if guild == pguild then
+				if UnitIsInMyGuild(this.unit) then
 					color = "|cffff00ff"
 				end
 				guild = color..guild.."|r"
@@ -948,14 +947,14 @@ local disable = {
 	end,
 }
 
-local auratip = function()
-	if not this:IsVisible() then return end
-	GameTooltip:SetOwner(this, "ANCHOR_BOTTOMRIGHT")
-	local unit = this:GetParent().unit
-	if this.isdebuff then
-		GameTooltip:SetUnitDebuff(unit, this:GetID(), this.filter)
+local auratip = function(self)
+	if not self:IsVisible() then return end
+	GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
+	local unit = self:GetParent().unit
+	if self.isdebuff then
+		GameTooltip:SetUnitDebuff(unit, self:GetID(), self.filter)
 	else
-		GameTooltip:SetUnitBuff(unit, this:GetID(), this.filter)
+		GameTooltip:SetUnitBuff(unit, self:GetID(), self.filter)
 	end
 end
 
