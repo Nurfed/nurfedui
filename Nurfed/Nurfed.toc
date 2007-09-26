@@ -1,4 +1,4 @@
-## Interface: 20100
+## Interface: 20200
 ## Title: Nurfed UI Suite
 ## Author: Tivoli
 ## SavedVariablesPerCharacter: NURFED_SAVED, NURFED_FRAMES, NURFED_ACTIONBARS
