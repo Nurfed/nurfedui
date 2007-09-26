@@ -1,4 +1,4 @@
-## Interface: 20100
+## Interface: 20200
 ## Title: Nurfed Arena
 ## Author: Tivoli
 ## SavedVariablesPerCharacter: NURFED_ARENA_SAVED
