@@ -1,4 +1,4 @@
-## Interface: 20200
+## Interface: 20300
 ## Title: Nurfed CombatLog
 ## Author: Tivoli
 ## SavedVariablesPerCharacter: NURFED_COMBATLOG_SAVED
