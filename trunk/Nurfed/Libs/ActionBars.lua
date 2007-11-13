@@ -52,7 +52,7 @@ local updateitem = function(btn)
 
     if btn.type == "spell" then
       local reg = GetSpellCount(btn.spell)
-      if reg > 0 then
+      if reg and reg > 0 then
         count:SetText(reg)
       else
         count:SetText(nil)
@@ -89,7 +89,7 @@ local updateitem = function(btn)
         end
       elseif spell then
         local reg = GetSpellCount(spell)
-        if reg > 0 then
+        if reg and reg > 0 then
           count:SetText(reg)
         else
           count:SetText(nil)
