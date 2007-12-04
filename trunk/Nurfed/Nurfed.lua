@@ -479,11 +479,8 @@ local rating = function()
       score = getglobal("PVPTeam"..buttonIndex.."points")
       if rating <= 1500 then
         points = 0.22 * rating + 14
-        if points < 0 then
-          points = 0
-        end
       else
-        points = 1511.26 / (1 + 1639.28 * 2.71828 -0.00412 * rating)
+        points = 1511.26 / (1 + 1639.28 * math.exp(-0.00412 * rating))
       end
 
       if size == 2 then
