@@ -238,11 +238,14 @@ local onevent = function()
       end
     end
 
+    CameraPanelOptions.cameraDistanceMaxFactor.maxValue = 4
+--[[
     for k, v in pairs(UIOptionsFrameSliders) do
       if v.text == "MAX_FOLLOW_DIST" then
         v.maxValue = 4
       end
     end
+]]
   end
 end
 
@@ -495,3 +498,36 @@ local rating = function()
 end
 
 hooksecurefunc("PVPFrame_OnShow", rating)
+
+Nurfed:createtemp("uipanel", {
+    type = "Frame",
+    children = {
+      Title = {
+        type = "FontString",
+        Point = {"TOPLEFT", 16, -16},
+        FontObject = "GameFontNormalLarge",
+        JustifyH = "LEFT",
+        JustifyV = "TOP",
+      },
+      SubText = {
+        type = "FontString",
+        Point = {"TOPLEFT", "$parentTitle", "BOTTOMLEFT", 0, -8},
+        Point2 = {"RIGHT", -32, 0},
+        FontObject = "GameFontHighlightSmall",
+        JustifyH = "LEFT",
+        JustifyV = "TOP",
+        Height = 32,
+        NonSpaceWrap = true,
+      },
+    }
+  })
+
+local panel = Nurfed:create("Nurfed_Header", "uipanel")
+panel:SetScript("OnShow", function(self)
+    local loaded, reason = LoadAddOn("Nurfed_Options")
+    self:SetScript("OnShow", nil)
+  end)
+panel.name = "Nurfed"
+Nurfed_HeaderTitle:SetText("Nurfed")
+Nurfed_HeaderSubText:SetText("This is the main Nurfed options menu, please select a subcategory to change options.")
+InterfaceOptions_AddCategory(panel)
