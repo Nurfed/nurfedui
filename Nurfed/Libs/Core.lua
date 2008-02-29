@@ -363,7 +363,7 @@ function util:create(name, layout, parent)
 
   for i = #framecomp.Anchor, 1, -1 do
     tbl = framecomp.Anchor[i]
-    tbl[1]:ClearAllPoints()
+    --tbl[1]:ClearAllPoints()
     if type(tbl[2]) ~= "table" then
       if tbl[2] == "all" then
         tbl[1]:SetAllPoints(tbl[1]:GetParent())
@@ -463,7 +463,7 @@ function util:createobj(name, layout, parent)
       frameinit[k](obj, v)
     elseif framecomp[k] then
       table.insert(framecomp[k], { obj, v })
-    elseif k == "Point" then
+    elseif string.find(k, "^Point") or string.find(k, "^Anchor") then
       table.insert(framecomp.Anchor, { obj, v })
     else
       local method = obj[k] or obj["Set"..k] or obj["Enable"..k]
