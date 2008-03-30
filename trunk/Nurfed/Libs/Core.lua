@@ -17,8 +17,6 @@ util.name = "Nurfed"
 util.version = version
 
 -- Globals
-NURFED_MENUS = NURFED_MENUS or {}
-NURFED_DEFAULT = NURFED_DEFAULT or {}
 NRF_LOCKED = 1
 NRF_IMG = "Interface\\AddOns\\Nurfed\\Images\\"
 NRF_FONT = "Interface\\AddOns\\Nurfed\\Fonts\\"
