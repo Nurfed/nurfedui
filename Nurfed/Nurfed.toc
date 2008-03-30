@@ -4,6 +4,7 @@
 ## SavedVariablesPerCharacter: NURFED_SAVED, NURFED_FRAMES, NURFED_ACTIONBARS
 ## X-Website: http://www.nurfedui.net
 
+Defaults.lua
 Libs\Core.lua
 Libs\Units.lua
 Libs\ActionBars.lua

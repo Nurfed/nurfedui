@@ -11,37 +11,6 @@ local ingroup = Nurfed:formatgs(ERR_ALREADY_IN_GROUP_S, true)
 -- Default Options
 NURFED_SAVED = NURFED_SAVED or {}
 
-NURFED_DEFAULT["chatfade"] = 1
-NURFED_DEFAULT["chatprefix"] = false
-NURFED_DEFAULT["chatbuttons"] = false
-NURFED_DEFAULT["chatfadetime"] = 120
-NURFED_DEFAULT["autoinvite"] = 1
-NURFED_DEFAULT["invitetext"] = 1
-NURFED_DEFAULT["keyword"] = "invite"
-NURFED_DEFAULT["readycheck"] = 1
-NURFED_DEFAULT["ping"] = 1
-NURFED_DEFAULT["raidgroup"] = 1
-NURFED_DEFAULT["raidclass"] = 1
-NURFED_DEFAULT["repair"] = 1
-NURFED_DEFAULT["repairlimit"] = 20
-NURFED_DEFAULT["timestamps"] = 1
-NURFED_DEFAULT["timestampsformat"] = "[%I:%M:%S]"
-NURFED_DEFAULT["traineravailable"] = 1
-NURFED_DEFAULT["hidecasting"] = 1
-NURFED_DEFAULT["squareminimap"] = false
-NURFED_DEFAULT["raidsize"] = 5
-NURFED_DEFAULT["lock"] = { "CENTER", "Minimap", "CENTER", -12, -80 }
-NURFED_DEFAULT["hpcolor"] = "fade"
-NURFED_DEFAULT["hpscript"] = "if perc > 0.6 then\n   r = 78/255\n   g = 106/255\n   b = 143/255\nelse\n   if perc > 0.2 then\n      r = (78+((0.6-perc)*100*(128/40)))/255\n      g = (106+((0.6-perc)*100*(-89/40)))/255\n      b = (143+((0.6-perc)*100*(-136/40)))/255\n   else\n      r = 206/255\n      g = 17/255\n      b = 17/255\n   end\nend"
-NURFED_DEFAULT[MANA] = { 0.00, 0.00, 1.00 }
-NURFED_DEFAULT[RAGE_POINTS] = { 1.00, 0.00, 0.00 }
-NURFED_DEFAULT[FOCUS_POINTS] = { 1.00, 0.50, 0.25 }
-NURFED_DEFAULT[ENERGY_POINTS] = { 1.00, 1.00, 0.00 }
-NURFED_DEFAULT[HAPPINESS_POINTS] = { 0.00, 1.00, 1.00 }
-NURFED_DEFAULT["showmap"] = 1
-NURFED_DEFAULT["cdaura"] = 1
-NURFED_DEFAULT["cdaction"] = 1
-
 local wowmenu = {
   { CHARACTER, function() ToggleCharacter("PaperDollFrame") end },
   { SPELLBOOK, function() ToggleSpellBook(BOOKTYPE_SPELL) end },
@@ -182,11 +151,16 @@ local onevent = function()
       if money >= limit then
         local repairAllCost, canRepair = GetRepairAllCost()
         if canRepair then
-          RepairAllItems()
           local gold = math.floor(repairAllCost / (COPPER_PER_SILVER * SILVER_PER_GOLD))
           local silver = math.floor((repairAllCost - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
           local copper = math.fmod(repairAllCost, COPPER_PER_SILVER)
-          Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs.|r")
+          if CanGuildBankRepair() then
+            RepairAllItems(1)
+            Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs (Guild).|r")
+          else
+            RepairAllItems()
+            Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs.|r")
+          end
         end
       end
     end
@@ -203,6 +177,7 @@ local onevent = function()
     nrf_togglechat()
     nrf_togglcast()
     nrf_mainmenu()
+    CombatLogQuickButtonFrame_Custom:UnregisterEvent("PLAYER_ENTERING_WORLD")
   elseif event == "VARIABLES_LOADED" then
     if this:IsUserPlaced() then
       this:SetUserPlaced(nil)
@@ -239,13 +214,6 @@ local onevent = function()
     end
 
     CameraPanelOptions.cameraDistanceMaxFactor.maxValue = 4
---[[
-    for k, v in pairs(UIOptionsFrameSliders) do
-      if v.text == "MAX_FOLLOW_DIST" then
-        v.maxValue = 4
-      end
-    end
-]]
   end
 end
 
@@ -497,7 +465,7 @@ local rating = function()
   end
 end
 
-hooksecurefunc("PVPFrame_OnShow", rating)
+PVPFrame:HookScript("OnShow", rating)
 
 Nurfed:createtemp("uipanel", {
     type = "Frame",
@@ -522,12 +490,12 @@ Nurfed:createtemp("uipanel", {
     }
   })
 
-local panel = Nurfed:create("Nurfed_Header", "uipanel")
+local panel = Nurfed:create("NurfedHeader", "uipanel")
 panel:SetScript("OnShow", function(self)
     local loaded, reason = LoadAddOn("Nurfed_Options")
     self:SetScript("OnShow", nil)
   end)
 panel.name = "Nurfed"
-Nurfed_HeaderTitle:SetText("Nurfed")
-Nurfed_HeaderSubText:SetText("This is the main Nurfed options menu, please select a subcategory to change options.")
+NurfedHeaderTitle:SetText("Nurfed")
+NurfedHeaderSubText:SetText("This is the main Nurfed options menu, please select a subcategory to change options.")
 InterfaceOptions_AddCategory(panel)
