@@ -4,16 +4,11 @@
 ## SavedVariables: NURFED_LAYOUT
 ## SavedVariablesPerCharacter: NURFED_ITEMS
 ## RequiredDeps: Nurfed
-## Version: 06.13.2007
+## Version: 03.30.2008
 ## LoadOnDemand: 1
-Localization.lua
 
-Menus\AddOns.lua
-Menus\Arena.lua
-Menus\ActionBars.lua
 Menus\Bindings.lua
-Menus\Frames.lua
-Menus\General.lua
-Menus\Units.lua
 
-Nurfed_Options.lua
+Localization.lua
+Templates.lua
+Panels.lua

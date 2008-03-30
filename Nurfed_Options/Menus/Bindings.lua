@@ -75,7 +75,7 @@ local updatemacros = function()
 end
 
 function Nurfed_MouseWheelBindings(arg1)
-  if Nurfed_MenuBindings.spell then
+  if NurfedBindingsPanelList.spell then
     if arg1 > 0 then
       Nurfed_Binding_OnKeyDown("MOUSEWHEELUP")
     else
@@ -147,7 +147,7 @@ function Nurfed_ScrollBindings()
       local key
       local spell = listing[num][1]
       row.spell = spell
-      if Nurfed_MenuBindings.spell == spell then
+      if NurfedBindingsPanelList.spell == spell then
         row:LockHighlight()
         hl:SetVertexColor(1, 0, 0)
         row:EnableKeyboard(true)
@@ -161,19 +161,15 @@ function Nurfed_ScrollBindings()
         icon:SetTexture(GetSpellTexture(listing[num][2][1], BOOKTYPE_SPELL))
         if #listing[num][2] > 1 then
           row.ranks = #listing[num][2]
-          if Nurfed_MenuBindings[spell] then
-            spell = spell.."("..RANK.." "..Nurfed_MenuBindings[spell]..")"
+          if NurfedBindingsPanelList[spell] then
+            spell = spell.."("..RANK.." "..NurfedBindingsPanelList[spell]..")"
           end
         end
       elseif listing[num][3] == "MACRO" then
         icon:SetTexture(listing[num][2])
       elseif listing[num][3] == "ITEM" then
         local itemid = NURFED_ITEMS[spell]
-        if itemid then
-          icon:SetTexture(select(10, GetItemInfo(itemid)))
-        else
-          icon:SetTexture(select(10, GetItemInfo(spell)))
-        end
+        icon:SetTexture(GetItemIcon(itemid or spell))
         row.item = true
       elseif listing[num][3] == "CLICK" then
         icon:SetTexture(nil)
@@ -190,11 +186,11 @@ function Nurfed_ScrollBindings()
     end
   end
 
-  local frame = Nurfed_MenuBindingsscroll
-  FauxScrollFrame_Update(frame, #listing, 19, 14)
-  for line = 1, 19 do
+  local frame = NurfedBindingsPanelListscroll
+  FauxScrollFrame_Update(frame, #listing, 23, 14)
+  for line = 1, 23 do
     local offset = line + FauxScrollFrame_GetOffset(frame)
-    local row = getglobal("Nurfed_BindingsRow"..line)
+    local row = getglobal("NurfedBindingsRow"..line)
     if offset <= #listing then
       format_row(row, offset)
       row:Show()
@@ -217,7 +213,7 @@ function Nurfed_Binding_OnKeyDown(arg1)
     return
   end
 
-  if Nurfed_MenuBindings.spell then
+  if NurfedBindingsPanelList.spell then
     if keyPressed == "UNKNOWN" or keyPressed == "SHIFT" or keyPressed == "CTRL" or keyPressed == "ALT" then
       return
     end
@@ -231,9 +227,9 @@ function Nurfed_Binding_OnKeyDown(arg1)
     if IsShiftKeyDown() then keyPressed = "SHIFT-"..keyPressed end
     if IsControlKeyDown() then keyPressed = "CTRL-"..keyPressed end
     if IsAltKeyDown() then keyPressed = "ALT-"..keyPressed end
-    local spell = Nurfed_MenuBindings.spell
-    if Nurfed_MenuBindings[spell] then
-      spell = spell.."("..RANK.." "..Nurfed_MenuBindings[spell]..")"
+    local spell = NurfedBindingsPanelList.spell
+    if NurfedBindingsPanelList[spell] then
+      spell = spell.."("..RANK.." "..NurfedBindingsPanelList[spell]..")"
     end
     local key
     if bind == "CLICK" then
@@ -244,7 +240,7 @@ function Nurfed_Binding_OnKeyDown(arg1)
     local text, data
     if key == keyPressed then
       text = "Unbind |cff00ff00"..spell.."|r?"
-      Nurfed_MenuBindings.data = { keyPressed }
+      NurfedBindingsPanelList.data = { keyPressed }
     else
       text = "Bind |cff00ff00"..spell.."|r to |cffff0000"..keyPressed.."|r?"
       local oldkey = GetBindingAction(keyPressed)
@@ -258,7 +254,7 @@ function Nurfed_Binding_OnKeyDown(arg1)
       if string.find(spell, " %(") then
         spell = spell.."()"
       end
-      Nurfed_MenuBindings.data = { keyPressed, spell, bind }
+      NurfedBindingsPanelList.data = { keyPressed, spell, bind }
     end
     StaticPopupDialogs["NRF_BINDKEY"].text = text
     StaticPopup_Show("NRF_BINDKEY")
@@ -269,13 +265,13 @@ function Nurfed_Binding_OnClick(button)
   if not this.spell then return end
   if button == "LeftButton" then
     local spellname = this.spell
-    if Nurfed_MenuBindings.spell == spellname then
-      Nurfed_MenuBindings.spell = nil
+    if NurfedBindingsPanelList.spell == spellname then
+      NurfedBindingsPanelList.spell = nil
     else
-      Nurfed_MenuBindings.spell = spellname
+      NurfedBindingsPanelList.spell = spellname
     end
-    if Nurfed_MenuBindings[spellname] then
-      spellname = spellname.." ("..RANK.." "..Nurfed_MenuBindings[spellname]..")"
+    if NurfedBindingsPanelList[spellname] then
+      spellname = spellname.." ("..RANK.." "..NurfedBindingsPanelList[spellname]..")"
     end
     Nurfed_ScrollBindings()
   elseif button == "RightButton" then
@@ -333,9 +329,9 @@ end
 
 function Nurfed_Binding_Dropdown(spell, rank)
   if rank then
-    Nurfed_MenuBindings[spell] = rank
-  elseif Nurfed_MenuBindings[spell] then
-    Nurfed_MenuBindings[spell] = nil
+    NurfedBindingsPanelList[spell] = rank
+  elseif NurfedBindingsPanelList[spell] then
+    NurfedBindingsPanelList[spell] = nil
   end
   Nurfed_ScrollBindings()
 end
@@ -363,34 +359,15 @@ function Nurfed_Binding_Save(key, spell, type)
   SaveBindings(GetCurrentBindingSet())
 end
 
--- Menu layout
-NURFED_MENUS["Bindings"] = {
-  template = "nrf_options",
-  children = {
-    scroll = {
-      type = "ScrollFrame",
-      size = { 388, 270 },
-      Anchor = { "LEFT", "$parent", "LEFT" },
-      uitemp = "FauxScrollFrameTemplate",
-      OnVerticalScroll = function() FauxScrollFrame_OnVerticalScroll(14, Nurfed_ScrollBindings) end,
-      OnShow = function() Nurfed_ScrollBindings() end,
-      OnMouseWheel = function() Nurfed_MouseWheelBindings(arg1) end,
-    },
-  },
-  OnLoad = function() Nurfed_GenerateMenu("Bindings", "nrf_bindings_row", 19) end,
-  OnReceiveDrag = function() if GetCursorInfo() then addcursoritem() end end,
-  OnMouseDown = function() if GetCursorInfo() then addcursoritem() end end,
-}
-
 -- Overwrite binding popup
 StaticPopupDialogs["NRF_BINDKEY"] = {
   button1 = TEXT(ACCEPT),
   button2 = TEXT(CANCEL),
   OnAccept = function()
-    local info = Nurfed_MenuBindings.data
+    local info = NurfedBindingsPanelList.data
     Nurfed_Binding_Save(unpack(info))
-    Nurfed_MenuBindings.data = nil
-    Nurfed_MenuBindings.spell = nil
+    NurfedBindingsPanelList.data = nil
+    NurfedBindingsPanelList.spell = nil
     Nurfed_ScrollBindings()
   end,
   timeout = 10,
@@ -400,7 +377,7 @@ StaticPopupDialogs["NRF_BINDKEY"] = {
 
 Nurfed:createtemp("nrf_bindings_row", {
   type = "Button",
-  size = { 400, 14 },
+  size = { 375, 14 },
   children = {
     dropdown = { type = "Frame" },
     name = {
@@ -421,7 +398,7 @@ Nurfed:createtemp("nrf_bindings_row", {
     binding = {
       type = "FontString",
       layer = "ARTWORK",
-      size = { 100, 14 },
+      size = { 130, 14 },
       Anchor = { "LEFT", "$parentname", "RIGHT", 10, 0 },
       FontObject = "GameFontNormal",
       JustifyH = "LEFT",
@@ -441,3 +418,16 @@ Nurfed:createtemp("nrf_bindings_row", {
 })
 Nurfed:regevent("LEARNED_SPELL_IN_TAB", updatespells)
 Nurfed:regevent("UPDATE_MACROS", updatemacros)
+
+function Nurfed_BindingsCreate()
+  local row
+  for i = 1, 23 do
+    row = Nurfed:create("NurfedBindingsRow"..i, "nrf_bindings_row", NurfedBindingsPanelList)
+    row:RegisterForClicks("AnyUp")
+    if i == 1 then
+      row:SetPoint("TOPLEFT", 0, -3)
+    else
+      row:SetPoint("TOPLEFT", "NurfedBindingsRow"..(i - 1), "BOTTOMLEFT", 0, 0)
+    end
+  end
+end
