@@ -26,13 +26,12 @@ local wowmenu = {
 local onenter = function()
   GameTooltip:SetOwner(this, "ANCHOR_LEFT")
   GameTooltip:AddLine("Nurfed UI", 0, 0.75, 1)
-  GameTooltip:AddLine("Right Click - Toggle Menu", 0.75, 0.75, 0.75)
   if NRF_LOCKED then
     GameTooltip:AddLine("Left Click - |cffff0000Unlock|r UI", 0.75, 0.75, 0.75)
   else
     GameTooltip:AddLine("Left Click - |cff00ff00Lock|r UI", 0.75, 0.75, 0.75)
   end
-  GameTooltip:AddLine("Middle Click - WoW Micro Menu", 0.75, 0.75, 0.75)
+  GameTooltip:AddLine("Right Click - WoW Micro Menu", 0.75, 0.75, 0.75)
   GameTooltip:AddLine("Ctrl + Drag moves your Action Bars.", 0, 1, 0)
   GameTooltip:Show()
 end
@@ -51,30 +50,26 @@ local onclick = function(button)
     Nurfed:sendevent("NURFED_LOCK")
   else
     this:SetChecked(NRF_LOCKED)
-    if button == "RightButton" then
-      Nurfed_ToggleOptions()
-    elseif button == "MiddleButton" then
-      local drop = Nurfed_LockButtondropdown
-      local info = {}
-      if not drop.initialize then
-        drop.displayMode = "MENU"
-        drop.initialize = function()
-          info.text = "WoW Menu"
-          info.isTitle = 1
+    local drop = Nurfed_LockButtondropdown
+    local info = {}
+    if not drop.initialize then
+      drop.displayMode = "MENU"
+      drop.initialize = function()
+        info.text = "WoW Menu"
+        info.isTitle = 1
+        info.notCheckable = 1
+        UIDropDownMenu_AddButton(info)
+        info = {}
+
+        for _, v in ipairs(wowmenu) do
+          info.text = v[1]
+          info.func = v[2]
           info.notCheckable = 1
           UIDropDownMenu_AddButton(info)
-          info = {}
-
-          for _, v in ipairs(wowmenu) do
-            info.text = v[1]
-            info.func = v[2]
-            info.notCheckable = 1
-            UIDropDownMenu_AddButton(info)
-          end
         end
       end
-      ToggleDropDownMenu(1, nil, drop, "cursor")
     end
+    ToggleDropDownMenu(1, nil, drop, "cursor")
   end
 end
 
