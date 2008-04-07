@@ -1,6 +1,5 @@
 ------------------------------------------
 --  Nurfed Bindings
-------------------------------------------
 
 -- Saved item links for bindings
 NURFED_ITEMS = NURFED_ITEMS or {}

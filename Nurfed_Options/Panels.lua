@@ -139,7 +139,24 @@ local panels = {
   {
     name = "AddOns",
     subtext = "Disable/Enable installed AddOns.",
-    menu = {},
+    menu = {
+      List = {
+        type = "Frame",
+        size = { 375, 332 },
+        Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -14, 0 },
+        children = {
+          scroll = {
+            type = "ScrollFrame",
+            size = { 375, 332 },
+            Point = { "TOPLEFT" },
+            uitemp = "FauxScrollFrameTemplate",
+            OnVerticalScroll = function() FauxScrollFrame_OnVerticalScroll(14, Nurfed_ScrollAddOns) end,
+            OnShow = function() Nurfed_ScrollAddOns() end,
+          },
+        },
+        OnLoad = Nurfed_AddonsCreate,
+      },
+    },
   },
 
   -- Bindings Panel
