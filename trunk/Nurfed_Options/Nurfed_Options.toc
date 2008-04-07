@@ -4,9 +4,10 @@
 ## SavedVariables: NURFED_LAYOUT
 ## SavedVariablesPerCharacter: NURFED_ITEMS
 ## RequiredDeps: Nurfed
-## Version: 03.30.2008
+## Version: 04.07.2008
 ## LoadOnDemand: 1
 
+Menus\AddOns.lua
 Menus\Bindings.lua
 
 Localization.lua
