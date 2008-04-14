@@ -12,15 +12,15 @@ local ingroup = Nurfed:formatgs(ERR_ALREADY_IN_GROUP_S, true)
 NURFED_SAVED = NURFED_SAVED or {}
 
 local wowmenu = {
-  { CHARACTER, function() ToggleCharacter("PaperDollFrame") end },
-  { SPELLBOOK, function() ToggleSpellBook(BOOKTYPE_SPELL) end },
-  { TALENTS, function() ToggleTalentFrame() end },
-  { QUESTLOG_BUTTON, function() ToggleQuestLog() end },
-  { FRIENDS, function() ToggleFriendsFrame() end },
-  { LFG_TITLE, function() ToggleLFGParentFrame() end },
+  { CHARACTER, function() CharacterMicroButton:Click() end },
+  { SPELLBOOK, function() SpellbookMicroButton:Click() end },
+  { TALENTS, function() TalentMicroButton:Click() end },
+  { QUESTLOG_BUTTON, function() QuestLogMicroButton:Click() end },
+  { FRIENDS, function() SocialsMicroButton:Click() end },
+  { LFG_TITLE, function() LFGMicroButton:Click() end },
   { BINDING_NAME_TOGGLEGAMEMENU, function() MainMenuMicroButton:Click() end },
-  { KNOWLEDGE_BASE, function() ToggleKnowledgeBaseFrame() end },
-  { KEYRING, function() ToggleKeyRing() end },
+  { KNOWLEDGE_BASE, function() HelpMicroButton:Click() end },
+  { KEYRING, function() KeyRingButton:Click() end },
 }
 
 local onenter = function()
