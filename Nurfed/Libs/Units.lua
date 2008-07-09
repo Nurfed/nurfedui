@@ -801,12 +801,13 @@ local cure = {
 }
 
 local damage = {
-	{ (255/255), (255/255), (0/255) },
-	{ (255/255), (0/255), (0/255) },
-	{ (0/255), (102/255), (0/255) },
-	{ (0/255), (102/255), (255/255) },
-	{ (202/255), (76/255), (217/255) },
-	{ (153/255), (204/255), (255/255) },
+	[1] = { (255/255), (100/255), (100/255) },-- 1 - physical
+	[2] = { (255/255), (255/255), (0/255) },-- 2 - holy
+	[4] = { (255/255), (0/255), (0/255) },-- 4 - fire
+	[8] = { (0/255), (102/255), (0/255) }, -- 8 - nature
+	[16] = { (0/255), (102/255), (255/255) }, -- 16 - frost
+	[32] = { (202/255), (76/255), (217/255) },-- 32 - shadow
+	[64] = { (153/255), (204/255), (255/255) }, -- 64 - arcane
 }
 
 local classification = {
@@ -1024,7 +1025,7 @@ local fade = function(frame)
 	hooksecurefunc(frame, "SetValue", nrf_fading)
 end
 
-local addcombat = function()
+local addcombat = function()-- Question: Is this even used? - Apoco 07-08-08
 	local text = date("[%#I:%M:%S]")
 	local unit = arg1
 	local event = arg2
@@ -1037,11 +1038,7 @@ local addcombat = function()
 		text = text.." |cff00ff00+"..amount.."|r"
 	elseif event == "WOUND" then
 		if amount ~= 0 then
-			if dtype == 0 then
-				color = "|cffff0000"
-			else
-				color = Nurfed:rgbhex(unpack(damage[dtype]))
-			end
+			color = Nurfed:rgbhex(unpack(damage[dtype]))
 			text = text.." "..color.."-"..amount.."|r"
 		elseif CombatFeedbackText[flags] then
 			text = text.." "..color..CombatFeedbackText[flags].."|r"
@@ -1072,17 +1069,13 @@ end
 local updatedamage = function(frame, unit, event, flags, amount, type)
 	local text = ""
 	local r, g, b = 1, 0.647, 0
-
+	
 	if event == "HEAL" then
 		text = "+"..amount
 		r, g, b = 0, 1, 0
 	elseif event == "WOUND" then
 		if amount ~= 0 then
-			if type == 0 then
-				r, g, b = 1, 0, 0
-			else
-				r, g, b = unpack(damage[type])
-			end
+			r, g, b = unpack(damage[type])
 			text = "-"..amount
 		elseif flags == "ABSORB" then
 			text = CombatFeedbackText["ABSORB"]
@@ -1175,8 +1168,11 @@ local castevent = function()
 		this:Show()
 		if barText and barText.format then
 			local out = barText.format
-			out = string.gsub(out, "$spell", name)
-			out = string.gsub(out, "$rank", nameSubtext)
+			out = out:gsub("$spell", name)
+			out = out:gsub("$rank", nameSubtext)
+			if nameSubtext == "" then
+				out = out:gsub("%(", ""):gsub("%)", "")
+			end
 			if orient == "VERTICAL" or barText.short then
 				local vtext = ""
 				out = string.gsub(out, "[^A-Z:0-9.]", "") --fridg
@@ -1380,7 +1376,7 @@ end
 local updateinfo = function(frame, stat)
 	if not frame[stat] then return end
 	local unit = SecureButton_GetUnit(frame)
-	local curr, max, missing, perc, r, g, b = Nurfed:getunitstat(unit, stat)
+	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb = Nurfed:getunitstat(unit, stat)
 	local maxtext, missingtext = max, missing
 	local rest
 
@@ -1424,6 +1420,9 @@ local updateinfo = function(frame, stat)
 				if r and g and b then
 					child:SetStatusBarColor(r, g, b)
 				end
+				if bgr and bgg and bgb then
+					child:SetBackdropColor(bgr, bgg, bgb)
+				end
 			elseif objtype == "FontString" then
 				local text
 				if not UnitIsConnected(unit) and stat == "Health" then
@@ -1434,11 +1433,15 @@ local updateinfo = function(frame, stat)
 					text = DEAD
 				else
 					text = child.format
-					text = string.gsub(text, "$cur", curr)
-					text = string.gsub(text, "$max", maxtext)
-					text = string.gsub(text, "$perc", perc.."%%")
-					text = string.gsub(text, "$miss", missingtext)
-					text = string.gsub(text, "$rest", rest)
+					text = text:gsub("$cur", curr)
+					text = text:gsub("$max", maxtext)
+					text = text:gsub("$perc", perc.."%%")
+					if missingtext ~= 0 then
+						text = text:gsub("$miss", "|cffcc1111"..missingtext.."|r | ")
+					else
+						text = text:gsub("$miss", "")
+					end
+					text = text:gsub("$rest", rest)
 				end
 				child:SetText(text)
 				if r and g and b and child.color then
@@ -1707,13 +1710,13 @@ local updatepvp = function(frame)
 end
 
 local cooldowntext = function(frame)
+	if not Nurfed:getopt("cdaura") then return end
 	local cd = _G[frame:GetName().."Cooldown"]
 	if cd.text and cd.cool then
 		local cdscale = cd:GetScale()
 		local r, g, b = 1, 0, 0
 		local remain = (cd.start + cd.duration) - GetTime()
-		local show = Nurfed:getopt("cdaura")
-		if remain >= 0 and show then
+		if remain >= 0 then
 			remain = math.round(remain)
 			if remain >= 60 then
 				remain = math.floor(remain / 60)
