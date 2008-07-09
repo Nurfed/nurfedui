@@ -31,7 +31,9 @@ local onenter = function()
   else
     GameTooltip:AddLine("Left Click - |cff00ff00Lock|r UI", 0.75, 0.75, 0.75)
   end
-  GameTooltip:AddLine("Right Click - WoW Micro Menu", 0.75, 0.75, 0.75)
+  --GameTooltip:AddLine("Right Click - WoW Micro Menu", 0.75, 0.75, 0.75)
+  GameTooltip:AddLine("Right Click - Nurfed Menu", 0.75, 0.75, 0.75)
+  GameTooltip:AddLine("Middle Click - WoW Micro Menu", 0.75, 0.75, 0.75)
   GameTooltip:AddLine("Ctrl + Drag moves your Action Bars.", 0, 1, 0)
   GameTooltip:Show()
 end
@@ -50,27 +52,31 @@ local onclick = function(button)
     Nurfed:sendevent("NURFED_LOCK")
   else
     this:SetChecked(NRF_LOCKED)
-    local drop = Nurfed_LockButtondropdown
-    local info = {}
-    if not drop.initialize then
-      drop.displayMode = "MENU"
-      drop.initialize = function()
-        info.text = "WoW Menu"
-        info.isTitle = 1
-        info.notCheckable = 1
-        UIDropDownMenu_AddButton(info)
-        info = {}
+	if button == "RightButton" then
+		Nurfed_ToggleOptions()
+	else
+		local drop = Nurfed_LockButtondropdown
+		local info = {}
+		if not drop.initialize then
+		  drop.displayMode = "MENU"
+		  drop.initialize = function()
+			info.text = "WoW Menu"
+			info.isTitle = 1
+			info.notCheckable = 1
+			UIDropDownMenu_AddButton(info)
+			info = {}
 
-        for _, v in ipairs(wowmenu) do
-          info.text = v[1]
-          info.func = v[2]
-          info.notCheckable = 1
-          UIDropDownMenu_AddButton(info)
-        end
-      end
-    end
-    ToggleDropDownMenu(1, nil, drop, "cursor")
-  end
+			for _, v in ipairs(wowmenu) do
+			  info.text = v[1]
+			  info.func = v[2]
+			  info.notCheckable = 1
+			  UIDropDownMenu_AddButton(info)
+			end
+		  end
+		end
+		ToggleDropDownMenu(1, nil, drop, "cursor")
+	  end
+	 end
 end
 
 local onupdate = function(self)
@@ -94,6 +100,29 @@ local onupdate = function(self)
     end
     self:SetPoint("TOPLEFT", "Minimap", "TOPLEFT", 52-xpos, ypos-52)
   end
+end
+
+nrfrepair = function()
+    local repair = Nurfed:getopt("repair")
+    if repair then
+      local limit = tonumber(Nurfed:getopt("repairlimit"))
+      local money = tonumber(math.floor(GetMoney() / COPPER_PER_GOLD))
+      if money >= limit then
+        local repairAllCost, canRepair = GetRepairAllCost()
+        if canRepair then
+          local gold = math.floor(repairAllCost / (COPPER_PER_SILVER * SILVER_PER_GOLD))
+          local silver = math.floor((repairAllCost - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
+          local copper = math.fmod(repairAllCost, COPPER_PER_SILVER)
+          if CanGuildBankRepair() then
+            RepairAllItems(1)
+            Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs (Guild).|r")
+          else
+            RepairAllItems()
+            Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs.|r")
+          end
+        end
+      end
+    end
 end
 
 local onevent = function()
@@ -128,37 +157,23 @@ local onevent = function()
         if string.find(arg1, ERR_GROUP_FULL, 1, true) and lastinvite then
           local lastTell = ChatEdit_GetLastTellTarget(DEFAULT_CHAT_FRAME.editBox)
           if lastTell ~= "" then
-            SendChatMessage("Party Full", "WHISPER", this.language, lastTell)
+			-- language is not needed, it defaults to COMMON/ORCISH
+            --SendChatMessage("Party Full", "WHISPER", this.language, lastTell)
+            SendChatMessage("Party Full", "WHISPER", nil, lastTell)
           end
         else
           local result = { string.find(arg1, ingroup) }
           if (result[1]) then
-            SendChatMessage("Drop group and resend '"..Nurfed:getopt("keyword").."'", "WHISPER", this.language, result[3])
+            -- language is not needed, it defaults to COMMON/ORCISH
+            --SendChatMessage("Drop group and resend '"..Nurfed:getopt("keyword").."'", "WHISPER", this.language, result[3])
+            SendChatMessage("Drop group and resend '"..Nurfed:getopt("keyword").."'", "WHISPER", nil, result[3])
           end
         end
       end
     end
   elseif event == "MERCHANT_SHOW" then
-    local repair = Nurfed:getopt("repair")
-    if repair then
-      local limit = tonumber(Nurfed:getopt("repairlimit"))
-      local money = tonumber(math.floor(GetMoney() / COPPER_PER_GOLD))
-      if money >= limit then
-        local repairAllCost, canRepair = GetRepairAllCost()
-        if canRepair then
-          local gold = math.floor(repairAllCost / (COPPER_PER_SILVER * SILVER_PER_GOLD))
-          local silver = math.floor((repairAllCost - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
-          local copper = math.fmod(repairAllCost, COPPER_PER_SILVER)
-          if CanGuildBankRepair() then
-            RepairAllItems(1)
-            Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs (Guild).|r")
-          else
-            RepairAllItems()
-            Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs.|r")
-          end
-        end
-      end
-    end
+	nrfrepair() -- split this out into its own function for hooking purposes, atleast until auto-sell is implimented
+
   elseif event == "TRAINER_SHOW" then
     local avail = Nurfed:getopt("traineravailable")
     if avail then SetTrainerServiceTypeFilter("unavailable", 0) end
@@ -293,7 +308,6 @@ end
 
 local message = function(this, msg, r, g, b, id)
   if (msg and type(msg) == "string") then
-    if id and id == 8 and string.find(msg, "!ndkp") then return end
     local text = {}
     local pre = Nurfed:getopt("chatprefix")
     local ts = Nurfed:getopt("timestamps")

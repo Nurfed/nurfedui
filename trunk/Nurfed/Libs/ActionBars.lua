@@ -7,6 +7,7 @@ local _G = getfenv(0)
 local pairs = pairs
 local ipairs = ipairs
 local isloaded
+local playerClass = select(2, UnitClass("player"))
 
 -- Default Options
 NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
@@ -23,25 +24,6 @@ NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
     visible = "show",
   },
 }
-
-NURFED_DEFAULT["hidemain"] = 1
-NURFED_DEFAULT["tooltips"] = 1
-NURFED_DEFAULT["hotkeys"] = 1
-NURFED_DEFAULT["macrotext"] = 1
-NURFED_DEFAULT["unusedbtn"] = 1
-NURFED_DEFAULT["fadein"] = 1
-NURFED_DEFAULT["bagsshow"] = 1
-NURFED_DEFAULT["bagsscale"] = 1
-NURFED_DEFAULT["bagsvert"] = false
-NURFED_DEFAULT["stanceshow"] = 1
-NURFED_DEFAULT["stancescale"] = 1
-NURFED_DEFAULT["stancevert"] = false
-NURFED_DEFAULT["petbarshow"] = 1
-NURFED_DEFAULT["petbarscale"] = 1
-NURFED_DEFAULT["petbarvert"] = false
-NURFED_DEFAULT["microshow"] = 1
-NURFED_DEFAULT["microscale"] = 1
-NURFED_DEFAULT["microvert"] = false
 
 ----------------------------------------------------------------
 -- Button functions
@@ -125,13 +107,15 @@ local updatecooldown = function(btn)
     CooldownFrame_SetTimer(cooldown, start, duration, enable)
   end
 end
-
-local cooldowntext = function(btn)
+-- unlocalize and change the name to an unused global to allow hooking from PT3Bar and AutoBar etc
+-- No Reason to use "CooldownCount" etc if this function does everything we want in a nice clean fashion
+--local cooldowntext = function(btn)
+nrfcooldowntext = function(btn)
   local cd = _G[btn:GetName().."Cooldown"]
   if cd.text and cd.cool then
     local cdscale = cd:GetScale()
     local r, g, b = 1, 0, 0
-    local height = floor(22 / cdscale)
+    local height = floor(20 / cdscale)
     local fheight = select(2, cd.text:GetFont())
     local remain = (cd.start + cd.duration) - GetTime()
     if remain >= 0 then
@@ -139,11 +123,11 @@ local cooldowntext = function(btn)
       if remain >= 3600 then
         remain = math.floor(remain / 3600).."h"
         r, g, b = 0.6, 0.6, 0.6
-        height = floor(14 / cdscale)
+        height = floor(12 / cdscale)
       elseif remain >= 60 then
         local min = math.floor(remain / 60)
         r, g, b = 1, 1, 0
-        height = floor(14 / cdscale)
+        height = floor(12 / cdscale)
         if min < 10 then
           local sec = math.floor(math.fmod(remain, 60))
           remain = string.format("%2d:%02s", min, sec)
@@ -155,6 +139,7 @@ local cooldowntext = function(btn)
       cd.text:SetTextColor(r, g, b)
       if height ~= fheight then
         cd.text:SetFont("Fonts\\FRIZQT__.TTF", height, "OUTLINE")
+        cd:SetFrameLevel(30)
       end
     else
       cd.text:SetText(nil)
@@ -200,6 +185,10 @@ local seticon = function(btn)
           end
         elseif new == "macro" then
           spell, texture = GetMacroInfo(spell)
+			-- fix the damn autoshot texture so its not whirlwind....nice one blizzard
+			if texture == "Interface\\Icons\\Ability_Whirlwind" and playerClass == "HUNTER" then
+				texture = GetSpellTexture("Auto Shot")
+			end
           if Nurfed:getopt("macrotext") then
             text:SetText(spell)
           end
@@ -492,7 +481,13 @@ local btnevents = {
         if key then
           key = Nurfed:binding(key)
         end
-        _G[btn:GetName().."HotKey"]:SetText(key)
+        if Nurfed:getopt("showbindings") then
+			_G[btn:GetName().."HotKey"]:SetText(key)
+			_G[btn:GetName().."HotKey"]:Show()
+		else-- added clearing of hotkeys for settings so you dont have to reload everytime you change the setting
+			_G[btn:GetName().."HotKey"]:SetText(nil)
+			_G[btn:GetName().."HotKey"]:Hide()
+		end
       end
     end
   end,
@@ -590,7 +585,7 @@ local btnupdate = function()
       end
     end
     _G[btn:GetName().."Icon"]:SetVertexColor(r, g, b)
-    cooldowntext(btn)
+    nrfcooldowntext(btn)
   end
 end
 
@@ -1113,7 +1108,7 @@ function nrf_mainmenu()
         cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
       end
       btn:SetParent(Nurfed_stance)
-      btn:SetScript("OnUpdate", cooldowntext)
+      btn:SetScript("OnUpdate", nrfcooldowntext)
       if i == 1 then
         btn:ClearAllPoints()
         btn:SetPoint("BOTTOMLEFT")
@@ -1127,7 +1122,7 @@ function nrf_mainmenu()
         cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
       end
       btn:SetParent(Nurfed_petbar)
-      btn:SetScript("OnUpdate", cooldowntext)
+      btn:SetScript("OnUpdate", nrfcooldowntext)
       if i == 1 then
         btn:ClearAllPoints()
         btn:SetPoint("BOTTOMLEFT")
