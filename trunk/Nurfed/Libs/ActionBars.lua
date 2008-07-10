@@ -913,7 +913,8 @@ function nrf_updatemainbar(bar)
   local show = Nurfed:getopt(bar.."show")
   local scale = Nurfed:getopt(bar.."scale")
   local vert = Nurfed:getopt(bar.."vert")
-  bar = getglobal("Nurfed_"..bar)
+  local offset = Nurfed:getopt(bar.."offset")
+  bar = _G["Nurfed_"..bar]
   bar:SetScale(scale)
 
   if bar == Nurfed_petbar then
@@ -922,18 +923,20 @@ function nrf_updatemainbar(bar)
     else
       UnregisterUnitWatch(Nurfed_petbar)
     end
+    _G["PetActionButton1"]:ClearAllPoints()
     for i = 2, 10 do
-      local btn = getglobal("PetActionButton"..i)
+      local btn = _G["PetActionButton"..i]
       btn:ClearAllPoints()
       if vert then
-        btn:SetPoint("TOP", "PetActionButton"..(i-1), "BOTTOM", 0, -3)
+        btn:SetPoint("TOP", "PetActionButton"..(i-1), "BOTTOM", 0, offset)
       else
-        btn:SetPoint("LEFT", "PetActionButton"..(i-1), "RIGHT", 3, 0)
+        btn:SetPoint("LEFT", "PetActionButton"..(i-1), "RIGHT", offset, 0)
       end
     end
+    
   elseif bar == Nurfed_stance then
     for i = 2, 10 do
-      local btn = getglobal("ShapeshiftButton"..i)
+      local btn = _G["ShapeshiftButton"..i]
       btn:ClearAllPoints()
       if vert then
         btn:SetPoint("TOP", "ShapeshiftButton"..(i-1), "BOTTOM", 0, -3)
@@ -943,7 +946,7 @@ function nrf_updatemainbar(bar)
     end
   elseif bar == Nurfed_bags then
     for i = 0, 3 do
-      local bag = getglobal("CharacterBag"..i.."Slot")
+      local bag = _G["CharacterBag"..i.."Slot"]
       bag:ClearAllPoints()
       if vert then
         if i == 0 then
@@ -1015,7 +1018,7 @@ Nurfed:regevent("NURFED_LOCK", function()
 local old_ShapeshiftBar_Update = ShapeshiftBar_Update
 
 function nrf_mainmenu()
-  if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") then
+  if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") or IsAddOnLoaded("Bongos3_ActionBar") then
     return
   end
 
@@ -1030,7 +1033,7 @@ function nrf_mainmenu()
     MainMenuBarBackpackButton:SetPoint("BOTTOMRIGHT", -6, 2)
 
     for i = 0, 3 do
-      local bag = getglobal("CharacterBag"..i.."Slot")
+      local bag = _G["CharacterBag"..i.."Slot"]
       bag:SetParent(MainMenuBarArtFrame)
       bag:ClearAllPoints()
       if i == 0 then
@@ -1052,7 +1055,7 @@ function nrf_mainmenu()
     end
 
     for i = 1, 10 do
-      local btn = getglobal("ShapeshiftButton"..i)
+      local btn = _G["ShapeshiftButton"..i]
       btn:SetParent(ShapeshiftBarFrame)
       btn:ClearAllPoints()
       if i == 1 then
@@ -1061,7 +1064,7 @@ function nrf_mainmenu()
         btn:SetPoint("LEFT", "ShapeshiftButton"..(i-1), "RIGHT", 7, 0)
       end
 
-      btn = getglobal("PetActionButton"..i)
+      btn = _G["PetActionButton"..i]
       btn:SetParent(PetActionBarFrame)
       btn:ClearAllPoints()
       if i == 1 then
@@ -1082,7 +1085,7 @@ function nrf_mainmenu()
     MainMenuBarBackpackButton:SetPoint("BOTTOMLEFT")
 
     for i = 0, 3 do
-      local bag = getglobal("CharacterBag"..i.."Slot")
+      local bag = _G["CharacterBag"..i.."Slot"]
       bag:SetParent(Nurfed_bags)
     end
 
@@ -1100,8 +1103,8 @@ function nrf_mainmenu()
     end
 
     for i = 1, 10 do
-      local btn = getglobal("ShapeshiftButton"..i)
-      local cooldown = getglobal("ShapeshiftButton"..i.."Cooldown")
+      local btn = _G["ShapeshiftButton"..i]
+      local cooldown = _G["ShapeshiftButton"..i.."Cooldown"]
       if not cooldown.text then
         cooldown.text = cooldown:CreateFontString(nil, "OVERLAY")
         cooldown.text:SetPoint("CENTER")
@@ -1114,8 +1117,8 @@ function nrf_mainmenu()
         btn:SetPoint("BOTTOMLEFT")
       end
 
-      btn = getglobal("PetActionButton"..i)
-      cooldown = getglobal("PetActionButton"..i.."Cooldown")
+      btn = _G["PetActionButton"..i]
+      cooldown = _G["PetActionButton"..i.."Cooldown"]
       if not cooldown.text then
         cooldown.text = cooldown:CreateFontString(nil, "OVERLAY")
         cooldown.text:SetPoint("CENTER")

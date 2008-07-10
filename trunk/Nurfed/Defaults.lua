@@ -65,6 +65,7 @@ NURFED_DEFAULT["stancevert"] = false
 NURFED_DEFAULT["petbarshow"] = 1
 NURFED_DEFAULT["petbarscale"] = 1
 NURFED_DEFAULT["petbarvert"] = false
+NURFED_DEFAULT["petbaroffset"] = 3
 NURFED_DEFAULT["microshow"] = 1
 NURFED_DEFAULT["microscale"] = 1
 NURFED_DEFAULT["microvert"] = false
