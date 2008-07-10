@@ -923,7 +923,6 @@ function nrf_updatemainbar(bar)
     else
       UnregisterUnitWatch(Nurfed_petbar)
     end
-    _G["PetActionButton1"]:ClearAllPoints()
     for i = 2, 10 do
       local btn = _G["PetActionButton"..i]
       btn:ClearAllPoints()
