@@ -52,12 +52,27 @@ do	-- keep local dropmenu local...rofl?
 		end
 	end
 end
+-- Scroll menu
+function Nurfed_Options_ScrollMenu()
+	FauxScrollFrame_Update(this, this.pages, 1, 100)
+	local page = FauxScrollFrame_GetOffset(this) + 1
+	local children = { this:GetParent():GetChildren() }
+	for _, child in ipairs(children) do
+		if (not string.find(child:GetName(), "scroll", 1, true)) then
+			if (child.page == page) then
+				child:Show()
+			else
+				child:Hide()
+			end
+		end
+	end
+end
 -- color swatches
 function Nurfed_Options_swatchSetColor(frame)
 	local option = frame.option
 	local r, g, b = ColorPickerFrame:GetColorRGB()
 	local a = OpacitySliderFrame:GetValue()
-	local swatch = getglobal(frame:GetName().."bg")
+	local swatch = _G[frame:GetName().."bg"]
 	swatch:SetVertexColor(r, g, b)
 	frame.r = r
 	frame.g = g
@@ -74,7 +89,7 @@ function Nurfed_Options_swatchCancelColor(frame, prev)
 	local g = prev.g
 	local b = prev.b
 	local a = prev.a
-	local swatch = getglobal(frame:GetName().."bg")
+	local swatch = _G[frame:GetName().."bg"]
 	swatch:SetVertexColor(r, g, b)
 	frame.r = r
 	frame.g = g
@@ -98,11 +113,11 @@ function Nurfed_Options_swatchOpenColorPicker()
 end
 
 onshow = function(self)
-	local text = getglobal(self:GetName().."Text")
-	local value = getglobal(self:GetName().."value")
+	local text = _G[self:GetName().."Text"]
+	local value = _G[self:GetName().."value"]
 	local objtype = self:GetObjectType()
 	if not text then
-		text = getglobal(self:GetParent():GetName().."Text")
+		text = _G[self:GetParent():GetName().."Text"]
 		assert(text, "NO TEXT FOR:"..self:GetName())
 	end
 	text:SetText(self.text)
@@ -120,6 +135,14 @@ onshow = function(self)
 			text:SetPoint("RIGHT", self:GetName(), "LEFT", -1, 1)
 			self:SetHitRectInsets(-100, 0, 0, 0)
 		end
+	end
+	-- anchoring the value editbox of a slider in the template apparently does not
+	-- move it...at all.  It is still getting anchored to the left/right
+	-- even when the anchor to pos is not set to RIGHT at all
+	-- look into further, until then hack it this way
+	if value and value:GetObjectType() == "EditBox" and objtype == "Slider" then
+		value:ClearAllPoints()
+		value:SetPoint("TOP", self, "BOTTOM", 0, 0)
 	end
 
 	local opt
@@ -194,9 +217,6 @@ saveopt = function(self)
 		else
 			NURFED_SAVED[opt] = value
 		end
-		if opt == "showbindings" then
-			Nurfed:sendevent("UPDATE_BINDINGS")
-		end
 	end
 
 	if self.func then
@@ -238,7 +258,19 @@ local templates = {
         template = "nrf_editbox",
         FontObject = "GameFontNormalSmall",
         size = { 35, 18 },
-        Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
+		-- put the edit box below the slider, users will be more familiar with it and it saves overall
+		-- x/y space in the config menu thats shitpoorly written by blizzard
+        --Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
+        Anchor = { "TOP", "$parent", "BOTTOM", 0, 0 },
+          Backdrop = {
+		  bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+--		  edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+		  tile = true,
+		  tileSize = 16,
+--		  edgeSize = 10,
+		  insets = { left = 3, right = 3, top = 3, bottom = 3 },
+		},
+		BackdropColor = { 0, 0, 0.2, 0.75 },
         OnTextChanged = function(self)
           if self.focus then
             local parent = self:GetParent()
@@ -259,7 +291,9 @@ local templates = {
         OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
       },
     },
-    OnShow = function(self) onshow(self) end,
+    -- set the frame level to be above the scroll frames if they exist
+    -- this way we can scroll sliders with mousewheels? woot?
+    OnShow = function(self) self:SetFrameLevel(30); self:EnableMouseWheel(true); onshow(self) end,
 	OnMouseUp = function(self) 
 		local editbox = _G[self:GetName().."value"]
 		editbox:SetCursorPosition(0)
@@ -269,6 +303,16 @@ local templates = {
 	OnValueChanged = function() 
 		local value = math.round(this:GetValue(), this.deci)
 		_G[this:GetName().."value"]:SetText(value) 
+	end,
+	OnMouseWheel = function(self, change)
+		local value = self:GetValue()
+		if change > 0  then
+			value = value + (self.bigStep or self.step)
+		else
+			value = value - (self.bigStep or self.step)
+		end
+		self:SetValue(value)
+		saveopt(self)
 	end,
   },
   nrf_editbox = {
@@ -373,6 +417,14 @@ local templates = {
 		OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
 		OnTextChanged = function(self) end,
 	},
+	nrf_scroll = {
+		type = "ScrollFrame",
+		Anchor = { "LEFT", 0, 0 },
+		size = { 385, 271 },
+		uitemp = "FauxScrollFrameTemplate",
+		OnVerticalScroll = function() FauxScrollFrame_OnVerticalScroll(100, Nurfed_Options_ScrollMenu) end,
+		OnShow = function() Nurfed_Options_ScrollMenu() end,
+	},
 	nrf_multiedit = {
 		type = "ScrollFrame",
 		uitemp = "UIPanelScrollFrameTemplate",
@@ -455,3 +507,4 @@ local templates = {
 for k, v in pairs(templates) do
   Nurfed:createtemp(k, v)
 end
+NurfedTemplatesOnShow = onshow

@@ -443,119 +443,331 @@ end
 local panels = {
   -- Chat Panel
   {
-    name = "Chat",
-    subtext = "Options that affect the appearance of chat messages and alerts sent to the chat frames.",
-    menu = {
-      check1 = {
-        template = "nrf_check",
-        Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, -8 },
-        vars = { text = NRF_PINGWARNING, option = "ping" },
-      },
-      check2 = {
-        template = "nrf_check",
-        Anchor = { "TOPLEFT", "$parentcheck1", "BOTTOMLEFT", 0, -8 },
-        vars = { text = NRF_CHATTIMESTAMPS, option = "timestamps" },
-      },
-      check3 = {
-        template = "nrf_check",
-        Anchor = { "TOPLEFT", "$parentcheck2", "BOTTOMLEFT", 0, -8 },
-        vars = { text = NRF_RAIDGROUP, option = "raidgroup" },
-      },
-      check4 = {
-        template = "nrf_check",
-        Anchor = { "TOPLEFT", "$parentcheck3", "BOTTOMLEFT", 0, -8 },
-        vars = { text = NRF_RAIDCLASS, option = "raidclass" },
-      },
-      check5 = {
-        template = "nrf_check",
-        Anchor = { "TOPLEFT", "$parentcheck4", "BOTTOMLEFT", 0, -8 },
-        vars = { text = NRF_CHATBUTTONS, option = "chatbuttons", func = function() nrf_togglechat() end },
-      },
-      check6 = {
-        template = "nrf_check",
-        Anchor = { "TOPLEFT", "$parentcheck5", "BOTTOMLEFT", 0, -8 },
-        vars = { text = NRF_CHATPREFIX, option = "chatprefix" },
-      },
-
-      check7 = {
-        template = "nrf_check",
-        Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 0, -8 },
-        vars = { text = NRF_CHATFADE, option = "chatfade", func = function() nrf_togglechat() end },
-      },
-      slider1 = {
-        template = "nrf_slider",
-        Anchor = { "TOPRIGHT", "$parentcheck7", "BOTTOMRIGHT", 0, -24 },
-        vars = {
-          text = NRF_CHATFADETIME,
-          option = "chatfadetime",
-          low = 0,
-          high = 250,
-          min = 0,
-          max = 250,
-          step = 1,
-          format = "%.0f",
-          func = function() nrf_togglechat() end,
-        },
-      },
-      input1 = {
-        template = "nrf_editbox",
-        Anchor = { "TOPRIGHT", "$parentslider1", "BOTTOMRIGHT", 0, -32 },
-        vars = { text = NRF_TIMESTAMP, option = "timestampsformat" },
-      },
-    },
-  },
-
+	name = "Chat",
+	subtext = "Options that affect the appearance of chat messages and alerts sent to the chat frames.",
+	menu = {
+		check1 = {
+			template = "nrf_check",
+			Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, -8 },
+			vars = { text = NRF_PINGWARNING, option = "ping" },
+		},
+		check2 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck1", "BOTTOMLEFT", 0, -8 },
+			vars = { text = NRF_CHATTIMESTAMPS, option = "timestamps" },
+		},
+		check3 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck2", "BOTTOMLEFT", 0, -8 },
+			vars = { text = NRF_RAIDGROUP, option = "raidgroup" },
+		},
+		check4 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck3", "BOTTOMLEFT", 0, -8 },
+			vars = { text = NRF_RAIDCLASS, option = "raidclass" },
+		},
+		check5 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck4", "BOTTOMLEFT", 0, -8 },
+			vars = { text = NRF_CHATBUTTONS, option = "chatbuttons", func = function() nrf_togglechat() end },
+		},
+		check6 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck5", "BOTTOMLEFT", 0, -8 },
+			vars = { text = NRF_CHATPREFIX, option = "chatprefix" },
+		},
+		check7 = {
+			template = "nrf_check",
+			Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 0, -8 },
+			vars = { text = NRF_CHATFADE, option = "chatfade", func = function() nrf_togglechat()
+				-- Note to Tivs:
+				-- I need a disabled = boolean(or function that returns boolean) option in vars
+				-- to be able to alpha / enablemouse for options that are no longer relevant based on other options
+				-- example: disabled = function(self) return not Nurfed:getopt("chatfade") end,
+				-- that would return true if Chat Fading is turned on, hence enable the slider for the time
+				-- otherwise it would return false and shade out and disable the slider option as its nolonger needed
+				-- this would prevent a lot of redundancy and make it easier on the users and myself
+				-- Also the onshow(self) func in Templates.lua should be fired for all visible options 
+				-- anytime the saveopt() func is fired to make sure that all values are proper.
+				-- The disabled function should also fire anytime the saveopt() is fired.
+				if Nurfed:getopt("chatfade") then
+					NurfedChatPanelslider1:SetAlpha(1)
+					NurfedChatPanelslider1:EnableMouse(true)
+					NurfedChatPanelslider1:EnableMouseWheel(true)
+					NurfedChatPanelslider1value:SetAlpha(1)
+					NurfedChatPanelslider1value:EnableMouse(true)
+				else
+					NurfedChatPanelslider1:SetAlpha(0.5)
+					NurfedChatPanelslider1:EnableMouse(false)
+					NurfedChatPanelslider1:EnableMouseWheel(false)
+					NurfedChatPanelslider1value:SetAlpha(0.5)
+					NurfedChatPanelslider1value:EnableMouse(false)
+				end
+			end },
+		},
+		slider1 = {
+			template = "nrf_slider",
+			Anchor = { "TOPRIGHT", "$parentcheck7", "BOTTOMRIGHT", 0, -24 },
+			vars = {
+				text = NRF_CHATFADETIME,
+				option = "chatfadetime",
+				low = 0,
+				high = 250,
+				min = 0,
+				max = 250,
+				step = 1,
+				format = "%.0f",
+				func = function() nrf_togglechat() end,
+			},
+			-- this whole function could be removed if the above mention note is added in.  <3 u tivs
+			-- I would like to add this into a lot of different spots but I wont, more of a proof of concept
+			-- for right now so you know what I am talking about
+			OnShow = function(self)
+				NurfedTemplatesOnShow(self)
+				if Nurfed:getopt("chatfade") then
+					self:SetAlpha(1)
+					self:EnableMouse(true)
+					self:EnableMouseWheel(true)
+					_G[self:GetName().."value"]:SetAlpha(1)
+					_G[self:GetName().."value"]:EnableMouse(true)
+				else
+					self:SetAlpha(0.5)
+					self:EnableMouse(false)
+					self:EnableMouseWheel(false)
+					_G[self:GetName().."value"]:SetAlpha(0.5)
+					_G[self:GetName().."value"]:EnableMouse(false)
+				end
+			end,
+		},
+		input1 = {
+			template = "nrf_editbox",
+			Anchor = { "TOPRIGHT", "$parentslider1", "BOTTOMRIGHT", 0, -32 },
+			vars = { text = NRF_TIMESTAMP, option = "timestampsformat" },
+		},
+	},
+},
   -- General Panel
   {
     name = "General",
     subtext = "General options for Nurfed that affect default UI elements and appearance.",
     menu = {
-      check1 = {
-        template = "nrf_check",
-        Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, -8 },
-        vars = { text = NRF_UNTRAINABLE, option = "traineravailable" },
-      },
-      check2 = {
-        template = "nrf_check",
-        Anchor = { "TOPLEFT", "$parentcheck1", "BOTTOMLEFT", 0, -8 },
-        vars = { text = NRF_AUTOINVITE, option = "autoinvite" },
-      },
-      check3 = {
-        template = "nrf_check",
-        Anchor = { "TOPLEFT", "$parentcheck2", "BOTTOMLEFT", 0, -8 },
-        vars = { text = "Invite Reply", option = "invitetext" },
-      },
-      check4 = {
-        template = "nrf_check",
-        Anchor = { "TOPLEFT", "$parentcheck3", "BOTTOMLEFT", 0, -8 },
-        vars = { text = "Square Minimap", option = "squareminimap" },
-      },
-
-      check5 = {
-        template = "nrf_check",
-        Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 0, -8 },
-        vars = { text = NRF_AUTOREPAIR, option = "repair" },
-      },
+		scroll = {
+			template = "nrf_scroll",
+			vars = { pages = 2 },
+			size = { 360, 320 },
+			Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 5, -8 },
+		},
+		scrollbg = {
+			type = "Frame",
+			Anchor = { "TOPRIGHT", "$parentscroll", "TOPRIGHT", 25, 6 },
+			size = { 24, 330 },
+			Backdrop = { 
+				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", 
+				edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", 
+				tile = true, 
+				tileSize = 12, 
+				edgeSize = 12, 
+				insets = { left = 2, right = 2, top = 2, bottom = 2 }, 
+			},
+			BackdropColor = { 0, 0, 0, 0.5 },
+		},
+		check1 = {
+			template = "nrf_check",
+			Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, -8 },
+			vars = { text = NRF_UNTRAINABLE, option = "traineravailable", page = 1 },
+		},
+		check2 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck1", "BOTTOMLEFT", 0, -8 },
+			vars = { text = NRF_AUTOINVITE, option = "autoinvite", page = 1 },
+		},
+		check3 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck2", "BOTTOMLEFT", 0, -8 },
+			vars = { text = "Invite Reply", option = "invitetext", page = 1 },
+		},
+		check4 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck3", "BOTTOMLEFT", 0, -8 },
+			vars = { text = "Square Minimap", option = "squareminimap", page = 1 },
+		},
+		check5 = {
+			template = "nrf_check",
+			Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 0, -8 },
+			vars = { text = NRF_AUTOREPAIR, option = "repair", page = 1 },
+		},
 		check6 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck4", "BOTTOMLEFT", 0, -8 },
-			vars = { text = "Show Binding Text", option = "showbindings" },
+			vars = { text = "Show Binding Text", option = "showbindings", func = function() Nurfed:sendevent("UPDATE_BINDINGS") end, page = 1 },
 		},
-      slider1 = {
-        template = "nrf_slider",
-        Anchor = { "TOPRIGHT", "$parentcheck5", "BOTTOMRIGHT", 0, -24 },
-        vars = {
-          text = NRF_REPAIRLIMIT,
-          option = "repairlimit",
-          low = 0,
-          high = 800,
-          min = 0,
-          max = 800,
-          step = 1,
-          format = "%.0f",
-        },
-      },
-    },
+		slider1 = {
+			template = "nrf_slider",
+			Anchor = { "TOPRIGHT", "$parentcheck5", "BOTTOMRIGHT", 0, -24 },
+			vars = {
+				text = NRF_REPAIRLIMIT,
+				option = "repairlimit",
+				low = 0,
+				high = 800,
+				min = 0,
+				max = 800,
+				step = 5,
+				bigStep = 50,
+				format = "%.0f",
+				page = 1
+			},
+		},
+		input1 = {
+			template = "nrf_editbox",
+			Anchor = { "TOPLEFT", "$parentslider1", "BOTTOMLEFT", 0, -30 },
+			vars = { text = NRF_KEYWORD, option = "keyword", page = 1 },
+		},
+		check7 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck6", "BOTTOMLEFT", 0, -15 },
+			vars = { text = "Disable Casting Bar", option = "hidecasting", right = true, func = function() nrf_togglcast() end, page = 1 },
+		},
+		check8 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck7", "BOTTOMLEFT", 0, -2 },
+			vars = { text = "Show Action Tooltips", option = "tooltips", right = true, page = 1 },
+		},
+		check9 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck8", "BOTTOMLEFT", 0, -2 },
+			vars = { text = "Fade In Actions", option = "fadein", right = true, page = 1 },
+		},
+		check10 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck9", "BOTTOMLEFT", 0, -2 },
+			vars = { text = "Hide Main Bar", option = "hidemain", right = true, func = function() nrf_mainmenu() end, page = 1 },
+		},
+		-- page 2
+		check11 = {
+			template = "nrf_check",
+			Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, -8 },
+			vars = { text = "Show Bags", option = "bagsshow", func = function() nrf_updatemainbar("bags") end, page = 2 },
+		},
+		check12 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck11", "BOTTOMLEFT", 0, -2 },
+			vars = { text = "Vertical Bags", option = "bagsvert", func = function() nrf_updatemainbar("bags") end, page = 2 },
+		},
+		check13 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck12", "BOTTOMLEFT", 0, -2 },
+			vars = { text = "Show Micro", option = "microshow", func = function() nrf_updatemainbar("micro") end, page = 2 },
+		},
+		check14 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck13", "BOTTOMLEFT", 0, -2 },
+			vars = { text = "Show Stance", option = "stanceshow", func = function() nrf_updatemainbar("stance") end, page = 2 },
+		},
+		check15 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck14", "BOTTOMLEFT", 0, -2 },
+			vars = { text = "Vertical Stance", option = "stancevert", func = function() nrf_updatemainbar("stance") end, page = 2 },
+		},
+		check16 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck15", "BOTTOMLEFT", 0, -2 },
+			vars = { text = "Show Pet Bar", option = "petbarshow", func = function() nrf_updatemainbar("petbar") end, page = 2 },
+		},
+		check17 = {
+			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck16", "BOTTOMLEFT", 0, -2 },
+			vars = { text = "Vertical Pet Bar", option = "petbarvert", func = function() nrf_updatemainbar("petbar") end, page = 2 },
+		},
+		slider2 = {
+			template = "nrf_slider",
+			Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 0, -10 },
+			vars = {
+				text = "Bags Scale",
+				option = "bagsscale",
+				low = "25%",
+				high = "100%",
+				min = 0.25,
+				max = 1,
+				step = 0.01,
+				deci = 2,
+				format = "%.2f",
+				right = true,
+				func = function() nrf_updatemainbar("bags") end,
+				page = 2,
+			},
+		},
+		slider3 = {
+			template = "nrf_slider",
+			Anchor = { "TOP", "$parentslider2", "BOTTOM", 0, -30 },
+			vars = {
+				text = "Micro Scale",
+				option = "microscale",
+				low = "25%",
+				high = "100%",
+				min = 0.25,
+				max = 1,
+				step = 0.01,
+				deci = 2,
+				format = "%.2f",
+				right = true,
+				func = function() nrf_updatemainbar("micro") end,
+				page = 2,
+			},
+		},
+		slider4 = {
+			template = "nrf_slider",
+			Anchor = { "TOP", "$parentslider3", "BOTTOM", 0, -30 },
+			vars = {
+				text = "Stance Scale",
+				option = "stancescale",
+				low = "25%",
+				high = "100%",
+				min = 0.25,
+				max = 1,
+				step = 0.01,
+				deci = 2,
+				format = "%.2f",
+				right = true,
+				func = function() nrf_updatemainbar("stance") end,
+				page = 2,
+			},
+		},
+		slider5 = {
+			template = "nrf_slider",
+			Anchor = { "TOP", "$parentslider4", "BOTTOM", 0, -30 },
+			vars = {
+				text = "Pet Bar Scale",
+				option = "petbarscale",
+				low = "25%",
+				high = "100%",
+				min = 0.25,
+				max = 1,
+				step = 0.01,
+				deci = 2,
+				format = "%.2f",
+				right = true,
+				func = function() nrf_updatemainbar("petbar") end,
+				page = 2,
+			},
+		},
+		slider6 = {
+			template = "nrf_slider",
+			Anchor = { "TOP", "$parentslider5", "BOTTOM", 0, -30 },
+			vars = {
+				text = "Pet Offset",
+				option = "petbaroffset",
+				low = -20,
+				high = 20,
+				min = -20,
+				max = 20,
+				step = 1,
+				format = "%.0f",
+				page = 2,
+				func = function() nrf_updatemainbar("petbar") end,
+			},
+		},
+
+	},
   },
 --[[  
   {
