@@ -1,3 +1,14 @@
+-- Reload UI Popup
+StaticPopupDialogs["NRF_RELOADUI"] = {
+	text = "Reload User Interface?",
+	button1 = TEXT(ACCEPT),
+	button2 = TEXT(CANCEL),
+	OnAccept = ReloadUI,
+	timeout = 10,
+	whileDead = 1,
+	hideOnEscape = 1,
+}
+
 local saveopt, onshow
 ------------------------------------------
 -- Option Menu Templates
