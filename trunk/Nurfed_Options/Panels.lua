@@ -293,7 +293,7 @@ do
 	local layout, received, sendname, acceptname
 
 	import = function()
-		local templates = Nurfed_UnitsLayout.templates
+--[[		local templates = Nurfed_UnitsLayout.templates
 		local frames = Nurfed_UnitsLayout.Layout or Nurfed_UnitsLayout.frames
 
 		if templates then
@@ -322,7 +322,7 @@ do
 			out = out.." designed by "..Nurfed_UnitsLayout.Author
 		end
 
-		Nurfed:print(out, 1, 0, 0.75, 1)
+		Nurfed:print(out, 1, 0, 0.75, 1)]]
 		StaticPopup_Show("NRF_RELOADUI")
 	end
 
@@ -1307,7 +1307,8 @@ local panels = {
 						template = "nrf_button",
 						Text = "Import",
 						Point = { "BOTTOMRIGHT", -3, 3 },
-						OnClick = function() import() end,
+						--OnClick = function() import() end,
+						OnClick = import,
 					},
 					export = {
 						template = "nrf_button",
