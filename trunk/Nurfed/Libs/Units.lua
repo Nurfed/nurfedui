@@ -948,7 +948,7 @@ local disable = {
 	end,
 }
 
-local auratip = function(self)
+local function auratip(self)
 	if not self:IsVisible() then return end
 	GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
 	local unit = self:GetParent().unit
@@ -961,7 +961,7 @@ end
 
 ----------------------------------------------------------------
 -- StatusBar animations
-local glide = function(self, e)
+local function glide(self, e)
 	if self.fade < 1 then
 		self.fade = self.fade + e
 		if self.fade > 1 then self.fade = 1 end
@@ -976,7 +976,7 @@ end
 local usedBits = {}
 local i = 0
 
-local getbit = function()
+local function getbit()
 	local r
 	if #usedBits > 0 then
 		r = table.remove(usedBits)
@@ -987,13 +987,13 @@ local getbit = function()
 	return r
 end
 
-local killbit = function(item)
+local function killbit(item)
 	table.insert(usedBits, item)
 	item:Hide()
 	item:SetParent(UIParent)
 end
 
-local nrf_fading = function(self, value, flag)
+local function nrf_fading(self, value, flag)
 	local lower,upper = self:GetValue(), self.old
 	if lower<upper then
 		local min,max = self:GetMinMaxValues()
@@ -1017,7 +1017,7 @@ local nrf_fading = function(self, value, flag)
 	self.old = lower
 end
 
-local fade = function(frame)
+local function fade(frame)
 	local texture = frame:GetStatusBarTexture()
 	local name = texture:GetTexture()
 	frame.texture = name
@@ -1025,7 +1025,7 @@ local fade = function(frame)
 	hooksecurefunc(frame, "SetValue", nrf_fading)
 end
 
-local addcombat = function()-- Question: Is this even used? - Apoco 07-08-08
+local function addcombat()-- Question: Is this even used? - Apoco 07-08-08
 	local text = date("[%#I:%M:%S]")
 	local unit = arg1
 	local event = arg2
@@ -1066,7 +1066,7 @@ local addcombat = function()-- Question: Is this even used? - Apoco 07-08-08
 	end
 end
 
-local updatedamage = function(frame, unit, event, flags, amount, type)
+local function updatedamage(frame, unit, event, flags, amount, type)
 	local text = ""
 	local r, g, b = 1, 0.647, 0
 	
@@ -1122,7 +1122,7 @@ end
 
 ----------------------------------------------------------------
 -- Casting bar functions
-local castevent = function()
+local function castevent()
 	local parent = this.parent
 	if event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_TARGET_CHANGED" or event == "PARTY_MEMBERS_CHANGED" or event == "PLAYER_FOCUS_CHANGED" then
 		local nameChannel  = UnitChannelInfo(this.unit)
@@ -1296,7 +1296,7 @@ local castevent = function()
 	end
 end
 
-local castupdate = function()
+local function castupdate()
 	if this.casting and this:IsShown() then
 		local status = GetTime()
 		if status > this.maxValue then
@@ -1351,7 +1351,7 @@ end
 
 ----------------------------------------------------------------
 -- Health, Mana, XP text and colors
-local cuttexture = function(texture, size, fill, value)
+local function cuttexture(texture, size, fill, value)
 	if fill == "top" then
 		texture:SetHeight(size)
 		texture:SetTexCoord(0, 1, value, 1)
@@ -1373,7 +1373,7 @@ local cuttexture = function(texture, size, fill, value)
 	end
 end
 
-local updateinfo = function(frame, stat)
+local function updateinfo(frame, stat)
 	if not frame[stat] then return end
 	local unit = SecureButton_GetUnit(frame)
 	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb = Nurfed:getunitstat(unit, stat)
@@ -1470,7 +1470,7 @@ local updateinfo = function(frame, stat)
 	end
 end
 
-local manacolor = function(frame)
+local function manacolor(frame)
 	if not frame.Mana then return end
 	local unit = SecureButton_GetUnit(frame)
 	local color = ManaBarColor[UnitPowerType(unit)]
@@ -1489,7 +1489,7 @@ local manacolor = function(frame)
 	updateinfo(frame, "Mana")
 end
 
-local updatestatus = function(frame)
+local function updatestatus(frame)
 	if frame.status then
 		local icon = frame.status
 		local objtype = icon:GetObjectType()
@@ -1516,7 +1516,7 @@ local updatestatus = function(frame)
 	end
 end
 
-local updateraid = function(frame)
+local function updateraid(frame)
 	if frame.raidtarget then
 		local unit = SecureButton_GetUnit(frame)
 		local icon = frame.raidtarget
@@ -1532,7 +1532,7 @@ end
 
 ----------------------------------------------------------------
 -- Text replacement
-local subtext = function(text)
+local function subtext(text)
 	if not text then return end
 	local pre = string.find(text, "%$%a")
 	string.gsub(text, "%$%a+",
@@ -1551,14 +1551,14 @@ local subtext = function(text)
 	return text
 end
 
-local formattext = function(frame)
+local function formattext(frame)
 	if frame and frame.format then
 		local display = subtext(frame.format)
 		frame:SetText(display)
 	end
 end
 
-local updatetext = function(frame)
+local function updatetext(frame)
 	if frame.text then
 		for _, v in ipairs(frame.text) do
 			formattext(v)
@@ -1566,7 +1566,7 @@ local updatetext = function(frame)
 	end
 end
 
-local updatehappiness = function(frame)
+local function updatehappiness(frame)
 	local happiness, damagePercentage, loyaltyRate = GetPetHappiness()
 	local hasPetUI, isHunterPet = HasPetUI()
 	if happiness or isHunterPet then
@@ -1597,7 +1597,7 @@ local updatehappiness = function(frame)
 	end
 end
 
-local updatecombo = function(frame)
+local function updatecombo(frame)
 	if frame.combo then
 		local comboPoints = GetComboPoints()
 		for _, child in ipairs(frame.combo) do
@@ -1629,7 +1629,7 @@ local updatecombo = function(frame)
 	end
 end
 
-local updateleader = function(frame)
+local function updateleader(frame)
 	if frame.leader then
 		local icon = frame.leader
 		local unit = SecureButton_GetUnit(frame)
@@ -1650,7 +1650,7 @@ local updateleader = function(frame)
 	end
 end
 
-local updatemaster = function(frame)
+local function updatemaster(frame)
 	if frame.master then
 		local icon = frame.master
 		local unit = SecureButton_GetUnit(frame)
@@ -1672,7 +1672,7 @@ local updatemaster = function(frame)
 	end
 end
 
-local updatepvp = function(frame)
+local function updatepvp(frame)
 	if frame.pvp then
 		local unit = SecureButton_GetUnit(frame)
 		local icon = frame.pvp
@@ -1709,7 +1709,7 @@ local updatepvp = function(frame)
 	end
 end
 
-local cooldowntext = function(frame)
+local function cooldowntext(frame)
 	if not Nurfed:getopt("cdaura") then return end
 	local cd = _G[frame:GetName().."Cooldown"]
 	if cd.text and cd.cool then
@@ -1731,7 +1731,7 @@ local cooldowntext = function(frame)
 	end
 end
 
-local aurafade = function(...)
+local function aurafade(...)
 	local e = select(2, ...)
 	this.update = this.update + e
 	if this.update > 0.04 then
@@ -1753,7 +1753,7 @@ local aurafade = function(...)
 	cooldowntext(...)
 end
 
-local updateauras = function(frame)
+local function updateauras(frame)
 	local unit = SecureButton_GetUnit(frame)
 	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale
 
@@ -1862,7 +1862,7 @@ local updateauras = function(frame)
 	end
 end
 
-local updaterank = function(frame)
+local function updaterank(frame)
 	if frame.rank then
 		local icon = frame.rank
 		local unit = SecureButton_GetUnit(frame)
@@ -1885,7 +1885,7 @@ local updaterank = function(frame)
 	end
 end
 
-local updatename = function(frame)
+local function updatename(frame)
 	local unit = SecureButton_GetUnit(frame)
 	if frame.name then
 		formattext(frame.name)
@@ -1910,7 +1910,7 @@ local updatename = function(frame)
 	end
 end
 
-local updatehighlight = function(frame)
+local function updatehighlight(frame)
 	local unit = SecureButton_GetUnit(frame)
 	if UnitExists("target") and UnitName("target") == UnitName(unit) then
 		frame:LockHighlight()
@@ -1919,7 +1919,7 @@ local updatehighlight = function(frame)
 	end
 end
 
-local updategroup = function(frame)
+local function updategroup(frame)
 	if frame.group then
 		local text = frame.group
 		local unit = SecureButton_GetUnit(frame)
@@ -1932,7 +1932,7 @@ local updategroup = function(frame)
 	end
 end
 
-local updateloot = function(frame)
+local function updateloot(frame)
 	if frame.loot then
 		formattext(frame.loot)
 	end
@@ -1968,7 +1968,7 @@ end
 
 hooksecurefunc("RaidOptionsFrame_UpdatePartyFrames", NRF_UpdateParty)
 
-local showparty = function(self)
+local function showparty(self)
 	if InCombatLockdown() then
 		if not partysched then
 			partysched = true
@@ -1984,7 +1984,7 @@ local showparty = function(self)
 	end
 end
 
-local updateframe = function(frame, notext)
+local function updateframe(frame, notext)
 	local unit = SecureButton_GetUnit(frame)
 	if frame.status then updatestatus(frame) end
 	if frame.Health then updateinfo(frame, "Health") end
@@ -2076,7 +2076,7 @@ local events = {
 	["UNIT_HAPPINESS"] = function(frame) updatehappiness(frame) end,
 }
 
-local onevent = function(event, ...)
+local function onevent(event, ...)
 	for _, frame in ipairs(units[event]) do
 		local unit = SecureButton_GetUnit(frame)
 		if UnitExists(unit) then
@@ -2096,7 +2096,7 @@ local onevent = function(event, ...)
 	end
 end
 
-local totupdate = function()
+local function totupdate()
 	local unit, notext
 	for _, frame in ipairs(tots) do
 		unit = SecureButton_GetUnit(frame)
@@ -2451,7 +2451,7 @@ function Nurfed:unitimbue(frame)
 	end
 end
 
-local combat = function()
+local function combat()
 	local dropdownFrame = _G[UIDROPDOWNMENU_INIT_MENU]
 	local button = this.value
 	local unit = dropdownFrame.unit

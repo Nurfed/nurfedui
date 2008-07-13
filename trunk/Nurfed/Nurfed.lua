@@ -23,7 +23,7 @@ local wowmenu = {
   { KEYRING, function() KeyRingButton:Click() end },
 }
 
-local onenter = function()
+local function onenter()
   GameTooltip:SetOwner(this, "ANCHOR_LEFT")
   GameTooltip:AddLine("Nurfed UI", 0, 0.75, 1)
   if NRF_LOCKED then
@@ -31,14 +31,13 @@ local onenter = function()
   else
     GameTooltip:AddLine("Left Click - |cff00ff00Lock|r UI", 0.75, 0.75, 0.75)
   end
-  --GameTooltip:AddLine("Right Click - WoW Micro Menu", 0.75, 0.75, 0.75)
   GameTooltip:AddLine("Right Click - Nurfed Menu", 0.75, 0.75, 0.75)
   GameTooltip:AddLine("Middle Click - WoW Micro Menu", 0.75, 0.75, 0.75)
   GameTooltip:AddLine("Ctrl + Drag moves your Action Bars.", 0, 1, 0)
   GameTooltip:Show()
 end
 
-local onclick = function(button)
+local function onclick(button)
   if button == "LeftButton" then
     NRF_LOCKED = this:GetChecked()
     local icon = getglobal(this:GetName().."icon")
@@ -79,7 +78,7 @@ local onclick = function(button)
 	 end
 end
 
-local onupdate = function(self)
+local function onupdate(self)
   if self.isMoving then
     local square = Nurfed:getopt("squareminimap")
     local xpos, ypos = GetCursorPosition()
@@ -102,7 +101,7 @@ local onupdate = function(self)
   end
 end
 
-nrfrepair = function()
+function nrfrepair()
     local repair = Nurfed:getopt("repair")
     if repair then
       local limit = tonumber(Nurfed:getopt("repairlimit"))
@@ -125,7 +124,7 @@ nrfrepair = function()
     end
 end
 
-local onevent = function()
+local function onevent()
   if event == "CHAT_MSG_WHISPER" then
     local invite = Nurfed:getopt("autoinvite")
     if invite and (IsPartyLeader() or IsRaidLeader() or IsRaidOfficer() or (GetNumPartyMembers() == 0 and GetNumRaidMembers() == 0)) then
@@ -290,7 +289,7 @@ Nurfed_LockButton:RegisterForDrag("LeftButton")
 ChatTypeInfo["CHANNEL"].sticky = 1
 ChatTypeInfo["OFFICER"].sticky = 1
 
-local OnMouseWheel = function()
+local function OnMouseWheel()
   if IsShiftKeyDown() then
     if arg1 > 0 then this:PageUp()
     elseif arg1 < 0 then this:PageDown()
@@ -306,7 +305,7 @@ local OnMouseWheel = function()
   end
 end
 
-local message = function(this, msg, r, g, b, id)
+local function message(this, msg, r, g, b, id)
   if (msg and type(msg) == "string") then
     local text = {}
     local pre = Nurfed:getopt("chatprefix")
@@ -416,7 +415,7 @@ function Nurfed_InspectOnShow()
   end
 end
 
-local flood = function()
+local function flood()
   local now = GetTime()
   if invite and now - invite > 1 then invite = nil end
   for n, t in pairs(pingflood) do
@@ -435,7 +434,7 @@ for i = 1, 3 do
   score:SetPoint("LEFT", 15, -4)
 end
 
-local rating = function()
+local function rating()
   local size, rating, score, points
   local buttonIndex = 0
   local ARENA_TEAMS = {};
