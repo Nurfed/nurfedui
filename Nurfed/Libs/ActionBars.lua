@@ -27,7 +27,7 @@ NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
 
 ----------------------------------------------------------------
 -- Button functions
-local updateitem = function(btn)
+local function updateitem(btn)
   if btn.spell then
     local count = _G[btn:GetName().."Count"]
     local border = _G[btn:GetName().."Border"]
@@ -85,7 +85,7 @@ local updateitem = function(btn)
   end
 end
 
-local updatecooldown = function(btn)
+local function updatecooldown(btn)
   local start, duration, enable = 0, 0, 0
   local cooldown = _G[btn:GetName().."Cooldown"]
   if btn.spell then
@@ -148,7 +148,7 @@ nrfcooldowntext = function(btn)
   end
 end
 
-local convert = function(btn, value)
+local function convert(btn, value)
   local unit = SecureButton_GetAttribute(btn, "unit")
   if unit and unit ~= "none" and UnitExists(unit) then
     if UnitCanAttack("player", unit) then
@@ -160,7 +160,7 @@ local convert = function(btn, value)
   return value
 end
 
-local seticon = function(btn)
+local function seticon(btn)
   local value = btn:GetAttribute("state-parent")
   if value then
     value = convert(btn, value)
@@ -218,7 +218,7 @@ end
 
 ----------------------------------------------------------------
 -- Button creation and management
-local btnenter = function(self)
+local function btnenter(self)
   local tooltip = Nurfed:getopt("tooltips")
   if tooltip and self.type then
     GameTooltip_SetDefaultAnchor(GameTooltip, self)
@@ -261,7 +261,7 @@ local btnenter = function(self)
   end
 end
 
-local btndragstart = function(self)
+local function btndragstart(self)
   if not NRF_LOCKED and not InCombatLockdown() then
     local state = self:GetAttribute("state-parent")
     if state == "0" then
@@ -308,7 +308,7 @@ local btndragstart = function(self)
   end
 end
 
-local btnreceivedrag = function(self)
+local function btnreceivedrag(self)
   if GetCursorInfo() and not InCombatLockdown() then
     local oldtype = self.type
     local oldspell = self.spell
@@ -375,7 +375,7 @@ local btnreceivedrag = function(self)
   end
 end
 
-local saveattrib = function(self, name, value)
+local function saveattrib(self, name, value)
   if string.find(name, "^%*") or string.find(name, "^shift") or string.find(name, "^ctrl") or string.find(name, "^alt") then
     NURFED_ACTIONBARS[self:GetParent():GetName()].buttons[self:GetID()][name] = value
     name = "state-parent"
@@ -388,7 +388,7 @@ end
 
 local live, dead = {}, {}
 
-local getbtn = function()
+local function getbtn()
   local btn
   if #dead > 0 then
     btn = table.remove(dead)
@@ -431,7 +431,7 @@ local getbtn = function()
   return btn
 end
 
-local delbtn = function(btn)
+local function delbtn(btn)
   for k, v in ipairs(live) do
     if v == btn then
       table.remove(live, k)
@@ -525,7 +525,7 @@ local btnevents = {
   end,
 }
 
-local btnevent = function(event, ...)
+local function btnevent(event, ...)
   for _, btn in ipairs(live) do
     btnevents[event](btn, ...)
   end
@@ -535,7 +535,7 @@ for event, func in pairs(btnevents) do
   Nurfed:regevent(event, btnevent)
 end
 
-local btnupdate = function()
+local function btnupdate()
   for _, btn in ipairs(live) do
     local r, g, b = 1, 1, 1
     local unit = SecureButton_GetUnit(btn)
@@ -591,7 +591,7 @@ end
 
 Nurfed:schedule(TOOLTIP_UPDATE_TIME, btnupdate, true)
 
-local btnflash = function()
+local function btnflash()
   for _, btn in ipairs(live) do
     local flash = _G[btn:GetName().."Flash"]
     if btn.flash and btn.attack then
@@ -622,7 +622,7 @@ hooksecurefunc("UIParent_ManageFramePositions", function()
 
 ----------------------------------------------------------------
 -- Add cooldown text
-local updatecooling = function(this, start, duration, enable)
+local function updatecooling(this, start, duration, enable)
   if not this:GetName() or not this.text then return end
   if start > 2 and duration > 2 then
     this.cool = true
@@ -890,7 +890,7 @@ local barevents = {
   end,
 }
 
-local barevent = function(event, ...)
+local function barevent(event, ...)
   for k in pairs(NURFED_ACTIONBARS) do
     barevents[event](_G[k])
   end
@@ -969,7 +969,7 @@ function nrf_updatemainbar(bar)
   end
 end
 
-local createbars = function()
+local function createbars()
   for k in pairs(NURFED_ACTIONBARS) do
     Nurfed:createbar(k)
   end
