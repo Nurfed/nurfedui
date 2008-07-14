@@ -1,17 +1,7 @@
 ---------------------------------------------------------
--- Spell Alert
-local formatgs = function(gstring, anchor)
-	gstring = string.gsub(gstring,"([%^%(%)%.%[%]%*%+%-%?])","%%%1")
-	gstring = string.gsub(gstring,"%%s","(.+)")
-	gstring = string.gsub(gstring,"%%d","(%-?%%d+)")
-	if anchor then gstring = "^"..gstring end
-	return gstring
-end
+-- Nurfed CombatLog
 
-local casting = formatgs(SPELLCASTOTHERSTART)
-local totem = formatgs(SPELLCASTGOOTHER)
-local buff = formatgs(AURAADDEDOTHERHELPFUL)
-
+--[[
 local istotem = "Totem"
 
 if GetLocale()=="koKR" then
@@ -32,44 +22,27 @@ local inparty = function(unit)
 		end
 	end
 end
+]]
 
-local spellevent = function()
-	local unit, spell
-	if event == "CHAT_MSG_SPELL_HOSTILEPLAYER_DAMAGE" then
-		for unit, spell in string.gmatch(arg1, casting) do
-			if not inparty(unit) then
-				Nurfed_SpellAlert:AddMessage(format(SPELLCASTOTHERSTART, unit, "|cffff0000"..spell.."|r"))
-			end
-		end
-	elseif event == "CHAT_MSG_SPELL_HOSTILEPLAYER_BUFF" then
-		for unit, spell in string.gmatch(arg1, casting) do
-			if not inparty(unit) then
-				Nurfed_SpellAlert:AddMessage(format(SPELLCASTOTHERSTART, unit, "|cffffff00"..spell.."|r"))
-			end
-			return
-		end
-
-		for unit, spell in string.gmatch(arg1, totem) do
-			if not inparty(unit) and string.find(spell, istotem) then
-				Nurfed_SpellAlert:AddMessage(format(SPELLCASTGOOTHER, unit, "|cff999999"..spell.."|r"))
-			end
-			return
-		end
-
-		for unit, spell in string.gmatch(arg1, buff) do
-			if string.find(spell, "^%a") then
-				Nurfed_BuffAlert:AddMessage(format(AURAADDEDOTHERHELPFUL, unit, "|cff00ff00"..spell.."|r"))
-			end
-			return
-		end
-	elseif event == "CHAT_MSG_SPELL_PERIODIC_HOSTILEPLAYER_BUFFS" then
-		for unit, spell in string.gmatch(arg1, buff) do
-			if string.find(spell, "^%a") then
-				Nurfed_BuffAlert:AddMessage(format(AURAADDEDOTHERHELPFUL, unit, "|cff00ff00"..spell.."|r"))
-			end
-		end
-	end
+local function onevent(event, ...)
+  local timestamp, tevent, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags = select(1, ...)
+  local prefix, suffix = string.split("_", tevent, 2)
+  if prefix == "SPELL" then
+    local id, spell, school = select(9, ...)
+    if suffix == "CAST_START" then
+      Nurfed_SpellAlert:AddMessage(format(SPELLCASTGOOTHER, srcName, "|cff999999"..spell.."|r"))
+    elseif suffix == "CAST_SUCCESS" then
+      Nurfed_SpellAlert:AddMessage(format(SPELLCASTGOOTHER, srcName, "|cff999999"..spell.."|r"))
+    elseif suffix == "AURA_APPLIED" then
+      local auratype = select(12, ...)
+      if auratype == "BUFF" then
+        Nurfed_BuffAlert:AddMessage(format(AURAADDEDOTHERHELPFUL, dstName, "|cff00ff00"..spell.."|r"))
+      end
+    end
+  end
 end
+
+Nurfed:regevent("COMBAT_LOG_EVENT_UNFILTERED", onevent)
 
 CreateFrame("MessageFrame", "Nurfed_SpellAlert", UIParent)
 Nurfed_SpellAlert:SetWidth(UIParent:GetWidth())
@@ -80,10 +53,6 @@ Nurfed_SpellAlert:SetTimeVisible(1)
 Nurfed_SpellAlert:SetFadeDuration(0.5)
 Nurfed_SpellAlert:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE")
 Nurfed_SpellAlert:SetPoint("CENTER", 0, 95)
-Nurfed_SpellAlert:RegisterEvent("CHAT_MSG_SPELL_HOSTILEPLAYER_DAMAGE")
-Nurfed_SpellAlert:RegisterEvent("CHAT_MSG_SPELL_HOSTILEPLAYER_BUFF")
-Nurfed_SpellAlert:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_HOSTILEPLAYER_BUFFS")
-Nurfed_SpellAlert:SetScript("OnEvent", spellevent)
 
 CreateFrame("MessageFrame", "Nurfed_BuffAlert", UIParent)
 Nurfed_BuffAlert:SetWidth(UIParent:GetWidth())
@@ -94,3 +63,14 @@ Nurfed_BuffAlert:SetTimeVisible(1)
 Nurfed_BuffAlert:SetFadeDuration(0.5)
 Nurfed_BuffAlert:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE")
 Nurfed_BuffAlert:SetPoint("BOTTOM", Nurfed_SpellAlert, "TOP", 0, 2)
+
+TEXT_MODE_A_STRING_VALUE_SCHOOL = ""
+TEXT_MODE_A_STRING_RESULT_RESISTED = "R"
+TEXT_MODE_A_STRING_RESULT_BLOCKED = "B"
+TEXT_MODE_A_STRING_RESULT_ABSORBED = "A"
+TEXT_MODE_A_STRING_RESULT_CRITICAL = "C"
+TEXT_MODE_A_STRING_RESULT_CRITICAL_SPELL = "C"
+TEXT_MODE_A_STRING_RESULT_GLANCING = "G"
+TEXT_MODE_A_STRING_RESULT_CRUSHING = "Cr"
+ACTION_SPELL_DAMAGE_FULL_TEXT = "$source $spell $dest $value.$result";
+ACTION_SPELL_DAMAGE_FULL_TEXT_NO_SOURCE = "$spell $dest $value.$result";
