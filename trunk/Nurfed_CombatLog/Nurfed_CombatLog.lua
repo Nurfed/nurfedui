@@ -26,17 +26,20 @@ end
 
 local function onevent(event, ...)
   local timestamp, tevent, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags = select(1, ...)
-  local prefix, suffix = string.split("_", tevent, 2)
-  if prefix == "SPELL" then
-    local id, spell, school = select(9, ...)
-    if suffix == "CAST_START" then
-      Nurfed_SpellAlert:AddMessage(format(SPELLCASTGOOTHER, srcName, "|cff999999"..spell.."|r"))
-    elseif suffix == "CAST_SUCCESS" then
-      Nurfed_SpellAlert:AddMessage(format(SPELLCASTGOOTHER, srcName, "|cff999999"..spell.."|r"))
-    elseif suffix == "AURA_APPLIED" then
-      local auratype = select(12, ...)
-      if auratype == "BUFF" then
-        Nurfed_BuffAlert:AddMessage(format(AURAADDEDOTHERHELPFUL, dstName, "|cff00ff00"..spell.."|r"))
+  local flags = srcFlags or dstFlags
+  if bit.band(flags, COMBATLOG_OBJECT_REACTION_HOSTILE) ~= 0 then
+    local prefix, suffix = string.split("_", tevent, 2)
+    if prefix == "SPELL" then
+      local id, spell, school = select(9, ...)
+      if suffix == "CAST_START" then
+        Nurfed_SpellAlert:AddMessage(format(SPELLCASTGOOTHER, srcName, "|cff999999"..spell.."|r"))
+      elseif suffix == "CAST_SUCCESS" then
+        Nurfed_SpellAlert:AddMessage(format(SPELLCASTGOOTHER, srcName, "|cff999999"..spell.."|r"))
+      elseif suffix == "AURA_APPLIED" then
+        local auratype = select(12, ...)
+        if auratype == "BUFF" then
+          Nurfed_BuffAlert:AddMessage(format(AURAADDEDOTHERHELPFUL, dstName, "|cff00ff00"..spell.."|r"))
+        end
       end
     end
   end
