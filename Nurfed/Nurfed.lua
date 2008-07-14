@@ -156,22 +156,18 @@ local function onevent()
         if string.find(arg1, ERR_GROUP_FULL, 1, true) and lastinvite then
           local lastTell = ChatEdit_GetLastTellTarget(DEFAULT_CHAT_FRAME.editBox)
           if lastTell ~= "" then
-			-- language is not needed, it defaults to COMMON/ORCISH
-            --SendChatMessage("Party Full", "WHISPER", this.language, lastTell)
             SendChatMessage("Party Full", "WHISPER", nil, lastTell)
           end
         else
           local result = { string.find(arg1, ingroup) }
           if (result[1]) then
-            -- language is not needed, it defaults to COMMON/ORCISH
-            --SendChatMessage("Drop group and resend '"..Nurfed:getopt("keyword").."'", "WHISPER", this.language, result[3])
             SendChatMessage("Drop group and resend '"..Nurfed:getopt("keyword").."'", "WHISPER", nil, result[3])
           end
         end
       end
     end
   elseif event == "MERCHANT_SHOW" then
-	nrfrepair() -- split this out into its own function for hooking purposes, atleast until auto-sell is implimented
+	  nrfrepair() -- split this out into its own function for hooking purposes, atleast until auto-sell is implimented
 
   elseif event == "TRAINER_SHOW" then
     local avail = Nurfed:getopt("traineravailable")
@@ -316,14 +312,10 @@ local function message(this, msg, r, g, b, id)
       table.insert(text, stamp)
     end
     if not pre then
-      msg = string.gsub(msg, "%["..CHAT_MSG_OFFICER.."%] ", "")
-      msg = string.gsub(msg, "%["..CHAT_MSG_GUILD.."%] ", "")
-      msg = string.gsub(msg, "%["..CHAT_MSG_PARTY.."%] ", "")
-      msg = string.gsub(msg, "%["..CHAT_MSG_RAID.."%] ", "")
-      msg = string.gsub(msg, "%["..CHAT_MSG_RAID_LEADER.."%] ", "")
-      msg = string.gsub(msg, "%["..CHAT_MSG_RAID_WARNING.."%] ", "")
-      msg = string.gsub(msg, "%["..CHAT_MSG_BATTLEGROUND.."%] ", "")
-      msg = string.gsub(msg, "%["..CHAT_MSG_BATTLEGROUND_LEADER.."%] ", "")
+      local _, _, channel = string.find(msg, "^%[(.-)%]")
+      if channel then
+        msg = string.gsub(msg, channel, string.sub(channel, 1, 1))
+      end
     end
     table.insert(text, msg)
     this:O_AddMessage(table.concat(text, " "), r, g, b, id)
@@ -475,6 +467,19 @@ end
 
 PVPFrame:HookScript("OnShow", rating)
 
+-- Reload UI Popup
+StaticPopupDialogs["NRF_RELOADUI"] = {
+  text = "Reload User Interface?",
+  button1 = TEXT(ACCEPT),
+  button2 = TEXT(CANCEL),
+  OnAccept = function()
+    ReloadUI()
+  end,
+  timeout = 10,
+  whileDead = 1,
+  hideOnEscape = 1,
+}
+
 Nurfed:createtemp("uipanel", {
     type = "Frame",
     children = {
@@ -507,3 +512,16 @@ panel.name = "Nurfed"
 NurfedHeaderTitle:SetText("Nurfed")
 NurfedHeaderSubText:SetText("This is the main Nurfed options menu, please select a subcategory to change options.")
 InterfaceOptions_AddCategory(panel)
+
+local button = CreateFrame("Button", "NurfedHeaderFrameEditor", panel, "UIPanelButtonTemplate")
+button:SetText("Frame Editor")
+button:SetWidth(106)
+button:SetHeight(24)
+button:SetPoint("CENTER", 0, 0)
+
+button = CreateFrame("Button", "NurfedHeaderReloadui", panel, "UIPanelButtonTemplate")
+button:SetText("Reload UI")
+button:SetWidth(86)
+button:SetHeight(24)
+button:SetPoint("BOTTOMRIGHT", -5, 5)
+button:SetScript("OnClick", function() StaticPopup_Show("NRF_RELOADUI") end)
