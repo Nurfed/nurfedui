@@ -662,10 +662,10 @@ function util:regevent(event, func)
   frame:RegisterEvent(event)
   if not events then events = {} end
   if not events[event] then
-	events[event] = {}
+	  events[event] = {}
   end
   for _, v in ipairs(events[event]) do
-	if v == func then return end
+	  if v == func then return end
   end
   table.insert(events[event], func)
 end
@@ -673,26 +673,26 @@ end
 function util:unregevent(event, func)
   event = string.upper(event)
   if not events or not events[event] then
-	return
+	  return
   end
   local tbl = events[event]
 
   for k, v in ipairs(tbl) do
-	if v == func then
-	  table.remove(tbl, k)
-	  break
-	end
+  	if v == func then
+  	  table.remove(tbl, k)
+  	  break
+  	end
   end
 
   if #tbl == 0 then
-	frame:UnregisterEvent(event)
+	  frame:UnregisterEvent(event)
   end
 end
 
-local onevent = function(self, event, ...)
+local function onevent(self, event, ...)
   local tbl = events[event]
   for _, func in ipairs(tbl) do
-	func(event, ...)
+	  func(event, ...)
   end
 end
 
@@ -709,18 +709,18 @@ local loops, loopfuncs, looptimes
 
 function util:schedule(sec, func, loop)
   if loop then
-	if not loops then
-	  loops, loopfuncs, looptimes = {}, {}, {}
-	end
-	table.insert(loopfuncs, func)
-	table.insert(looptimes, sec)
-	table.insert(loops, sec)
+  	if not loops then
+  	  loops, loopfuncs, looptimes = {}, {}, {}
+  	end
+  	table.insert(loopfuncs, func)
+  	table.insert(looptimes, sec)
+  	table.insert(loops, sec)
   else
-	if not timers then
-	  timers, timerfuncs = {}, {}
-	end
-	table.insert(timerfuncs, func)
-	table.insert(timers, sec)
+  	if not timers then
+  	  timers, timerfuncs = {}, {}
+  	end
+  	table.insert(timerfuncs, func)
+  	table.insert(timers, sec)
   end
   frame:Show()
 end
@@ -811,7 +811,7 @@ local updatespelltab = function(tab)
   end
 end
 
-local updatespells = function(event, arg1)
+local function updatespells(event, arg1)
   if not spells then
 	spells = {}
   end
