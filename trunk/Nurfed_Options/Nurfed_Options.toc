@@ -1,7 +1,7 @@
 ## Interface: 20400
 ## Title: Nurfed Options Menu
 ## Author: Tivoli,  http://www.nurfed.com
-## Version: 04.07.2008
+## Version: $Date$
 ## SavedVariables: NURFED_LAYOUT
 ## SavedVariablesPerCharacter: NURFED_ITEMS
 ## X-Revision: $Rev$
