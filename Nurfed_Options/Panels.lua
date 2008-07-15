@@ -293,7 +293,7 @@ do
 	local layout, received, sendname, acceptname
 
 	import = function()
---[[		local templates = Nurfed_UnitsLayout.templates
+		local templates = Nurfed_UnitsLayout.templates
 		local frames = Nurfed_UnitsLayout.Layout or Nurfed_UnitsLayout.frames
 
 		if templates then
@@ -322,7 +322,7 @@ do
 			out = out.." designed by "..Nurfed_UnitsLayout.Author
 		end
 
-		Nurfed:print(out, 1, 0, 0.75, 1)]]
+		Nurfed:print(out, 1, 0, 0.75, 1)
 		StaticPopup_Show("NRF_RELOADUI")
 	end
 
@@ -1307,7 +1307,6 @@ local panels = {
 						template = "nrf_button",
 						Text = "Import",
 						Point = { "BOTTOMRIGHT", -3, 3 },
-						--OnClick = function() import() end,
 						OnClick = import,
 					},
 					export = {
@@ -1324,7 +1323,7 @@ local panels = {
 						template = "nrf_button",
 						Text = ACCEPT,
 						Point = { "RIGHT", "$parentexport", "LEFT", -3, 0 },
-						OnClick = function() accept() end,
+						OnClick = accept,
 					},
 					send = {
 						template = "nrf_button",
@@ -1350,7 +1349,7 @@ local panels = {
 						template = "nrf_button",
 						Text = CANCEL,
 						Point = { "RIGHT", "$parentsendname", "LEFT", -3, 0 },
-						OnClick = function() cancel() end,
+						OnClick = cancel,
 					},
 					progress = {
 						type = "StatusBar",
@@ -1651,4 +1650,26 @@ function Nurfed_ExpandBar()
 		Nurfed_MenuActionBars.expand[bar] = true
 	end
 	Nurfed_ScrollActionBars()
+end
+
+function nrf_test(num)
+	local zeronum, onenum = 0,0
+	local string = ""
+	local i = 1
+	while i <= num do
+		local ran = math.random(0, 1)
+		if ran == 0 then
+			zeronum = zeronum + 1
+		else
+			onenum = onenum + 1
+		end
+		string = string..","..tostring(ran)
+		i = i + 1
+	end
+	Nurfed:print("string:"..string)
+	if zeronum > onenum then
+		Nurfed:print("|cff00ff00Zero#:"..zeronum.."|r   One#:"..onenum)
+	else
+		Nurfed:print("Zero#:"..zeronum.."   |cff00ff00One#:"..onenum)
+	end		
 end
