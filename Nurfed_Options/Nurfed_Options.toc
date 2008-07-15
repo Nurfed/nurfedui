@@ -1,10 +1,10 @@
 ## Interface: 20400
 ## Title: Nurfed Options Menu
 ## Author: Tivoli,  http://www.nurfed.com
-## Version: $Date: 2008-07-15 18:24:40 -0400 (Tue, 15 Jul 2008) $
+## Version: $Date$
 ## SavedVariables: NURFED_LAYOUT
 ## SavedVariablesPerCharacter: NURFED_ITEMS
-## X-Revision: $Rev: 140 $
+## X-Revision: $Rev$
 ## X-Website: http://www.nurfedui.net
 ## RequiredDeps: Nurfed
 ## LoadOnDemand: 1
