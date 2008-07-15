@@ -1,4 +1,8 @@
 ------------------------------------------
+-- Test $Rev$
+-- Test2 $rev$
+-- Test3 $Date$
+-- Test4 $date$
 -- Option Menu Panels
 local hptype = { "class", "fade", "script", "pitbull" }
 local mptype = { "normal", "class", "fade", "pitbull" }
