@@ -845,22 +845,6 @@ function util:addslash(func, ...)
   end
 end
 
-function Nurfed_ToggleOptions()
-  local loaded, reason = LoadAddOn("Nurfed_Options")
-  if loaded then
-	if InterfaceOptionsFrame:IsShown() then
-	  PlaySound("igAbilityClose")
-	  InterfaceOptionsFrame:Hide()
-	else
-	  PlaySound("igAbilityOpen")
-	  UIFrameFadeIn(InterfaceOptionsFrame, 0.25)
-	  InterfaceOptionsFrame_OpenToFrame("Nurfed")
-	end
-  end
-end
-
-util:addslash(Nurfed_ToggleOptions, "/nurfed")
-
 ----------------------------------------------------------------
 -- Addon message database
 local addonfunc = {}

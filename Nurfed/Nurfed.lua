@@ -31,8 +31,7 @@ local function onenter()
   else
     GameTooltip:AddLine("Left Click - |cff00ff00Lock|r UI", 0.75, 0.75, 0.75)
   end
-  GameTooltip:AddLine("Right Click - Nurfed Menu", 0.75, 0.75, 0.75)
-  GameTooltip:AddLine("Middle Click - WoW Micro Menu", 0.75, 0.75, 0.75)
+  GameTooltip:AddLine("Right Click - WoW Micro Menu", 0.75, 0.75, 0.75)
   GameTooltip:AddLine("Ctrl + Drag moves your Action Bars.", 0, 1, 0)
   GameTooltip:Show()
 end
@@ -52,8 +51,6 @@ local function onclick(button)
   else
     this:SetChecked(NRF_LOCKED)
 	if button == "RightButton" then
-		Nurfed_ToggleOptions()
-	else
 		local drop = Nurfed_LockButtondropdown
 		local info = {}
 		if not drop.initialize then
