@@ -1,7 +1,9 @@
 ## Interface: 20400
 ## Title: Nurfed UI Suite
-## Author: Tivoli
+## Author: Tivoli,  http://www.nurfed.com
+## Version: $Date$
 ## SavedVariablesPerCharacter: NURFED_SAVED, NURFED_FRAMES, NURFED_ACTIONBARS
+## X-Revision: $Rev$
 ## X-Website: http://www.nurfedui.net
 
 Defaults.lua
