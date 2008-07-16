@@ -472,9 +472,7 @@ StaticPopupDialogs["NRF_RELOADUI"] = {
   text = "Reload User Interface?",
   button1 = TEXT(ACCEPT),
   button2 = TEXT(CANCEL),
-  OnAccept = function()
-    ReloadUI()
-  end,
+  OnAccept = ReloadUI,
   timeout = 10,
   whileDead = 1,
   hideOnEscape = 1,
@@ -491,7 +489,7 @@ Nurfed:createtemp("uipanel", {
         JustifyV = "TOP",
       },
       SubText = {
-        type = "FontString",
+        type = "FontString",	
         Point = {"TOPLEFT", "$parentTitle", "BOTTOMLEFT", 0, -8},
         Point2 = {"RIGHT", -32, 0},
         FontObject = "GameFontHighlightSmall",
@@ -500,6 +498,13 @@ Nurfed:createtemp("uipanel", {
         Height = 32,
         NonSpaceWrap = true,
       },
+      VerText = {
+		type = "FontString",
+		Point = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 16, 16 },
+        FontObject = "GameFontHighlightSmall",
+        JustifyH = "LEFT",
+        JustifyV = "TOP",
+       },
     }
   })
 
@@ -510,7 +515,15 @@ panel:SetScript("OnShow", function(self)
   end)
 panel.name = "Nurfed"
 NurfedHeaderTitle:SetText("Nurfed")
+local novers = tostring(GetAddOnMetadata("Nurfed_Options", "Version"):gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1") or "Not Installed")
+local nvers = tostring(GetAddOnMetadata("Nurfed", "Version"):gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1"))
+nvers = nvers:match("-%d%d"):gsub("-", "").."."..nvers:match("-%d%d", 6):gsub("-", "").."."..nvers:match("%d%d%d%d").."("..GetAddOnMetadata("Nurfed", "X-Revision"):gsub("%$", ""):gsub("%s$", "", 1)..")"
+if novers ~= "Not Installed" then
+	novers = novers:match("-%d%d"):gsub("-", "").."."..novers:match("-%d%d", 6):gsub("-", "").."."..novers:match("%d%d%d%d").."("..GetAddOnMetadata("Nurfed_Options", "X-Revision"):gsub("%$", ""):gsub("%s$", "", 1)..")"
+end
+
 NurfedHeaderSubText:SetText("This is the main Nurfed options menu, please select a subcategory to change options.")
+NurfedHeaderVerText:SetText("|cffccddeeNurfed Version:|r "..nvers.."\r|cffaabbccConfig Version:|r "..novers)
 InterfaceOptions_AddCategory(panel)
 
 local button = CreateFrame("Button", "NurfedHeaderFrameEditor", panel, "UIPanelButtonTemplate")
