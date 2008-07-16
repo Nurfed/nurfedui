@@ -1,6 +1,7 @@
 NURFED_DEFAULT = {}
 NURFED_DEFAULT["chatfade"] = 1
 NURFED_DEFAULT["chatprefix"] = false
+NURFED_DEFAULT["numchatprefix"] = false
 NURFED_DEFAULT["chatbuttons"] = false
 NURFED_DEFAULT["chatfadetime"] = 120
 NURFED_DEFAULT["autoinvite"] = 1

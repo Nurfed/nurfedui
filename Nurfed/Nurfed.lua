@@ -40,7 +40,7 @@ end
 local function onclick(button)
   if button == "LeftButton" then
     NRF_LOCKED = this:GetChecked()
-    local icon = getglobal(this:GetName().."icon")
+    local icon = _G[this:GetName().."icon"]
     if NRF_LOCKED then
       icon:SetTexture(NRF_IMG.."locked")
     else
@@ -301,24 +301,42 @@ local function OnMouseWheel()
   end
 end
 
+local messageText = {}
 local function message(this, msg, r, g, b, id)
   if (msg and type(msg) == "string") then
-    local text = {}
-    local pre = Nurfed:getopt("chatprefix")
-    local ts = Nurfed:getopt("timestamps")
-    if ts then
-      local tsform = Nurfed:getopt("timestampsformat")
-      local stamp = date(tsform)
-      table.insert(text, stamp)
+	-- lets reuse the same table over and over again now.  Prevents garbage
+    --for i in pairs(messageText) do messageText[i] = nil end
+	messageText[1] = nil; messageText[2] = nil -- there should not be anything more than 2, no need to do pairs
+    if Nurfed:getopt("timestamps") then
+      table.insert(messageText, date(Nurfed:getopt("timestampsformat")))
     end
-    if not pre then
-      local _, _, channel = string.find(msg, "^%[(.-)%]")
-      if channel then
-        msg = string.gsub(msg, channel, string.sub(channel, 1, 1))
-      end
+    if not Nurfed:getopt("chatprefix") then
+		-- disable new coding until it gets fixed.  It is parsing out any text at the beginning of a line that
+		-- starts with [].  Regardless of its orgin(other mods)
+		-- example: ChatFrame1:AddMessage("[2:20:40] Testthis plx")
+		-- result: [2] Testthisplx
+		-- found error with the combathistory option of Nurfed UnitFrames
+		-- May end up adding in options to configure each chat channel prefix
+		------------
+		--local _, _, channel = string.find(msg, "^%[(.-)%]")
+		--if channel then
+		--	msg = string.gsub(msg, channel, string.sub(channel, 1, 1))
+		--end
+		------------
+		-- remove this note after next commit
+		local _, _, channel = msg:find("^%[(.-)%]")
+		if channel then
+			if channel:match("^%d%.%s") then
+				if not Nurfed:getopt("numchatprefix") then
+					msg = msg:gsub("%.%s%a+%]", "]", 1)
+				end
+			elseif not msg:match("^%[%d") then
+				msg = msg:gsub("%["..channel.."%] ", "", 1)
+			end
+		end
     end
-    table.insert(text, msg)
-    this:O_AddMessage(table.concat(text, " "), r, g, b, id)
+    table.insert(messageText, msg)
+    this:O_AddMessage(table.concat(messageText, " "), r, g, b, id)
   end
 end
 
@@ -342,10 +360,10 @@ function nrf_togglechat()
   local fade = Nurfed:getopt("chatfade")
   local fadetime = Nurfed:getopt("chatfadetime")
   for i = 1, 7 do
-    local chatframe = getglobal("ChatFrame"..i)
-    local up = getglobal("ChatFrame"..i.."UpButton")
-    local down = getglobal("ChatFrame"..i.."DownButton")
-    local bottom = getglobal("ChatFrame"..i.."BottomButton")
+    local chatframe = _G["ChatFrame"..i]
+    local up = _G["ChatFrame"..i.."UpButton"]
+    local down = _G["ChatFrame"..i.."DownButton"]
+    local bottom = _G["ChatFrame"..i.."BottomButton"]
     if buttons then
       up:Hide()
       down:Hide()
@@ -365,7 +383,7 @@ function nrf_togglechat()
 end
 
 for i = 1, 7 do
-  local chatframe = getglobal("ChatFrame"..i)
+  local chatframe = _G["ChatFrame"..i]
   local buttons = Nurfed:getopt("chatbuttons")
   chatframe:EnableMouseWheel(true)
   chatframe:SetScript("OnMouseWheel", OnMouseWheel)
@@ -420,7 +438,7 @@ Nurfed:schedule(0.5, flood, true)
 ----------------------------------------------------------------
 -- Add point gain to team frame
 for i = 1, 3 do
-  local score = getglobal("PVPTeam"..i):CreateFontString("PVPTeam"..i.."points", "ARTWORK")
+  local score = _G["PVPTeam"..i]:CreateFontString("PVPTeam"..i.."points", "ARTWORK")
   score:SetFont(STANDARD_TEXT_FONT, 10)
   score:SetTextColor(0, 1, 0)
   score:SetPoint("LEFT", 15, -4)
@@ -447,7 +465,7 @@ local function rating()
     if value.index then
       _, size, rating = GetArenaTeam(value.index);
       buttonIndex = buttonIndex + 1
-      score = getglobal("PVPTeam"..buttonIndex.."points")
+      score = _G["PVPTeam"..buttonIndex.."points"]
       if rating <= 1500 then
         points = 0.22 * rating + 14
       else
