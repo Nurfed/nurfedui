@@ -1026,7 +1026,8 @@ local function fade(frame)
 	hooksecurefunc(frame, "SetValue", nrf_fading)
 end
 
-local function addcombat()-- Question: Is this even used? - Apoco 07-08-08
+local function addcombat()-- Update:  You said this was used by the combatlog.  
+						  -- I still cant find it being called anywhere in this file
 	local text = date("[%#I:%M:%S]")
 	local unit = arg1
 	local event = arg2
@@ -1067,7 +1068,12 @@ local function addcombat()-- Question: Is this even used? - Apoco 07-08-08
 	end
 end
 
+local lastTime, lastType, lastAmount = 0, 0, 0
 local function updatedamage(frame, unit, event, flags, amount, type)
+	-- hack to prevent double parsing of the same event.  UNIT_COMBAT seems to be firing
+	-- twice for each event.  This may be a Nurfed bug, look into further.
+	if lastTime + .001 >= GetTime() and lastType == type and lastAmount == amount then return end
+	lastTime, lastType, lastAmount = GetTime(), type, amount
 	local text = ""
 	local r, g, b = 1, 0.647, 0
 	
@@ -1077,7 +1083,7 @@ local function updatedamage(frame, unit, event, flags, amount, type)
 	elseif event == "WOUND" then
 		if amount ~= 0 then
 			if not damage[type] then
-				Nurfed:print("New Damage Type:"..amount.."  type:"..type)
+				Nurfed:print("New Damage Type:"..amount.."  type:"..type.."  Report this message to Apoco along with what mob did it!")
 				r, g, b = 1, 0, 0
 			else
 				r, g, b = unpack(damage[type])
@@ -2014,7 +2020,6 @@ local function updateframe(frame, notext)
 		updatehighlight(frame)
 	end
 end
-
 local events = {
 	["PLAYER_ENTERING_WORLD"] = function(frame) updateframe(frame) end,
 	["PLAYER_FOCUS_CHANGED"] = function(frame) updateframe(frame) end,
@@ -2465,13 +2470,13 @@ local function combat()
 	local server = dropdownFrame.server
 	if button == "NRF_COMBATLOG" and combatlog[unit] then
 		local name = UnitName(unit)
-		ChatFrame1:AddMessage("-------Combat History "..name.."-------------------")
+		Nurfed:print("-------Combat History: "..name.."-------------------")
 		for k, v in ipairs(combatlog[unit]) do
 			if name == v[1] then
-				ChatFrame1:AddMessage(v[2])
+				Nurfed:print(v[2])
 			end
 		end
-		ChatFrame1:AddMessage("-------End--------------------------------------")
+		Nurfed:print("-------End--------------------------------------")
 	end
 end
 
