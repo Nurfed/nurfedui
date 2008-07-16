@@ -1077,7 +1077,6 @@ local function updatedamage(frame, unit, event, flags, amount, type)
 	elseif event == "WOUND" then
 		if amount ~= 0 then
 			if not damage[type] then
-				debug(type, amount, flags)
 				Nurfed:print("New Damage Type:"..amount.."  type:"..type)
 				r, g, b = 1, 0, 0
 			else
