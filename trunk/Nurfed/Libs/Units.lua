@@ -807,6 +807,7 @@ local damage = {
 	[8] = { (0/255), (102/255), (0/255) }, -- 8 - nature
 	[16] = { (0/255), (102/255), (255/255) }, -- 16 - frost
 	[32] = { (202/255), (76/255), (217/255) },-- 32 - shadow
+	[40] = { (202/255), (178/255), (217/255) }, -- 40 - nature + shadow? lol?
 	[64] = { (153/255), (204/255), (255/255) }, -- 64 - arcane
 }
 
@@ -1075,7 +1076,13 @@ local function updatedamage(frame, unit, event, flags, amount, type)
 		r, g, b = 0, 1, 0
 	elseif event == "WOUND" then
 		if amount ~= 0 then
-			r, g, b = unpack(damage[type])
+			if not damage[type] then
+				debug(type, amount, flags)
+				Nurfed:print("New Damage Type:"..amount.."  type:"..type)
+				r, g, b = 1, 0, 0
+			else
+				r, g, b = unpack(damage[type])
+			end
 			text = "-"..amount
 		elseif flags == "ABSORB" then
 			text = CombatFeedbackText["ABSORB"]
