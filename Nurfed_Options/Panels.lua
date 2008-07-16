@@ -478,6 +478,11 @@ local panels = {
 		},
 		check7 = {
 			template = "nrf_check",
+			Anchor = { "TOPLEFT", "$parentcheck6", "BOTTOMLEFT", 0, -8 },
+			vars = { text = "Show Number Prefix Text", option = "numchatprefix" },
+		},
+		check8 = {
+			template = "nrf_check",
 			Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 0, -8 },
 			vars = { text = NRF_CHATFADE, option = "chatfade", func = function() nrf_togglechat()
 				-- Note to Tivs:
@@ -507,7 +512,7 @@ local panels = {
 		},
 		slider1 = {
 			template = "nrf_slider",
-			Anchor = { "TOPRIGHT", "$parentcheck7", "BOTTOMRIGHT", 0, -24 },
+			Anchor = { "TOPRIGHT", "$parentcheck8", "BOTTOMRIGHT", 0, -24 },
 			vars = {
 				text = NRF_CHATFADETIME,
 				option = "chatfadetime",
