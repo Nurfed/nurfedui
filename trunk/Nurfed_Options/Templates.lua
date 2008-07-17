@@ -508,3 +508,5 @@ for k, v in pairs(templates) do
   Nurfed:createtemp(k, v)
 end
 NurfedTemplatesOnShow = onshow
+Nurfed:setver("$Date$", 1)
+Nurfed:setrev("$Rev$", 1)

@@ -1678,3 +1678,6 @@ function nrf_test(num)
 		Nurfed:print("Zero#:"..zeronum.."   |cff00ff00One#:"..onenum)
 	end		
 end
+
+Nurfed:setver("$Date$", 1)
+Nurfed:setrev("$Rev$", 1)
