@@ -12,7 +12,7 @@ local queued = { {}, {}, {} }
 local slain = Nurfed:formatgs(SELFKILLOTHER, true)
 local dies = Nurfed:formatgs(UNITDIESOTHER, true)
 
-local getteam = function(size)
+local function getteam(size)
 	for i = 1, MAX_ARENA_TEAMS do
 		local teamName, teamSize = GetArenaTeam(i)
 		if teamSize == size then
@@ -21,7 +21,7 @@ local getteam = function(size)
 	end
 end
 
-local updateunit = function(unit, name, class, health, isdead)
+local function updateunit(unit, name, class, health, isdead)
 	if unit then
 		if UnitIsEnemy("player", unit) and UnitIsPlayer(unit) then
 			name = UnitName(unit)
@@ -224,7 +224,7 @@ for event, func in pairs(events) do
 	Nurfed:regevent(event, func)
 end
 
-local addonmsg = function(name, cmd)
+local function addonmsg(name, cmd)
 	local cm, arg = string.split(":", cmd, 2)
 	if cm == "queued" or cm == "confirm" or cm == "none" then
 		local id, team, size = string.split(":", arg)
@@ -360,3 +360,5 @@ for i = 1, 5 do
 	btn.hp = _G["Nurfed_Arena"..i.."hp"]
 	btn.perc = _G["Nurfed_Arena"..i.."hpperc"]
 end
+Nurfed:setver("$Date$", 2)
+Nurfed:setrev("$Rev$", 2)
