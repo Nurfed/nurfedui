@@ -73,7 +73,11 @@ end
 
 function util:getver(opt)
 	if opt then
-		return opt == 1 and nrfo_ver or "Not Installed" or opt == 2 and nrfa_ver or "Not Installed"
+		if opt == 1 then
+			return nrfo_ver or "Not Installed"
+		elseif opt == 2 then
+			return nrfa_ver or "Not Installed"
+		end
 	end
 	return nrf_ver or "Unknown"
 end
@@ -91,7 +95,7 @@ function util:setrev(rev, opt)
 			end
 		end
 	else
-		if not nrf_rev or ver > nrf_rev then
+		if not nrf_rev or rev > nrf_rev then
 			nrf_rev = rev
 		end
 	end
@@ -99,7 +103,11 @@ end
 
 function util:getrev(opt)
 	if opt then
-		return opt == 1 and nrfo_rev or "" or opt == 2 and nrfa_ver or ""
+		if opt == 1 then
+			return nrfo_rev or ""
+		elseif opt == 2 then
+			return nrfa_rev or ""
+		end
 	end
 	return nrf_rev or ""
 end
