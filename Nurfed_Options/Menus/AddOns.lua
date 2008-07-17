@@ -114,3 +114,5 @@ function Nurfed_AddonsCreate()
     end
   end
 end
+Nurfed:setver("$Date$", 1)
+Nurfed:setrev("$Rev$", 1)

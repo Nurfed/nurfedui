@@ -457,3 +457,5 @@ else
 	NRF_RAIDTARGETS = "Raid Targets";
 	NRF_ASSISTS = "Assist Frame";
 end
+Nurfed:setver("$Date$", 1)
+Nurfed:setrev("$Rev$", 1)
