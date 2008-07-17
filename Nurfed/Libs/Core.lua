@@ -31,6 +31,7 @@ local pairs = pairs
 local ipairs = ipairs
 local type = type
 local hpfunc
+local RAID_CLASS_COLORS = RAID_CLASS_COLORS
 
 -- Add round function to math
 math.round = function(num, idp)
@@ -400,9 +401,13 @@ function util:getunitstat(unit, stat)
 	
 		elseif color == "class" then
 			local eclass = select(2, UnitClass(unit))
-			r = RAID_CLASS_COLORS[eclass].r
-			g = RAID_CLASS_COLORS[eclass].g
-			b = RAID_CLASS_COLORS[eclass].b
+			if eclass then
+				r = RAID_CLASS_COLORS[eclass].r
+				g = RAID_CLASS_COLORS[eclass].g
+				b = RAID_CLASS_COLORS[eclass].b
+			else
+				r, g, b = 0, 1, 0
+			end
 		
 		elseif color == "fade" then
 			if perc > 0.5 then
