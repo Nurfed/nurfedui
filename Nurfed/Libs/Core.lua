@@ -2,7 +2,7 @@
 --    Nurfed Core Library
 ------------------------------------------
 
-local version = 1.1
+local version = 1.11
 local _G = getfenv(0)
 local util = _G["Nurfed"]
 
@@ -49,6 +49,61 @@ end
 
 ----------------------------------------------------------------
 -- Utility functions
+local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver
+-- no opt = Core, 1 = Options, 2 = Arena
+function util:setver(ver, opt)
+	ver = ver:gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1")
+	ver = ver:match("-%d%d"):gsub("-", "").."."..ver:match("-%d%d", 6):gsub("-", "").."."..ver:match("%d%d%d%d")
+	if opt then
+		if opt == 1 then
+			if not nrfo_ver or ver > nrfo_ver then
+				nrfo_ver = ver
+			end
+		elseif opt == 2 then
+			if not nrfa_ver or ver > nrfa_ver then
+				nrfa_ver = ver
+			end
+		end
+	else
+		if not nrf_ver or ver > nrf_ver then
+			nrf_ver = ver
+		end
+	end
+end
+
+function util:getver(opt)
+	if opt then
+		return opt == 1 and nrfo_ver or "Not Installed" or opt == 2 and nrfa_ver or "Not Installed"
+	end
+	return nrf_ver or "Unknown"
+end
+
+function util:setrev(rev, opt)
+	rev = rev:gsub("%$", ""):gsub("%s$", "", 1)
+	if opt then
+		if opt == 1 then
+			if not nrfo_rev or rev > nrfo_rev then
+				nrfo_rev = rev
+			end
+		elseif opt == 2 then
+			if not nrfa_rev or rev > nrfa_rev then
+				nrfa_rev = rev
+			end
+		end
+	else
+		if not nrf_rev or ver > nrf_rev then
+			nrf_rev = rev
+		end
+	end
+end
+
+function util:getrev(opt)
+	if opt then
+		return opt == 1 and nrfo_rev or "" or opt == 2 and nrfa_ver or ""
+	end
+	return nrf_rev or ""
+end
+
 function util:print(msg, out, r, g, b)
   out = _G["ChatFrame"..(out or 1)]
   out:AddMessage(msg, (r or 1), (g or 1), (b or 1))
@@ -884,47 +939,5 @@ local addonmsg = function(event, ...)
 end
 
 util:regevent("CHAT_MSG_ADDON", addonmsg)
-
-----------------------------------------------------------------
--- Cooldown Text
-
-function util:cooldowntxt(btn)
-  local cd = _G[btn:GetName().."Cooldown"]
-  if cd.text and cd.cool then
-	local cdscale = cd:GetScale()
-	local r, g, b = 1, 0, 0
-	local height = floor(22 / cdscale)
-	local fheight = select(2, cd.text:GetFont())
-	local remain = (cd.start + cd.duration) - GetTime()
-	if remain >= 0 then
-	  remain = math.round(remain)
-	  if remain >= 3600 then
-		remain = math.floor(remain / 3600).."h"
-		r, g, b = 0.6, 0.6, 0.6
-		height = floor(14 / cdscale)
-	  elseif remain >= 60 then
-		local min = math.floor(remain / 60)
-		r, g, b = 1, 1, 0
-		height = floor(14 / cdscale)
-		if min < 10 then
-		  local sec = math.floor(math.fmod(remain, 60))
-		  remain = string.format("%2d:%02s", min, sec)
-		else
-		  remain = min.."m"
-		end
-	  end
-	  cd.text:SetText(remain)
-	  cd.text:SetTextColor(r, g, b)
-	  if height ~= fheight then
-		cd.text:SetFont("Fonts\\FRIZQT__.TTF", height, "OUTLINE")
-	  end
-	else
-	  cd.text:SetText(nil)
-	  cd.cool = nil
-	end
-  end
-end
-
-function nrfcooldowntxt(btn)
-	self:cooldowntxt(btn)
-end
+Nurfed:setver("$Date$")
+Nurfed:setrev("$Rev$")

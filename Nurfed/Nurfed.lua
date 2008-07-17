@@ -529,22 +529,15 @@ Nurfed:createtemp("uipanel", {
 local panel = Nurfed:create("NurfedHeader", "uipanel")
 panel:SetScript("OnShow", function(self)
     local loaded, reason = LoadAddOn("Nurfed_Options")
+    NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")")
     self:SetScript("OnShow", nil)
-  end)
+    --[[panel:SetScript("OnShow", function()
+		NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")")
+	end)]]
+end)
 panel.name = "Nurfed"
 NurfedHeaderTitle:SetText("Nurfed")
-local novers = GetAddOnMetadata("Nurfed_Options", "Version"):gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1") or "Not Installed"
-local nvers = GetAddOnMetadata("Nurfed", "Version"):gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1") or "Unknown"
--- convert date to proper format
-if nvers ~= "Unknown" then
-	nvers = nvers:match("-%d%d"):gsub("-", "").."."..nvers:match("-%d%d", 6):gsub("-", "").."."..nvers:match("%d%d%d%d").."("..GetAddOnMetadata("Nurfed", "X-Revision"):gsub("%$", ""):gsub("%s$", "", 1)..")"
-end
-if novers ~= "Not Installed" then
-	novers = novers:match("-%d%d"):gsub("-", "").."."..novers:match("-%d%d", 6):gsub("-", "").."."..novers:match("%d%d%d%d").."("..GetAddOnMetadata("Nurfed_Options", "X-Revision"):gsub("%$", ""):gsub("%s$", "", 1)..")"
-end
-
 NurfedHeaderSubText:SetText("This is the main Nurfed options menu, please select a subcategory to change options.")
-NurfedHeaderVerText:SetText("|cffccddeeNurfed Version:|r "..nvers.."\r|cffaabbccConfig Version:|r "..novers)
 InterfaceOptions_AddCategory(panel)
 
 local button = CreateFrame("Button", "NurfedHeaderFrameEditor", panel, "UIPanelButtonTemplate")
@@ -559,3 +552,6 @@ button:SetWidth(86)
 button:SetHeight(24)
 button:SetPoint("BOTTOMRIGHT", -5, 5)
 button:SetScript("OnClick", function() StaticPopup_Show("NRF_RELOADUI") end)
+
+Nurfed:setver("$Date$")
+Nurfed:setrev("$Rev$")
