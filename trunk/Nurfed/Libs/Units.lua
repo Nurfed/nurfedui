@@ -2504,3 +2504,5 @@ if Nurfed_Replace then
 	end
 	Nurfed_Replace = nil
 end
+Nurfed:setver("$Date$")
+Nurfed:setrev("$Rev$")

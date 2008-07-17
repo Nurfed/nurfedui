@@ -1139,3 +1139,5 @@ function nrf_mainmenu()
     MainMenuBar:Hide()
   end
 end
+Nurfed:setver("$Date$")
+Nurfed:setrev("$Rev$")
