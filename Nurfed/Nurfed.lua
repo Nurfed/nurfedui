@@ -533,9 +533,12 @@ panel:SetScript("OnShow", function(self)
   end)
 panel.name = "Nurfed"
 NurfedHeaderTitle:SetText("Nurfed")
-local novers = tostring(GetAddOnMetadata("Nurfed_Options", "Version"):gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1") or "Not Installed")
-local nvers = tostring(GetAddOnMetadata("Nurfed", "Version"):gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1"))
-nvers = nvers:match("-%d%d"):gsub("-", "").."."..nvers:match("-%d%d", 6):gsub("-", "").."."..nvers:match("%d%d%d%d").."("..GetAddOnMetadata("Nurfed", "X-Revision"):gsub("%$", ""):gsub("%s$", "", 1)..")"
+local novers = GetAddOnMetadata("Nurfed_Options", "Version"):gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1") or "Not Installed"
+local nvers = GetAddOnMetadata("Nurfed", "Version"):gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1") or "Unknown"
+-- convert date to proper format
+if nvers ~= "Unknown" then
+	nvers = nvers:match("-%d%d"):gsub("-", "").."."..nvers:match("-%d%d", 6):gsub("-", "").."."..nvers:match("%d%d%d%d").."("..GetAddOnMetadata("Nurfed", "X-Revision"):gsub("%$", ""):gsub("%s$", "", 1)..")"
+end
 if novers ~= "Not Installed" then
 	novers = novers:match("-%d%d"):gsub("-", "").."."..novers:match("-%d%d", 6):gsub("-", "").."."..novers:match("%d%d%d%d").."("..GetAddOnMetadata("Nurfed_Options", "X-Revision"):gsub("%$", ""):gsub("%s$", "", 1)..")"
 end
