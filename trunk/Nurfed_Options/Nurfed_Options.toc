@@ -1,11 +1,11 @@
 ## Interface: 20400
-## Title: Nurfed Options Menu
-## Author: Tivoli,  http://www.nurfed.com
+## Title: Nurfed Options|cff00FF00-Extension-|r
+## Author: Tivoli, Apoco http://www.nurfed.com
 ## SavedVariables: NURFED_LAYOUT
 ## SavedVariablesPerCharacter: NURFED_ITEMS
 ## X-Website: http://www.nurfedui.net
-## RequiredDeps: Nurfed
 ## LoadOnDemand: 1
+## RequiredDeps: Nurfed
 
 Menus\AddOns.lua
 Menus\Bindings.lua

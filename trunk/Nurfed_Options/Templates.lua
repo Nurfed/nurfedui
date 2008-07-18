@@ -118,7 +118,7 @@ onshow = function(self)
 	local objtype = self:GetObjectType()
 	if not text then
 		text = _G[self:GetParent():GetName().."Text"]
-		assert(text, "NO TEXT FOR:"..self:GetName())
+		assert(text, "NO TEXT FRAME FOR:"..self:GetName())
 	end
 	text:SetText(self.text)
 	if self.color then
@@ -225,13 +225,13 @@ saveopt = function(self)
 end
 
 local templates = {
-  nrf_check = {
-    type = "CheckButton",
-    uitemp = "InterfaceOptionsCheckButtonTemplate",
-    OnShow = onshow,
-    OnClick = saveopt,
-  },
-  nrf_button = {
+	nrf_check = {
+		type = "CheckButton",
+		uitemp = "InterfaceOptionsCheckButtonTemplate",
+		OnShow = onshow,
+		OnClick = saveopt,
+	},
+	nrf_button = {
 		type = "Button",
 		size = { 60, 18 },
 		Backdrop = {
@@ -250,106 +250,94 @@ local templates = {
 		PushedTextOffset = { 1, -1 },
 		OnShow = function() this:SetWidth(this:GetTextWidth() + 12) this:SetScript("OnShow", nil) end,
 	},
-  nrf_slider = {
-    type = "Slider",
-    uitemp = "InterfaceOptionsSliderTemplate",
-    children = {
-      value = {
-        template = "nrf_editbox",
-        FontObject = "GameFontNormalSmall",
-        size = { 35, 18 },
-		-- put the edit box below the slider, users will be more familiar with it and it saves overall
-		-- x/y space in the config menu thats shitpoorly written by blizzard
-        --Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
-        Anchor = { "TOP", "$parent", "BOTTOM", 0, 0 },
-          Backdrop = {
-		  bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
---		  edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-		  tile = true,
-		  tileSize = 16,
---		  edgeSize = 10,
-		  insets = { left = 3, right = 3, top = 3, bottom = 3 },
+	nrf_slider = {
+		type = "Slider",
+		uitemp = "InterfaceOptionsSliderTemplate",
+		children = {
+			value = {
+				template = "nrf_editbox",
+				FontObject = "GameFontNormalSmall",
+				size = { 35, 18 },
+				Anchor = { "TOP", "$parent", "BOTTOM", 0, 0 },
+				Backdrop = {
+					bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+					tile = true,
+					tileSize = 16,
+					insets = { left = 3, right = 3, top = 3, bottom = 3 },
+				},
+				BackdropColor = { 0, 0, 0.2, 0.75 },
+				OnTextChanged = function(self)
+					if self.focus then
+						local parent = self:GetParent()
+						local value = tonumber(self:GetText())
+						local min, max = parent:GetMinMaxValues()
+						if not value or value < min then return end
+						if value > max then value = max end
+						parent:SetValue(value)
+						saveopt(parent)
+					end
+				end,
+				OnEditFocusGained = function() this:HighlightText() this.focus = true end,
+				OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+			},
+		},
+		OnShow = function(self) self:SetFrameLevel(30); self:EnableMouseWheel(true); onshow(self) end,
+		OnMouseUp = function(self) 
+			local editbox = _G[self:GetName().."value"]
+			editbox:SetCursorPosition(0)
+			editbox:ClearFocus()
+			saveopt(self) 
+		end,
+		OnValueChanged = function() 
+			local value = math.round(this:GetValue(), this.deci)
+			_G[this:GetName().."value"]:SetText(value) 
+		end,
+		OnMouseWheel = function(self, change)
+			local value = self:GetValue()
+			if change > 0  then
+				value = value + (self.bigStep or self.step)
+			else
+				value = value - (self.bigStep or self.step)
+			end
+			self:SetValue(value)
+			saveopt(self)
+		end,
+	},
+	nrf_editbox = {
+		type = "EditBox",
+		AutoFocus = false,
+		size = { 155, 20 },
+		Backdrop = {
+			bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+			edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+			tile = true,
+			tileSize = 16,
+			edgeSize = 10,
+			insets = { left = 3, right = 3, top = 3, bottom = 3 },
 		},
 		BackdropColor = { 0, 0, 0.2, 0.75 },
-        OnTextChanged = function(self)
-          if self.focus then
-            local parent = self:GetParent()
-            local value = tonumber(self:GetText())
-            local min, max = parent:GetMinMaxValues()
-            if not value or value < min then return end
-            if value > max then value = max end
-            parent:SetValue(value)
-			-- OnMouseUp will clear focus and reset cursor position now
-			-- this prevents the value box from keeping focus once you start scrolling
-			-- or click out of the box	-- Apoco 07-09-2008
-			--          local func = parent:GetScript("OnMouseUp")
-			--          func(parent)
-            saveopt(parent)
-          end
-        end,
-        OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-        OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
-      },
-    },
-    -- set the frame level to be above the scroll frames if they exist
-    -- this way we can scroll sliders with mousewheels? woot?
-    OnShow = function(self) self:SetFrameLevel(30); self:EnableMouseWheel(true); onshow(self) end,
-	OnMouseUp = function(self) 
-		local editbox = _G[self:GetName().."value"]
-		editbox:SetCursorPosition(0)
-		editbox:ClearFocus()
-		saveopt(self) 
-	end,
-	OnValueChanged = function() 
-		local value = math.round(this:GetValue(), this.deci)
-		_G[this:GetName().."value"]:SetText(value) 
-	end,
-	OnMouseWheel = function(self, change)
-		local value = self:GetValue()
-		if change > 0  then
-			value = value + (self.bigStep or self.step)
-		else
-			value = value - (self.bigStep or self.step)
-		end
-		self:SetValue(value)
-		saveopt(self)
-	end,
-  },
-  nrf_editbox = {
-    type = "EditBox",
-    AutoFocus = false,
-    size = { 155, 20 },
-    Backdrop = {
-      bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-      edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-      tile = true,
-      tileSize = 16,
-      edgeSize = 10,
-      insets = { left = 3, right = 3, top = 3, bottom = 3 },
-    },
-    BackdropColor = { 0, 0, 0.2, 0.75 },
-    FontObject = "GameFontNormal",
-    TextInsets = { 3, 3, 3, 3 },
-    children = {
-      Text = {
-        type = "FontString",
-        layer = "ARTWORK",
-        Anchor = { "BOTTOMLEFT", "$parent", "TOPLEFT", 3, 0 },
-        FontObject = "GameFontHighlight",
-        JustifyH = "LEFT",
-      },
-    },
-    OnShow = function(self) onshow(self) end,
-    OnEscapePressed = function() this:ClearFocus() end,
-    OnEnterPressed = function() this:ClearFocus() end,
-    OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-    OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
-    OnTextChanged = function(self) end,
-  },
+		FontObject = "GameFontNormal",
+		TextInsets = { 3, 3, 3, 3 },
+		children = {
+			Text = {
+				type = "FontString",
+				layer = "ARTWORK",
+				Anchor = { "BOTTOMLEFT", "$parent", "TOPLEFT", 3, 0 },
+				FontObject = "GameFontHighlight",
+				JustifyH = "LEFT",
+			},
+		},
+		OnShow = function(self) onshow(self) end,
+		OnEscapePressed = function() this:ClearFocus() end,
+		OnEnterPressed = function() this:ClearFocus() end,
+		OnEditFocusGained = function() this:HighlightText() this.focus = true end,
+		OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+		OnTextChanged = function(self) end,
+	},
 	nrf_options = {
 		type = "Frame",
 		size = { 411, 271 },
-		Anchor = { "TOPRIGHT", "$parentHeader", "BOTTOMRIGHT", 1, 0 },
+		Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 1, 0 },
 		Backdrop = {
 			bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
 			edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -360,10 +348,9 @@ local templates = {
 		},
 		BackdropColor = { 0, 0, 0, 0.95 },
 		Alpha = 0,
-		Hide = true,
+		--Hide = true,
 	},
-
-  nrf_color = {
+	nrf_color = {
 		type = "Button",
 		size = { 18, 18 },
 		children = {
@@ -385,38 +372,6 @@ local templates = {
 		OnShow = function(self) onshow(self) end,
 		OnClick = function() Nurfed_Options_swatchOpenColorPicker() end,
 	},
-	nrf_multieditnew = {
-		type = "EditBox",
-		AutoFocus = false,
-		MultiLine = true,
-		size = { 155, 20 },
-		Backdrop = {
-		  bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-		  edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-		  tile = true,
-		  tileSize = 16,
-		  edgeSize = 10,
-		  insets = { left = 3, right = 3, top = 3, bottom = 3 },
-		},
-		BackdropColor = { 0, 0, 0.2, 0.75 },
-		FontObject = "GameFontNormal",
-		TextInsets = { 3, 3, 3, 3 },
-		children = {
-		  Text = {
-			type = "FontString",
-			layer = "ARTWORK",
-			Anchor = { "BOTTOMLEFT", "$parent", "TOPLEFT", 3, 0 },
-			FontObject = "GameFontHighlight",
-			JustifyH = "LEFT",
-		  },
-		},
-		OnShow = function(self) onshow(self) end,
-		OnEscapePressed = function() this:ClearFocus() end,
-		OnEnterPressed = function() this:ClearFocus() end,
-		OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-		OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
-		OnTextChanged = function(self) end,
-	},
 	nrf_scroll = {
 		type = "ScrollFrame",
 		Anchor = { "LEFT", 0, 0 },
@@ -425,19 +380,24 @@ local templates = {
 		OnVerticalScroll = function() FauxScrollFrame_OnVerticalScroll(100, Nurfed_Options_ScrollMenu) end,
 		OnShow = function() Nurfed_Options_ScrollMenu() end,
 	},
-	nrf_multiedit = {
-		type = "ScrollFrame",
-		uitemp = "UIPanelScrollFrameTemplate",
+	nrf_multieditinworking = {
+		type = "Frame",
 		Backdrop = {
 			bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
 			edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
 			tile = true,
 			tileSize = 16,
-			edgeSize = 10,
+			edgeSize = 8,
 			insets = { left = 2, right = 2, top = 2, bottom = 2 },
 		},
-		BackdropColor = { 0, 0, 0.2, 0.75 },
+		BackdropColor = { 0, 0, 0, 0.95 },
 		children = {
+			scroll = {
+				template = "nrf_scroll",
+				vars = { pages = 2 },
+				size = { 10, 20 },
+				Anchor = { "TOPLEFT", "$parent", "TOPRIGHT", 0, 0 },
+			},
 			Text = {
 				type = "FontString",
 				layer = "ARTWORK",
@@ -463,6 +423,7 @@ local templates = {
 					self:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 4)
 					self:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, -4)
 					onshow(self)
+					parent:GetScript("OnLoad")(parent)
 				end,
 				OnEscapePressed = function(self) this:ClearFocus() end,
 				OnEditFocusGained = function() this.focus = true end,
@@ -484,8 +445,179 @@ local templates = {
 		OnLoad = function(self)
 			local child = _G[self:GetName().."edit"]
 			local text = _G[self:GetName().."Text"]
+			local scroll = _G[self:GetName().."scroll"]
 			child:SetWidth(self:GetWidth())
-			text:SetText(self.text)
+			text:SetText(self.text or "")
+			scroll:SetScrollChild(child)
+		end,
+	},
+	nrf_multiedittest2 = {
+		type = "Frame",
+		Backdrop = {
+			bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+			edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+			tile = true,
+			tileSize = 16,
+			edgeSize = 8,
+			insets = { left = 2, right = 2, top = 2, bottom = 2 },
+		},
+		BackdropColor = { 0, 0, 0, 0.95 },
+		children = {
+			Text = {
+				type = "FontString",
+				layer = "ARTWORK",
+				Anchor = { "BOTTOMLEFT", "$parent", "TOPLEFT", 3, 0 },
+				FontObject = "GameFontNormalSmall",
+				JustifyH = "LEFT",
+			},
+			edit = {
+				type = "EditBox",
+				AutoFocus = false,
+				MultiLine = true,
+				FontObject = "GameFontNormalSmall",
+				TextColor = { 1, 1, 1 },
+				TextInsets = { 3, 3, 3, 3 },
+				Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 0, 0 },
+				OnShow = function(self)
+					local parent = self:GetParent()
+					self.option = parent.option
+					self.func = parent.func
+					if parent.ltrs then
+						self:SetMaxLetters(parent.ltrs)
+					end
+					self:ClearAllPoints();
+					self:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 4)
+					self:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, -4)
+					onshow(self)
+					parent:GetScript("OnLoad")(parent)
+				end,
+				OnEscapePressed = function(self) this:ClearFocus() end,
+				OnEditFocusGained = function() this.focus = true end,
+				OnEditFocusLost = function(self) saveopt(self) this.focus = nil end,
+				OnTabPressed = function(self) self:Insert("   ") end,
+				OnTextChanged = function(self)
+					local scrollBar = _G[self:GetParent():GetName().."ScrollBar"]
+					_G[self:GetParent():GetName().."ScrollBar"]:UpdateScrollChildRect()
+					local min, max = scrollBar:GetMinMaxValues()
+					if max > 0 and (self.max ~= max) then
+						self.max = max
+						scrollBar:SetValue(max)
+					else
+						self:SetPoint("BOTTOM")
+					end
+				end,
+			},
+			ScrollBar = {
+				type = "ScrollFrame",
+				uitemp = "UIPanelScrollFrameTemplate",
+--[[				Backdrop = {
+					bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+					edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+					tile = true,
+					tileSize = 16,
+					edgeSize = 10,
+					insets = { left = 2, right = 2, top = 2, bottom = 2 },
+				},
+				BackdropColor = { 0, 0, 0.2, 0.75 },]]
+				OnShow = function(self)
+					local parent = self:GetParent():GetName()
+					local child = _G[parent.."edit"]
+					local text = _G[parent.."Text"]
+					--child:SetWidth(self:GetParent():GetWidth())
+					text:SetText(self:GetParent().text or "")
+					self:SetScrollChild(child)
+				end,
+			},
+
+		},
+	},
+	nrf_multiedit = {
+		type = "ScrollFrame",
+		uitemp = "UIPanelScrollFrameTemplate",
+		--[[Backdrop = {
+			bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+			edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+			tile = true,
+			tileSize = 16,
+			edgeSize = 10,
+			insets = { left = 2, right = 2, top = 2, bottom = 2 },
+		},
+		BackdropColor = { 0, 0, 0.2, 0.75 },]]
+		children = {
+			Text = {
+				type = "FontString",
+				layer = "ARTWORK",
+				Anchor = { "BOTTOMLEFT", "$parent", "TOPLEFT", 3, 0 },
+				FontObject = "GameFontNormalSmall",
+				JustifyH = "LEFT",
+			},
+			edit = {
+				type = "EditBox",
+				AutoFocus = false,
+				MultiLine = true,
+				FontObject = "GameFontNormalSmall",
+				TextColor = { 1, 1, 1 },
+				TextInsets = { 3, 3, 3, 3 },
+				Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 0, 0 },
+				OnShow = function(self)
+					local parent = self:GetParent()
+					self.option = parent.option
+					self.func = parent.func
+					if parent.ltrs then
+						self:SetMaxLetters(parent.ltrs)
+					end
+					self:ClearAllPoints();
+					self:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 4)
+					self:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, -4)
+					onshow(self)
+					parent:GetScript("OnLoad")(parent)
+				end,
+				OnEscapePressed = function(self) this:ClearFocus() end,
+				OnEditFocusGained = function() this.focus = true end,
+				OnEditFocusLost = function(self) saveopt(self) this.focus = nil end,
+				OnTabPressed = function(self) self:Insert("   ") end,
+				OnEnterPressed = function(self) self:GetScript("OnTextChanged")() end,
+				OnTextChanged = function(self)
+					local scrollBar = _G[self:GetParent():GetName().."ScrollBar"]
+					self:GetParent():UpdateScrollChildRect()
+					local min, max = scrollBar:GetMinMaxValues()
+					if max > 0 then
+						if self.max ~= max then
+							self.max = max
+							scrollBar:SetValue(max)
+						end
+					else
+						scrollBar:SetValue(min)
+						self:SetPoint("BOTTOM")
+					end
+				end,
+			},
+			bg = {
+				type = "Frame",
+				--size = { 1, 1 },
+				Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, 0 },
+				Backdrop = {
+					bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+					edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+					tile = true,
+					tileSize = 16,
+					edgeSize = 8,
+					insets = { left = 2, right = 2, top = 2, bottom = 2 },
+				},
+				BackdropColor = { 0, 0, 0, 0.95 },
+				OnShow = function(self)
+					local parent = self:GetParent()
+					self:SetWidth(parent:GetWidth()+5)
+					self:SetHeight(parent:GetHeight())
+					self:SetFrameLevel(1)
+				end,
+			},	
+		},
+		OnLoad = function(self)
+			local child = _G[self:GetName().."edit"]
+			local text = _G[self:GetName().."Text"]
+			child:SetWidth(self:GetWidth())
+			text:SetText(self.text or "")
 			self:SetScrollChild(child)
 		end,
 	},
