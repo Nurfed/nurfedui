@@ -1,7 +1,8 @@
 ## Interface: 20400
-## Title: Nurfed Arena
-## Author: Tivoli
+## Title: Nurfed Arena|cff37FDFC-Plugin-|r
+## Author: Tivoli, Apoco  http://www.nurfed.com
 ## SavedVariablesPerCharacter: NURFED_ARENA_SAVED
 ## X-Website: http://www.nurfedui.net
+## RequiredDeps: Nurfed
 
 Nurfed_Arena.lua
