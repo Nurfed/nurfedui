@@ -101,6 +101,13 @@ local events = {
 			end
 		end
 	end,
+	["COMBAT_LOG_EVENT_UNFILTERED"] = function(_, event, sourceGUID, sourceName, sourceFlags, nameGUID, name, nameFlags, id, spellName, _, id2, spellName2)
+		if event ~= "UNIT_DEATH" or event ~= "PARTY_KILL" or select(2, IsInInstance()) ~= "arena" or bit.band(COMBATLOG_OBJECT_REACTION_HOSTILE, nameFlags) == 0 then return end
+		if targets[name] then
+			updateunit(nil, name, nil, 0, true)
+		end
+	end,
+		
 	["CHAT_MSG_COMBAT_HOSTILE_DEATH"] = function(event, ...)
 		if select(2, IsInInstance()) == "arena" then
 			local _, _, name = string.find(arg1, dies)
@@ -339,10 +346,11 @@ Nurfed:createtemp("arena_unit", {
 		},
 	},
 	OnShow = function(self)
+		local assistName = Nurfed:getopt("arenaassist"..tsize)
 		local macro1 = Nurfed:getopt("arenamacro1")
 		local macro2 = Nurfed:getopt("arenamacro2")
-		macro1 = string.gsub(macro1, "$name", self.name)
-		macro2 = string.gsub(macro2, "$name", self.name)
+		macro1 = macro1:gsub("$name", self.name):gsub("$assist", assistName)
+		macro2 = macro2:gsub("$name", self.name):gsub("$assist", assistName)
 		self:SetAttribute("macrotext1", macro1)
 		self:SetAttribute("macrotext2", macro2)
 	end,
