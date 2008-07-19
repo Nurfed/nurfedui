@@ -1134,50 +1134,50 @@ end
 
 ----------------------------------------------------------------
 -- Casting bar functions
-local function castevent()
-	local parent = this.parent
+local function castevent(self)
+	local parent = self.parent
 	if event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_TARGET_CHANGED" or event == "PARTY_MEMBERS_CHANGED" or event == "PLAYER_FOCUS_CHANGED" then
-		local nameChannel  = UnitChannelInfo(this.unit)
-		local nameSpell  = UnitCastingInfo(this.unit)
+		local nameChannel  = UnitChannelInfo(self.unit)
+		local nameSpell  = UnitCastingInfo(self.unit)
 		if nameChannel then
 			event = "UNIT_SPELLCAST_CHANNEL_START"
-			arg1 = this.unit
+			arg1 = self.unit
 		elseif nameSpell then
 			event = "UNIT_SPELLCAST_START"
-			arg1 = this.unit
+			arg1 = self.unit
 		else
-			this:Hide()
+			self:Hide()
 			if parent then parent:Hide() end
 			return
 		end
 	end
 
-	if arg1 ~= this.unit then return end
+	if arg1 ~= self.unit then return end
 
-	local barText = _G[this:GetName().."text"]
-	local barIcon = _G[this:GetName().."icon"]
-	local orient = this:GetOrientation()
+	local barText = _G[self:GetName().."text"]
+	local barIcon = _G[self:GetName().."icon"]
+	local orient = self:GetOrientation()
 
 	if event == "UNIT_SPELLCAST_START" then
-		local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitCastingInfo(this.unit)
+		local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitCastingInfo(self.unit)
 		if not name then
-			this:Hide()
+			self:Hide()
 			if parent then parent:Hide() end
 			return
 		end
 
-		this:SetStatusBarColor(1.0, 0.7, 0.0)
-		this.startTime = startTime / 1000
-		this.maxValue = endTime / 1000
+		self:SetStatusBarColor(1.0, 0.7, 0.0)
+		self.startTime = startTime / 1000
+		self.maxValue = endTime / 1000
 
-		this:SetMinMaxValues(this.startTime, this.maxValue)
-		this:SetValue(this.startTime)
-		this:SetAlpha(1.0)
-		this.holdTime = 0
-		this.casting = 1
-		this.channeling = nil
-		this.fadeOut = nil
-		this:Show()
+		self:SetMinMaxValues(self.startTime, self.maxValue)
+		self:SetValue(self.startTime)
+		self:SetAlpha(1.0)
+		self.holdTime = 0
+		self.casting = 1
+		self.channeling = nil
+		self.fadeOut = nil
+		self:Show()
 		if barText and barText.format then
 			local out = barText.format
 			out = out:gsub("$spell", name)
@@ -1203,26 +1203,26 @@ local function castevent()
 		end
 
 	elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
-		if not this:IsVisible() then this:Hide() end
-		if this:IsShown() then
-			this:SetValue(this.maxValue)
+		if not self:IsVisible() then self:Hide() end
+		if self:IsShown() then
+			self:SetValue(self.maxValue)
 			if event == "UNIT_SPELLCAST_STOP" then
-				this:SetStatusBarColor(0.0, 1.0, 0.0)
-				this.casting = nil
+				self:SetStatusBarColor(0.0, 1.0, 0.0)
+				self.casting = nil
 			else
-				this.channeling = nil
+				self.channeling = nil
 			end
-			this.fadeOut = 1
-			this.holdTime = 0
+			self.fadeOut = 1
+			self.holdTime = 0
 		end
 	elseif event == "UNIT_SPELLCAST_FAILED" or event == "UNIT_SPELLCAST_INTERRUPTED" then
-		if this:IsShown() and not this.channeling then
-			this:SetValue(this.maxValue)
-			this:SetStatusBarColor(1.0, 0.0, 0.0)
-			this.casting = nil
-			this.channeling = nil
-			this.fadeOut = 1
-			this.holdTime = GetTime() + CASTING_BAR_HOLD_TIME
+		if self:IsShown() and not self.channeling then
+			self:SetValue(self.maxValue)
+			self:SetStatusBarColor(1.0, 0.0, 0.0)
+			self.casting = nil
+			self.channeling = nil
+			self.fadeOut = 1
+			self.holdTime = GetTime() + CASTING_BAR_HOLD_TIME
 			if barText then
 				local text = INTERRUPTED
 				if event == "UNIT_SPELLCAST_FAILED" then
@@ -1239,39 +1239,39 @@ local function castevent()
 			end
 		end
 	elseif event == "UNIT_SPELLCAST_DELAYED" then
-		if this:IsShown() then
-			local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitCastingInfo(this.unit)
+		if self:IsShown() then
+			local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitCastingInfo(self.unit)
 			if not name then
-				this:Hide()
+				self:Hide()
 				if parent then parent:Hide() end
 				return
 			end
-			this.startTime = startTime / 1000
-			this.maxValue = endTime / 1000
-			this:SetMinMaxValues(this.startTime, this.maxValue)
+			self.startTime = startTime / 1000
+			self.maxValue = endTime / 1000
+			self:SetMinMaxValues(self.startTime, self.maxValue)
 		end
 	elseif event == "UNIT_SPELLCAST_CHANNEL_START" then
-		local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitChannelInfo(this.unit)
+		local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitChannelInfo(self.unit)
 		if not name then
-			this:Hide()
+			self:Hide()
 			if parent then parent:Hide() end
 			return
 		end
 
-		this:SetStatusBarColor(0.0, 1.0, 0.0)
-		this.startTime = startTime / 1000
-		this.endTime = endTime / 1000
-		this.duration = this.endTime - this.startTime
-		this.maxValue = this.startTime
+		self:SetStatusBarColor(0.0, 1.0, 0.0)
+		self.startTime = startTime / 1000
+		self.endTime = endTime / 1000
+		self.duration = self.endTime - self.startTime
+		self.maxValue = self.startTime
 
-		this:SetMinMaxValues(this.startTime, this.endTime)
-		this:SetValue(this.endTime)
-		this:SetAlpha(1.0)
-		this.holdTime = 0
-		this.casting = nil
-		this.channeling = 1
-		this.fadeOut = nil
-		this:Show()
+		self:SetMinMaxValues(self.startTime, self.endTime)
+		self:SetValue(self.endTime)
+		self:SetAlpha(1.0)
+		self.holdTime = 0
+		self.casting = nil
+		self.channeling = 1
+		self.fadeOut = nil
+		self:Show()
 		if barText and barText.format then
 			local out = barText.format
 			out = string.gsub(out, "$spell", name)
@@ -1293,69 +1293,69 @@ local function castevent()
 			parent:SetAlpha(1.0)
 		end
 	elseif event == "UNIT_SPELLCAST_CHANNEL_UPDATE" then
-		if this:IsShown() then
-			local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitChannelInfo(this.unit)
+		if self:IsShown() then
+			local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitChannelInfo(self.unit)
 			if not name then
-				this:Hide()
+				self:Hide()
 				if parent then parent:Hide() end
 				return
 			end
-			this.startTime = startTime / 1000
-			this.endTime = endTime / 1000
-			this.maxValue = this.startTime
-			this:SetMinMaxValues(this.startTime, this.endTime)
+			self.startTime = startTime / 1000
+			self.endTime = endTime / 1000
+			self.maxValue = self.startTime
+			self:SetMinMaxValues(self.startTime, self.endTime)
 		end
 	end
 end
 
-local function castupdate()
-	if this.casting and this:IsShown() then
+local function castupdate(self)
+	if self.casting and self:IsShown() then
 		local status = GetTime()
-		if status > this.maxValue then
-			status = this.maxValue
+		if status > self.maxValue then
+			status = self.maxValue
 		end
-		if status == this.maxValue then
-			this:SetValue(this.maxValue)
-			this:SetStatusBarColor(0.0, 1.0, 0.0)
-			this.casting = nil
-			this.flash = 1
-			this.fadeOut = 1
+		if status == self.maxValue then
+			self:SetValue(self.maxValue)
+			self:SetStatusBarColor(0.0, 1.0, 0.0)
+			self.casting = nil
+			self.flash = 1
+			self.fadeOut = 1
 			return
 		end
-		this:SetValue(status)
-		local cast = _G[this:GetName().."time"]
+		self:SetValue(status)
+		local cast = _G[self:GetName().."time"]
 		if cast then
-			cast:SetText(string.format("(%.1fs)", this.maxValue - status))
+			cast:SetText(string.format("(%.1fs)", self.maxValue - status))
 		end
-	elseif this.channeling then
+	elseif self.channeling then
 		local time = GetTime()
-		if time > this.endTime then
-			time = this.endTime
+		if time > self.endTime then
+			time = self.endTime
 		end
-		if time == this.endTime then
-			this:SetStatusBarColor(0.0, 1.0, 0.0)
-			this.channeling = nil
-			this.flash = 1
-			this.fadeOut = 1
+		if time == self.endTime then
+			self:SetStatusBarColor(0.0, 1.0, 0.0)
+			self.channeling = nil
+			self.flash = 1
+			self.fadeOut = 1
 			return
 		end
-		local barValue = this.startTime + (this.endTime - time)
-		this:SetValue(barValue)
-		local cast = _G[this:GetName().."time"]
+		local barValue = self.startTime + (self.endTime - time)
+		self:SetValue(barValue)
+		local cast = _G[self:GetName().."time"]
 		if cast then
-			cast:SetText(string.format("(%.1fs)", this.endTime - time))
+			cast:SetText(string.format("(%.1fs)", self.endTime - time))
 		end
-	elseif GetTime() < this.holdTime then
+	elseif GetTime() < self.holdTime then
 		return
-	elseif this.fadeOut then
-		local parent = this.parent
-		local alpha = this:GetAlpha() - CASTING_BAR_ALPHA_STEP
+	elseif self.fadeOut then
+		local parent = self.parent
+		local alpha = self:GetAlpha() - CASTING_BAR_ALPHA_STEP
 		if alpha > 0 then
-			this:SetAlpha(alpha)
+			self:SetAlpha(alpha)
 			if parent then parent:SetAlpha(alpha) end
 		else
-			this.fadeOut = nil
-			this:Hide()
+			self.fadeOut = nil
+			self:Hide()
 			if parent then parent:Hide() end
 		end
 	end
@@ -1737,24 +1737,24 @@ local function cooldowntext(frame)
 	end
 end
 
-local function aurafade(...)
+local function aurafade(self, ...)
 	local e = select(2, ...)
-	this.update = this.update + e
-	if this.update > 0.04 then
+	self.update = self.update + e
+	if self.update > 0.04 then
 		local now = GetTime()
 		local frame, texture, p
-		if now - this.flashtime > 0.3 then
-			this.flashdct = this.flashdct * (-1)
-			this.flashtime = now
+		if now - self.flashtime > 0.3 then
+			self.flashdct = self.flashdct * (-1)
+			self.flashtime = now
 		end
 
-		if this.flashdct == 1 then
-			p = (1 - (now - this.flashtime + 0.001) / 0.3 * 0.7)
+		if self.flashdct == 1 then
+			p = (1 - (now - self.flashtime + 0.001) / 0.3 * 0.7)
 		else
-			p = ( (now - this.flashtime + 0.001) / 0.3 * 0.7 + 0.3)
+			p = ( (now - self.flashtime + 0.001) / 0.3 * 0.7 + 0.3)
 		end
-		this:SetAlpha(p)
-		this.update = 0
+		self:SetAlpha(p)
+		self.update = 0
 	end
 	cooldowntext(...)
 end
@@ -2137,17 +2137,17 @@ function Nurfed:unitimbue(frame)
 		frame:RegisterForDrag("LeftButton")
 		frame:SetMovable(true)
 		frame:EnableMouseWheel(true)
-		frame:SetScript("OnDragStart", function() if not NRF_LOCKED then this:StartMoving() end end)
-		frame:SetScript("OnDragStop", function() NURFED_FRAMES.frames[this:GetName()].Point = { this:GetPoint() } this:StopMovingOrSizing() end)
-		frame:SetScript("OnMouseWheel", function()
+		frame:SetScript("OnDragStart", function(self) if not NRF_LOCKED then self:StartMoving() end end)
+		frame:SetScript("OnDragStop", function(self) NURFED_FRAMES.frames[self:GetName()].Point = { self:GetPoint() } self:StopMovingOrSizing() end)
+		frame:SetScript("OnMouseWheel", function(self)
 				if not NRF_LOCKED then
-					local scale = this:GetScale()
+					local scale = self:GetScale()
 					if arg1 > 0 and scale < 3 then
-						this:SetScale(scale + 0.1)
+						self:SetScale(scale + 0.1)
 					elseif arg1 < 0 and scale > 0.25 then
-						this:SetScale(scale - 0.1)
+						self:SetScale(scale - 0.1)
 					end
-					NURFED_FRAMES.frames[this:GetName()].Scale = this:GetScale()
+					NURFED_FRAMES.frames[self:GetName()].Scale = self:GetScale()
 				end
 			end)
 	end
@@ -2345,9 +2345,9 @@ function Nurfed:unitimbue(frame)
 					child:RegisterEvent("PARTY_MEMBERS_CHANGED")
 				end
 				child.unit = frame.unit
-				child:SetScript("OnEvent", function() if event == "DISPLAY_SIZE_CHANGED" then this:RefreshUnit() else this:SetUnit(this.unit) end end)
+				child:SetScript("OnEvent", function(self) if event == "DISPLAY_SIZE_CHANGED" then self:RefreshUnit() else self:SetUnit(self.unit) end end)
 				if not child.full then
-					child:SetScript("OnUpdate", function() this:SetCamera(0) end)
+					child:SetScript("OnUpdate", function(self) self:SetCamera(0) end)
 				end
 			elseif objtype == "MessageFrame" then
 				regstatus("feedback", child)

@@ -37,46 +37,45 @@ local function onenter(self)
   GameTooltip:Show()
 end
 
-local function onclick(button)
-  if button == "LeftButton" then
-    NRF_LOCKED = this:GetChecked()
-    local icon = _G[this:GetName().."icon"]
-    if NRF_LOCKED then
-      icon:SetTexture(NRF_IMG.."locked")
-    else
-      icon:SetTexture(NRF_IMG.."unlocked")
-    end
-    PlaySound("igMainMenuOption")
-    onenter()
-    Nurfed:sendevent("NURFED_LOCK")
-  else
-    this:SetChecked(NRF_LOCKED)
-	if button == "RightButton" then
-		Nurfed_ToggleOptions()
-	else
-		--[[
-		local drop = Nurfed_LockButtondropdown
-		local info = {}
-		if not drop.initialize then
-		  drop.displayMode = "MENU"
-		  drop.initialize = function()
-			info.text = "WoW Menu"
-			info.isTitle = 1
-			info.notCheckable = 1
-			UIDropDownMenu_AddButton(info)
-			info = {}
-
-			for _, v in ipairs(wowmenu) do
-			  info.text = v[1]
-			  info.func = v[2]
-			  info.notCheckable = 1
-			  UIDropDownMenu_AddButton(info)
-			end
-		  end
+local function onclick(self, button)
+	if button == "LeftButton" then
+		NRF_LOCKED = self:GetChecked()
+		local icon = _G[self:GetName().."icon"]
+		if NRF_LOCKED then
+			icon:SetTexture(NRF_IMG.."locked")
+		else
+			icon:SetTexture(NRF_IMG.."unlocked")
 		end
-		ToggleDropDownMenu(1, nil, drop, "cursor")]]
-	  end
-	 end
+		PlaySound("igMainMenuOption")
+		onenter(self)
+		Nurfed:sendevent("NURFED_LOCK")
+	else
+		self:SetChecked(NRF_LOCKED)
+		if button == "RightButton" then
+			Nurfed_ToggleOptions()
+		else
+			local drop = Nurfed_LockButtondropdown
+			local info = {}
+			if not drop.initialize then
+				drop.displayMode = "MENU"
+				drop.initialize = function()
+					info.text = "WoW Menu"
+					info.isTitle = 1
+					info.notCheckable = 1
+					UIDropDownMenu_AddButton(info)
+					info = {}
+
+					for _, v in ipairs(wowmenu) do
+						info.text = v[1]
+						info.func = v[2]
+						info.notCheckable = 1
+						UIDropDownMenu_AddButton(info)
+					end
+				end
+			end
+			ToggleDropDownMenu(1, nil, drop, "cursor")
+		end
+	end
 end
 
 local function onupdate(self)
@@ -305,7 +304,7 @@ Nurfed:create("Nurfed_LockButton", {
   },
   OnEvent = onevent,
   OnEnter = onenter,
-  OnClick = function() onclick(arg1) end,
+  OnClick = function(self, arg1) onclick(self, arg1) end,
   OnLeave = function() GameTooltip:Hide() end,
   OnDragStart = function(self)
     self.isMoving = true
@@ -411,7 +410,7 @@ function nrf_togglechat()
       down:Hide()
       bottom:Hide()
       if i == 1 then ChatFrameMenuButton:Hide() end
-      chatframe:SetScript("OnShow", function() SetChatWindowShown(this, 1) end)
+      chatframe:SetScript("OnShow", function(self) SetChatWindowShown(i, 1) end)
     else
       up:Show()
       down:Show()

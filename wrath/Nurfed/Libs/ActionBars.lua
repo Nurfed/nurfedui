@@ -624,15 +624,15 @@ hooksecurefunc("UIParent_ManageFramePositions", function()
 
 ----------------------------------------------------------------
 -- Add cooldown text
-local function updatecooling(this, start, duration, enable)
-  if not this:GetName() or not this.text then return end
+local function updatecooling(self, start, duration, enable)
+  if not self:GetName() or not self.text then return end
   if start > 2 and duration > 2 then
-    this.cool = true
-    this.start = start
-    this.duration = duration
+    self.cool = true
+    self.start = start
+    self.duration = duration
   else
-    this.cool = nil
-    this.text:SetText(nil)
+    self.cool = nil
+    self.text:SetText(nil)
   end
 end
 

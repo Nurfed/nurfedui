@@ -114,7 +114,7 @@ end
 
 function util:print(msg, out, r, g, b)
   out = _G["ChatFrame"..(out or 1)]
-  out:AddMessage(msg, (r or 1), (g or 1), (b or 1))
+  out:AddMessage(tostring(msg), (r or 1), (g or 1), (b or 1))
 end
 
 function util:rgbhex(r, g, b)
@@ -956,7 +956,6 @@ end
 util:regevent("CHAT_MSG_ADDON", addonmsg)
 Nurfed:setver("$Date$")
 Nurfed:setrev("$Rev$")
-
 
 function debug(...)
 	local frame = ChatFrame3 or ChatFrame2
