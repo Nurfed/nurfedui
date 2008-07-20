@@ -7,7 +7,9 @@ local invite
 local pingflood = {}
 local afkstring = Nurfed:formatgs(RAID_MEMBERS_AFK, true)
 local ingroup = Nurfed:formatgs(ERR_ALREADY_IN_GROUP_S, true)
-
+local dnsLst = {
+	["Illidari Lord Balthas' Instructions"] = true,
+}
 -- Default Options
 NURFED_SAVED = NURFED_SAVED or {}
 
@@ -138,15 +140,27 @@ function nrfrepair()
 		end
 		if sold then
 			if soldNum == 1 then
-				Nurfed:print("|cffffffffSold: |r"..soldNum.."|cffffffffItem: |r"..soldItems)
+				Nurfed:print("|cffffffffSold |r"..soldNum.." |cffffffffItem: |r"..soldItems)
 			else
-				Nurfed:print("|cffffffffSold: |r"..soldNum.."|cffffffffItems: |r"..soldItems)
+				Nurfed:print("|cffffffffSold |r"..soldNum.." |cffffffffItems: |r"..soldItems)
 			end
-			local money = GetMoney() - startMoney
-			local gold = math.floor(money / (COPPER_PER_SILVER * SILVER_PER_GOLD))
-			local silver = math.floor((money - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
-			local copper = math.fmod(money, COPPER_PER_SILVER)
-			Nurfed:print("|cffffffffReceived|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cfffffffffrom selling trash loot.|r")
+			local timer = 1
+			Nurfed_LockButton:SetScript("OnUpdate", function()
+				timer=timer+1
+				if timer >= 45 then
+					local money = GetMoney() - startMoney
+					if money == 0 then 
+						timer = 0
+						return
+					end
+
+					local gold = math.floor(money / (COPPER_PER_SILVER * SILVER_PER_GOLD))
+					local silver = math.floor((money - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
+					local copper = math.fmod(money, COPPER_PER_SILVER)
+					Nurfed:print("|cffffffffReceived|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cfffffffffrom selling trash loot.|r")
+					Nurfed_LockButton:SetScript("OnUpdate", nil)
+				end
+			end)
 		end
 	end
 end
