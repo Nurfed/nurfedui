@@ -6,6 +6,8 @@
 
 Defaults.lua
 Libs\Core.lua
+Locales\Locales.xml
+
 Libs\Units.lua
 Libs\ActionBars.lua
 

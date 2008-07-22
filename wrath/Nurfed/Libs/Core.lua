@@ -49,69 +49,6 @@ end
 
 ----------------------------------------------------------------
 -- Utility functions
-local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver
--- no opt = Core, 1 = Options, 2 = Arena
-function util:setver(ver, opt)
-	ver = ver:gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1")
-	ver = ver:match("-%d%d"):gsub("-", "").."."..ver:match("-%d%d", 6):gsub("-", "").."."..ver:match("%d%d%d%d")
-	if opt then
-		if opt == 1 then
-			if not nrfo_ver or ver > nrfo_ver then
-				nrfo_ver = ver
-			end
-		elseif opt == 2 then
-			if not nrfa_ver or ver > nrfa_ver then
-				nrfa_ver = ver
-			end
-		end
-	else
-		if not nrf_ver or ver > nrf_ver then
-			nrf_ver = ver
-		end
-	end
-end
-
-function util:getver(opt)
-	if opt then
-		if opt == 1 then
-			return nrfo_ver or "Not Installed"
-		elseif opt == 2 then
-			return nrfa_ver or "Not Installed"
-		end
-	end
-	return nrf_ver or "Unknown"
-end
-
-function util:setrev(rev, opt)
-	rev = rev:gsub("%$", ""):gsub("%s$", "", 1)
-	if opt then
-		if opt == 1 then
-			if not nrfo_rev or rev > nrfo_rev then
-				nrfo_rev = rev
-			end
-		elseif opt == 2 then
-			if not nrfa_rev or rev > nrfa_rev then
-				nrfa_rev = rev
-			end
-		end
-	else
-		if not nrf_rev or rev > nrf_rev then
-			nrf_rev = rev
-		end
-	end
-end
-
-function util:getrev(opt)
-	if opt then
-		if opt == 1 then
-			return nrfo_rev or ""
-		elseif opt == 2 then
-			return nrfa_rev or ""
-		end
-	end
-	return nrf_rev or ""
-end
-
 function util:print(msg, out, r, g, b)
   out = _G["ChatFrame"..(out or 1)]
   out:AddMessage(tostring(msg), (r or 1), (g or 1), (b or 1))
@@ -929,6 +866,7 @@ end
 
 util:addslash(Nurfed_ToggleOptions, "/nurfed")
 util:addslash(ReloadUI, "/rl")
+--- used by Apoco in beta, remove before final push
 util:addslash(function() 
 		Swatter.Error:Hide()
 		SwatterData.errors = {}
@@ -953,10 +891,81 @@ local addonmsg = function(event, ...)
   end
 end
 
+----------------------------------------------------------------
+-- Addon versioning system 
+-- TODO: Find a better way to track this, ie: fix the svn to update the toc file anytime a commit is made
+do
+	local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver
+	-- no opt = Core, 1 = Options, 2 = Arena
+	function util:setver(ver, opt)
+		ver = ver:gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1")
+		ver = ver:match("-%d%d"):gsub("-", "").."."..ver:match("-%d%d", 6):gsub("-", "").."."..ver:match("%d%d%d%d")
+		if opt then
+			if opt == 1 then
+				if not nrfo_ver or ver > nrfo_ver then
+					nrfo_ver = ver
+				end
+			elseif opt == 2 then
+				if not nrfa_ver or ver > nrfa_ver then
+					nrfa_ver = ver
+				end
+			end
+		else
+			if not nrf_ver or ver > nrf_ver then
+				nrf_ver = ver
+			end
+		end
+	end
+
+	function util:getver(opt)
+		if opt then
+			if opt == 1 then
+				return nrfo_ver or "Not Installed"
+			elseif opt == 2 then
+				return nrfa_ver or "Not Installed"
+			end
+		end
+		return nrf_ver or "Unknown"
+	end
+
+	function util:setrev(rev, opt)
+		rev = rev:gsub("%$", ""):gsub("%s$", "", 1)
+		rev = tonumber(rev)
+		if opt then
+			if opt == 1 then
+				if not nrfo_rev or rev > nrfo_rev then
+					nrfo_rev = rev
+				end
+			elseif opt == 2 then
+				if not nrfa_rev or rev > nrfa_rev then
+					nrfa_rev = rev
+				end
+			end
+		else
+			if not nrf_rev or rev > nrf_rev then
+				nrf_rev = rev
+			end
+		end
+	end
+
+	function util:getrev(opt)
+		if opt then
+			if opt == 1 then
+				return nrfo_rev or 0
+			elseif opt == 2 then
+				return nrfa_rev or 0
+			end
+		end
+		return nrf_rev or 0
+	end
+end
+
 util:regevent("CHAT_MSG_ADDON", addonmsg)
 Nurfed:setver("$Date$")
 Nurfed:setrev("$Rev$")
 
+-- debug function I jacked from my RBM mod.  <3
+-- used by apoco for beta, remove before final push
 function debug(...)
 	local frame = ChatFrame3 or ChatFrame2
 	if AceLibrary and AceLibrary:HasInstance("AceConsole-2.0") then

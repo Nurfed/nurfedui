@@ -1,0 +1,20 @@
+Nurfed:RegisterTranslations("enUS",
+	"|cffffffffSold |r%d |cffffffffItem: |r%s", true,
+	"|cffffffffSold |r%d |cffffffffItems: |r%s", true,
+	"|cffffffffReceived|r |c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cfffffffffrom selling trash loot.|r", true,
+	"Drop group and resend '%s'", true,
+	"Pary Full", true,
+	" Ping.", true, -- notice the prespace
+	"|cffffffffSpent|r |c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cffffffffOn Repairs.|r", true,
+	"|cffffffffSpent|r |c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cffffffffOn Repairs (Guild).|r", true,
+	"Reload UI", true,
+	"Reload User Interface?", true,
+	"|cffbbccddNurfed Version:|r %s(%d)\r|cffaabbccConfig Version:|r %s(%d)\r|cffccddeeArena Version:|r %s(%d)", true,
+	"This is the main Nurfed options menu, please select a subcategory to change options.", true,
+	"Frame Editor", true,
+	"Left Click - |cffff0000Unlock|r UI", true,
+	"Left Click - |cff00ff00Lock|r UI", true,
+	"Right Click - Nurfed Menu", true,
+	"Middle Click - WoW Micro Menu", true,
+	"Ctrl + Drag moves your Action Bars.", true
+)
