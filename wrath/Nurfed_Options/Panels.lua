@@ -1,5 +1,6 @@
 ------------------------------------------
 -- Option Menu Panels
+local L = Nurfed:GetTranslations()
 local hptype = { "class", "fade", "script", "pitbull" }
 local mptype = { "normal", "class", "fade", "pitbull" }
 local auras = { "all", "curable", "yours" }
@@ -312,14 +313,14 @@ do
 			end
 		end
 
-		local out = "Nurfed Layout: |cffff0000Imported|r"
+		local out = L["Nurfed Layout: |cffff0000Imported|r"]
 
 		if Nurfed_UnitsLayout.Name then
 			out = out.." "..Nurfed_UnitsLayout.Name
 		end
 
 		if Nurfed_UnitsLayout.Author then
-			out = out.." designed by "..Nurfed_UnitsLayout.Author
+			out = out..L[" designed by "]..Nurfed_UnitsLayout.Author
 		end
 
 		Nurfed:print(out, 1, 0, 0.75, 1)
@@ -443,48 +444,48 @@ end
 local panels = {
   -- Chat Panel
   {
-	name = "Chat",
-	subtext = "Options that affect the appearance of chat messages and alerts sent to the chat frames.",
+	name = L["Chat"],
+	subtext = L["Options that affect the appearance of chat messages and alerts sent to the chat frames."],
 	menu = {
 		check1 = {
 			template = "nrf_check",
 			Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, -8 },
-			vars = { text = NRF_PINGWARNING, option = "ping" },
+			vars = { text = L["Ping Warning"], option = "ping" },
 		},
 		check2 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck1", "BOTTOMLEFT", 0, -8 },
-			vars = { text = NRF_CHATTIMESTAMPS, option = "timestamps" },
+			vars = { text = L["Chat Timestamps"], option = "timestamps" },
 		},
 		check3 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck2", "BOTTOMLEFT", 0, -8 },
-			vars = { text = NRF_RAIDGROUP, option = "raidgroup" },
+			vars = { text = L["Show Raid Group"], option = "raidgroup" },
 		},
 		check4 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck3", "BOTTOMLEFT", 0, -8 },
-			vars = { text = NRF_RAIDCLASS, option = "raidclass" },
+			vars = { text = L["Show Raid Class"], option = "raidclass" },
 		},
 		check5 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck4", "BOTTOMLEFT", 0, -8 },
-			vars = { text = NRF_CHATBUTTONS, option = "chatbuttons", func = function() nrf_togglechat() end },
+			vars = { text = L["Hide Chat Buttons"], option = "chatbuttons", func = function() nrf_togglechat() end },
 		},
 		check6 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck5", "BOTTOMLEFT", 0, -8 },
-			vars = { text = NRF_CHATPREFIX, option = "chatprefix" },
+			vars = { text = L["Show Chat Prefix"], option = "chatprefix" },
 		},
 		check7 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck6", "BOTTOMLEFT", 0, -8 },
-			vars = { text = "Show Number Prefix Text", option = "numchatprefix" },
+			vars = { text = L["Show Number Prefix Text"], option = "numchatprefix" },
 		},
 		check8 = {
 			template = "nrf_check",
 			Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 0, -8 },
-			vars = { text = NRF_CHATFADE, option = "chatfade", func = function() nrf_togglechat()
+			vars = { text = L["Chat Text Fade"], option = "chatfade", func = function() nrf_togglechat()
 				-- Note to Tivs:
 				-- I need a disabled = boolean(or function that returns boolean) option in vars
 				-- to be able to alpha / enablemouse for options that are no longer relevant based on other options
@@ -514,7 +515,7 @@ local panels = {
 			template = "nrf_slider",
 			Anchor = { "TOPRIGHT", "$parentcheck8", "BOTTOMRIGHT", 0, -24 },
 			vars = {
-				text = NRF_CHATFADETIME,
+				text = L["Chat Text Fade Time"],
 				option = "chatfadetime",
 				low = 0,
 				high = 250,
@@ -547,14 +548,14 @@ local panels = {
 		input1 = {
 			template = "nrf_editbox",
 			Anchor = { "TOPRIGHT", "$parentslider1", "BOTTOMRIGHT", 0, -32 },
-			vars = { text = NRF_TIMESTAMP, option = "timestampsformat" },
+			vars = { text = L["Timestamp Format"], option = "timestampsformat" },
 		},
 	},
 },
   -- General Panel
   {
-    name = "General",
-    subtext = "General options for Nurfed that affect default UI elements and appearance.",
+    name = GENERAL,
+    subtext = L["General options for Nurfed that affect default UI elements and appearance."],
     menu = {
 		scroll = {
 			template = "nrf_scroll",
@@ -579,38 +580,38 @@ local panels = {
 		check1 = {
 			template = "nrf_check",
 			Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, -8 },
-			vars = { text = NRF_UNTRAINABLE, option = "traineravailable", page = 1 },
+			vars = { text = L["Hide Untrainable Skills"], option = "traineravailable", page = 1 },
 		},
 		check2 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck1", "BOTTOMLEFT", 0, -8 },
-			vars = { text = NRF_AUTOINVITE, option = "autoinvite", page = 1 },
+			vars = { text = L["Auto Invite"], option = "autoinvite", page = 1 },
 		},
 		check3 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck2", "BOTTOMLEFT", 0, -8 },
-			vars = { text = "Invite Reply", option = "invitetext", page = 1 },
+			vars = { text = L["Invite Reply"], option = "invitetext", page = 1 },
 		},
 		check4 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck3", "BOTTOMLEFT", 0, -8 },
-			vars = { text = "Square Minimap", option = "squareminimap", page = 1 },
+			vars = { text = L["Square Minimap"], option = "squareminimap", page = 1 },
 		},
 		check5 = {
 			template = "nrf_check",
 			Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 0, -8 },
-			vars = { text = NRF_AUTOREPAIR, option = "repair", page = 1 },
+			vars = { text = L["Auto Repair"], option = "repair", page = 1 },
 		},
 		check6 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck4", "BOTTOMLEFT", 0, -8 },
-			vars = { text = "Show Binding Text", option = "showbindings", func = function() Nurfed:sendevent("UPDATE_BINDINGS") end, page = 1 },
+			vars = { text = L["Show Binding Text"], option = "showbindings", func = function() Nurfed:sendevent("UPDATE_BINDINGS") end, page = 1 },
 		},
 		slider1 = {
 			template = "nrf_slider",
 			Anchor = { "TOPRIGHT", "$parentcheck5", "BOTTOMRIGHT", 0, -24 },
 			vars = {
-				text = NRF_REPAIRLIMIT,
+				text = L["Repair Gold Limit"],
 				option = "repairlimit",
 				low = 0,
 				high = 800,
@@ -625,69 +626,69 @@ local panels = {
 		input1 = {
 			template = "nrf_editbox",
 			Anchor = { "TOPLEFT", "$parentslider1", "BOTTOMLEFT", 0, -30 },
-			vars = { text = NRF_KEYWORD, option = "keyword", page = 1 },
+			vars = { text = L["Invite Keyword"], option = "keyword", page = 1 },
 		},
 		check7 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck6", "BOTTOMLEFT", 0, -15 },
-			vars = { text = "Disable Casting Bar", option = "hidecasting", right = true, func = function() nrf_togglcast() end, page = 1 },
+			vars = { text = L["Disable Casting Bar"], option = "hidecasting", right = true, func = function() nrf_togglcast() end, page = 1 },
 		},
 		check8 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck7", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Show Action Tooltips", option = "tooltips", right = true, page = 1 },
+			vars = { text = L["Show Action Tooltips"], option = "tooltips", right = true, page = 1 },
 		},
 		check9 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck8", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Fade In Actions", option = "fadein", right = true, page = 1 },
+			vars = { text = L["Fade In Actions"], option = "fadein", right = true, page = 1 },
 		},
 		check10 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck9", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Hide Main Bar", option = "hidemain", right = true, func = function() nrf_mainmenu() end, page = 1 },
+			vars = { text = L["Hide Main Bar"], option = "hidemain", right = true, func = function() nrf_mainmenu() end, page = 1 },
 		},
 		-- page 2
 		check11 = {
 			template = "nrf_check",
 			Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, -8 },
-			vars = { text = "Show Bags", option = "bagsshow", func = function() nrf_updatemainbar("bags") end, page = 2 },
+			vars = { text = L["Show Bags"], option = "bagsshow", func = function() nrf_updatemainbar("bags") end, page = 2 },
 		},
 		check12 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck11", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Vertical Bags", option = "bagsvert", func = function() nrf_updatemainbar("bags") end, page = 2 },
+			vars = { text = L["Vertical Bags"], option = "bagsvert", func = function() nrf_updatemainbar("bags") end, page = 2 },
 		},
 		check13 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck12", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Show Micro", option = "microshow", func = function() nrf_updatemainbar("micro") end, page = 2 },
+			vars = { text = L["Show Micro"], option = "microshow", func = function() nrf_updatemainbar("micro") end, page = 2 },
 		},
 		check14 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck13", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Show Stance", option = "stanceshow", func = function() nrf_updatemainbar("stance") end, page = 2 },
+			vars = { text = L["Show Stance"], option = "stanceshow", func = function() nrf_updatemainbar("stance") end, page = 2 },
 		},
 		check15 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck14", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Vertical Stance", option = "stancevert", func = function() nrf_updatemainbar("stance") end, page = 2 },
+			vars = { text = L["Vertical Stance"], option = "stancevert", func = function() nrf_updatemainbar("stance") end, page = 2 },
 		},
 		check16 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck15", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Show Pet Bar", option = "petbarshow", func = function() nrf_updatemainbar("petbar") end, page = 2 },
+			vars = { text = L["Show Pet Bar"], option = "petbarshow", func = function() nrf_updatemainbar("petbar") end, page = 2 },
 		},
 		check17 = {
 			template = "nrf_check",
 			Anchor = { "TOPLEFT", "$parentcheck16", "BOTTOMLEFT", 0, -2 },
-			vars = { text = "Vertical Pet Bar", option = "petbarvert", func = function() nrf_updatemainbar("petbar") end, page = 2 },
+			vars = { text = L["Vertical Pet Bar"], option = "petbarvert", func = function() nrf_updatemainbar("petbar") end, page = 2 },
 		},
 		slider2 = {
 			template = "nrf_slider",
 			Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 0, -10 },
 			vars = {
-				text = "Bags Scale",
+				text = L["Bags Scale"],
 				option = "bagsscale",
 				low = "25%",
 				high = "100%",
@@ -705,7 +706,7 @@ local panels = {
 			template = "nrf_slider",
 			Anchor = { "TOP", "$parentslider2", "BOTTOM", 0, -30 },
 			vars = {
-				text = "Micro Scale",
+				text = L["Micro Scale"],
 				option = "microscale",
 				low = "25%",
 				high = "100%",
@@ -723,7 +724,7 @@ local panels = {
 			template = "nrf_slider",
 			Anchor = { "TOP", "$parentslider3", "BOTTOM", 0, -30 },
 			vars = {
-				text = "Stance Scale",
+				text = L["Stance Scale"],
 				option = "stancescale",
 				low = "25%",
 				high = "100%",
@@ -741,7 +742,7 @@ local panels = {
 			template = "nrf_slider",
 			Anchor = { "TOP", "$parentslider4", "BOTTOM", 0, -30 },
 			vars = {
-				text = "Pet Bar Scale",
+				text = L["Pet Bar Scale"],
 				option = "petbarscale",
 				low = "25%",
 				high = "100%",
@@ -759,7 +760,7 @@ local panels = {
 			template = "nrf_slider",
 			Anchor = { "TOP", "$parentslider5", "BOTTOM", 0, -30 },
 			vars = {
-				text = "Pet Offset",
+				text = L["Pet Bar Offset"],
 				option = "petbaroffset",
 				low = -20,
 				high = 20,
@@ -1226,23 +1227,23 @@ local panels = {
 			
   -- Units Panel
   {
-	name = "Units",
-	subtext = "Options that effect the unit frames created by Nurfed.",
+	name = L["Units"],
+	subtext = L["Options that effect the unit frames created by Nurfed."],
 	menu = {
 		check1 = {
 			template = "nrf_check",
 			Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, 10 },
-			vars = { text = "Aura Cooldowns", option = "cdaura" },
+			vars = { text = L["Aura Cooldowns"], option = "cdaura" },
 		},
 		check2 = {
 			template = "nrf_check",
 			Point = { "TOPLEFT", "$parentcheck1", "BOTTOMLEFT", 0, 0 },
-			vars = { text = "Color Mana Background", option = "changempbg" },
+			vars = { text = L["Color Mana Background"], option = "changempbg" },
 		},
 		check3 = {
 			template = "nrf_check",
 			Point = { "TOPLEFT", "$parentcheck2", "BOTTOMLEFT", 0, 0 },
-			vars = { text = "Color Health Background", option = "changehpbg" },
+			vars = { text = L["Color Health Background"], option = "changehpbg" },
 		},
 		swatch1 = {
 			template = "nrf_color",
@@ -1272,14 +1273,14 @@ local panels = {
 		button1 = {
 			template = "nrf_optbutton",
 			Anchor = { "TOPLEFT", "$parentswatch3", "BOTTOMLEFT", 55, -5 },
-			OnClick = function() Nurfed_DropMenu(mptype) end,
-			vars = { text = "MP Color", option = "mpcolor", func = setmp },
+			OnClick = function(self) Nurfed_DropMenu(self, mptype) end,
+			vars = { text = L["MP Color"], option = "mpcolor", func = setmp },
 		},
 		button2 = {
 			template = "nrf_optbutton",
-			Anchor = { "TOPLEFT", "$parentbutton1", "TOPRIGHT", 55, 0 },
-			OnClick = function() Nurfed_DropMenu(hptype) end,
-			vars = { text = "HP Color", option = "hpcolor", func = sethp },
+			Anchor = { "LEFT", "$parentbutton1", "RIGHT", 55, 0 },
+			OnClick = function(self) Nurfed_DropMenu(self, hptype) end,
+			vars = { text = L["HP Color"], option = "hpcolor", func = sethp },
 		},
 		hpscript = {
 			template = "nrf_multiedit",
@@ -1300,8 +1301,8 @@ local panels = {
 
 -- Frames Panel
 	{ 
-		name = "Frames",
-		subtext = "Frames menu options",
+		name = L["Frames"],
+		subtext = L["Frames menu options"],
 		menu = {
 			List = {
 				type = "Frame",
@@ -1310,18 +1311,18 @@ local panels = {
 				children = {
 					import = {
 						template = "nrf_button",
-						Text = "Import",
+						Text = L["Import"],
 						Point = { "BOTTOMRIGHT", -3, 3 },
 						OnClick = import,
 					},
 					export = {
 						template = "nrf_button",
-						Text = "Export Layout",
+						Text = L["Export Layout"],
 						Point = { "RIGHT", "$parentimport", "LEFT", -3, 0 },
 						OnClick = function()
 							NURFED_LAYOUT = Nurfed:copytable(NURFED_FRAMES)
 							NURFED_LAYOUT.Author = UnitName("player")
-							Nurfed:print("Nurfed Layout: |cffff0000Exported|r", 1, 0, 0.75, 1)
+							Nurfed:print(L["Nurfed Layout: |cffff0000Exported|r"], 1, 0, 0.75, 1)
 						end,
 					},
 					accept = {
@@ -1332,7 +1333,7 @@ local panels = {
 					},
 					send = {
 						template = "nrf_button",
-						Text = "Send Layout",
+						Text = L["Send Layout"],
 						Point = { "RIGHT", "$parentaccept", "LEFT", -3, 0 },
 						OnClick = function(self)
 							Nurfed_MenuFramessendname:ClearFocus()
@@ -1340,7 +1341,7 @@ local panels = {
 							sendname = string.lower(sendname)
 							sendname = string.capital(sendname)
 							if sendname ~= UnitName("player") and checkonline() then
-								Nurfed:print("Nurfed Layout: |cffff0000Send|r "..sendname, 1, 0, 0.75, 1)
+								Nurfed:print(L["Nurfed Layout: |cffff0000Send|r %s"]:format(sendname), 1, 0, 0.75, 1)
 								SendAddonMessage("Nurfed:Lyt", "send", "WHISPER", sendname)
 							end
 						end,
@@ -1410,8 +1411,8 @@ local panels = {
 
   -- AddOns Panel
   {
-    name = "AddOns",
-    subtext = "Disable/Enable installed AddOns.",
+    name = L["AddOns"],
+    subtext = L["Disable/Enable installed AddOns."],
     menu = {
       List = {
         type = "Frame",
@@ -1434,8 +1435,8 @@ local panels = {
 
   -- Bindings Panel
   {
-    name = "Bindings",
-    subtext = "Direct spell, macro, item Bindings and Nurfed Button bindings.\nRight Click to select Rank, Select and Repeat Bind to Unbind.",
+    name = L["Bindings"],
+    subtext = L["Direct spell, macro, item Bindings and Nurfed Button bindings.\nRight Click to select Rank, Select and Repeat Bind to Unbind."],
     menu = {
       List = {
         type = "Frame",
@@ -1458,31 +1459,31 @@ local panels = {
   },
   -- arena panel
   {
-  	name = "Arena",
-	subtext = "Options that affect Nurfed Arena",
+  	name = ARENA,
+	subtext = L["Options that affect Nurfed Arena"],
 	addon = "Nurfed_Arena",
 	menu = {
 		input1 = {
 			template = "nrf_editbox",
 			Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", 0, 0 },
-			vars = { text = "2's Assist", option = "arenaassist2" },
+			vars = { text = L["2's Assist"], option = "arenaassist2" },
 		},
 		input2 = {
 			template = "nrf_editbox",
 			Anchor = { "TOPRIGHT", "$parentinput1", "BOTTOMRIGHT", 0, -15 },
-			vars = { text = "3's Assist", option = "arenaassist3" },
+			vars = { text = L["3's Assist"], option = "arenaassist3" },
 		},
 		input3 = {
 			template = "nrf_editbox",
 			Anchor = { "TOPRIGHT", "$parentinput2", "BOTTOMRIGHT", 0, -15 },
-			vars = { text = "5's Assist", option = "arenaassist5" },
+			vars = { text = L["5's Assist"], option = "arenaassist5" },
 		},
 
 		slider1 = {
 			template = "nrf_slider",
 			Anchor = { "TOPLEFT", "$parentinput1", "TOPRIGHT", 15, 0 },
 			vars = {
-				text = "Frame Scale",
+				text = L["Frame Scale"],
 				option = "arenascale",
 				low = 0.25,
 				high = 3,
@@ -1498,13 +1499,13 @@ local panels = {
 			template = "nrf_multiedit",
 			size = { 165, 80 },
 			Point = { "BOTTOMLEFT", 5, 5 },
-			vars = { text = "Left Click", option = "arenamacro1", ltrs = 255 },
+			vars = { text = L["Left Click"], option = "arenamacro1", ltrs = 255 },
 		},
 		macro2 = {
 			template = "nrf_multiedit",
 			size = { 165, 80 },
 			Point = { "BOTTOMRIGHT", -27, 5 },
-			vars = { text = "Right Click", option = "arenamacro2", ltrs = 255 },
+			vars = { text = L["Right Click"], option = "arenamacro2", ltrs = 255 },
 		},
 	},
  },
@@ -1720,9 +1721,10 @@ function nrf_test(num)
 		else
 			onenum = onenum + 1
 		end
-		string = string..","..tostring(ran)
+		string = string..","..ran
 		i = i + 1
 	end
+	string = string:tostring()
 	Nurfed:print("string:"..string)
 	if zeronum > onenum then
 		Nurfed:print("|cff00ff00Zero#:"..zeronum.."|r   One#:"..onenum)

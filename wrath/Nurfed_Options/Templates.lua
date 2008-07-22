@@ -1,4 +1,6 @@
 local saveopt, onshow
+local L = Nurfed:GetTranslations()
+
 ------------------------------------------
 -- Option Menu Templates
 -- Slider value text
@@ -10,16 +12,16 @@ end
 do	-- keep local dropmenu local...rofl?
 	local dropmenu = CreateFrame("Frame")
 	dropmenu.displayMode = "MENU"
-	function Nurfed_DropMenu(tbl)
+	function Nurfed_DropMenu(self, tbl)
 		local info = {}
-		local btn = this
+		local btn = self
 		local func
 		if btn.alt then
-			func = function() btn:SetText(this.value) btn.alt(btn) end
+			func = function() btn:SetText(self.value) btn.alt(btn) end
 		elseif btn:GetParent():GetObjectType() == "EditBox" then
-			func = function() btn:GetParent():SetText(this.value) end
+			func = function() btn:GetParent():SetText(self.value) end
 		else
-			func = function() btn:SetText(this.value) saveopt(btn) end
+			func = function() btn:SetText(self.value) saveopt(btn) end
 		end
 		dropmenu.initialize = function()
 			for _, v in ipairs(tbl) do
@@ -53,15 +55,17 @@ do	-- keep local dropmenu local...rofl?
 end
 -- Scroll menu
 function Nurfed_Options_ScrollMenu(self, val)
-	FauxScrollFrame_Update(self, self.pages, 1, 100)
-	local page = FauxScrollFrame_GetOffset(self) + 1
-	local children = { self:GetParent():GetChildren() }
-	for _, child in ipairs(children) do
-		if (not string.find(child:GetName(), "scroll", 1, true)) then
-			if child.page == page then
-				child:Show()
-			else
-				child:Hide()
+	if self then
+		FauxScrollFrame_Update(self, self.pages, 1, 100)
+		local page = FauxScrollFrame_GetOffset(self) + 1
+		local children = { self:GetParent():GetChildren() }
+		for _, child in ipairs(children) do
+			if (not string.find(child:GetName(), "scroll", 1, true)) then
+				if child.page == page then
+					child:Show()
+				else
+					child:Hide()
+				end
 			end
 		end
 	end
@@ -252,7 +256,10 @@ local templates = {
 		HighlightTextColor = { 0, 0.75, 1 },
 		DisabledTextColor = { 1, 0, 0 },
 		PushedTextOffset = { 1, -1 },
-		OnShow = function(self) self:SetWidth(self:GetTextWidth() + 12) self:SetScript("OnShow", nil) end,
+		OnShow = function(self) 
+			self:SetWidth(self:GetTextWidth() + 12) 
+			self:SetScript("OnShow", nil)
+		end,
 	},
 	nrf_slider = {
 		type = "Slider",
@@ -637,7 +644,9 @@ local templates = {
 				JustifyH = "LEFT",
 			},
 		},
-		OnShow = function(self) onshow(self) end,
+		OnShow = function(self) 
+			onshow(self)
+		end,
 	},
 }
 

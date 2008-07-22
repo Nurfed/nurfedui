@@ -6,6 +6,7 @@
 ## X-Website: http://www.nurfedui.net
 ## RequiredDeps: Nurfed
 
+Locales\Locales.xml
 Menus\AddOns.lua
 Menus\Bindings.lua
 
