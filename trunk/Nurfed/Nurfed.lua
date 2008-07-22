@@ -7,7 +7,9 @@ local invite
 local pingflood = {}
 local afkstring = Nurfed:formatgs(RAID_MEMBERS_AFK, true)
 local ingroup = Nurfed:formatgs(ERR_ALREADY_IN_GROUP_S, true)
-
+local dnsLst = {
+	["Illidari Lord Balthas' Instructions"] = true,
+}
 -- Default Options
 NURFED_SAVED = NURFED_SAVED or {}
 
@@ -102,8 +104,7 @@ local function onupdate(self)
 end
 
 function nrfrepair()
-    local repair = Nurfed:getopt("repair")
-    if repair then
+    if Nurfed:getopt("repair") then
       local limit = tonumber(Nurfed:getopt("repairlimit"))
       local money = tonumber(math.floor(GetMoney() / COPPER_PER_GOLD))
       if money >= limit then
@@ -122,6 +123,46 @@ function nrfrepair()
         end
       end
     end
+    if Nurfed:getopt("autosell") then
+		local soldNum, soldItems, sold, startMoney = 0, "", nil, GetMoney()
+		for bag=0,4,1 do
+			for slot=1, GetContainerNumSlots(bag), 1 do
+				if GetContainerItemLink(bag, slot) then
+					local name, link, rarity = GetItemInfo(GetContainerItemLink(bag, slot))
+						if name and rarity == 0 and (not dnsLst[name]) then
+						soldNum = soldNum + GetItemCount(link)
+						soldItems = soldItems == "" and link or soldItems..", "..link
+						UseContainerItem(bag, slot)
+						sold = true
+					end
+				end
+			end
+		end
+		if sold then
+			if soldNum == 1 then
+				Nurfed:print("|cffffffffSold |r"..soldNum.." |cffffffffItem: |r"..soldItems)
+			else
+				Nurfed:print("|cffffffffSold |r"..soldNum.." |cffffffffItems: |r"..soldItems)
+			end
+			local timer = 1
+			Nurfed_LockButton:SetScript("OnUpdate", function()
+				timer=timer+1
+				if timer >= 45 then
+					local money = GetMoney() - startMoney
+					if money == 0 then 
+						timer = 0
+						return
+					end
+
+					local gold = math.floor(money / (COPPER_PER_SILVER * SILVER_PER_GOLD))
+					local silver = math.floor((money - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
+					local copper = math.fmod(money, COPPER_PER_SILVER)
+					Nurfed:print("|cffffffffReceived|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cfffffffffrom selling trash loot.|r")
+					Nurfed_LockButton:SetScript("OnUpdate", nil)
+				end
+			end)
+		end
+	end
 end
 
 local function onevent()
@@ -166,12 +207,25 @@ local function onevent()
         end
       end
     end
+  elseif event == "PARTY_INVITE_REQUEST" and Nurfed:getopt("autojoingroup") then
+	GuildRoster()
+	local i, num = 0, GetNumGuildMembers()
+	while i <= num do
+		local name = GetGuildRosterInfo(i)
+		if name == arg1 then
+			AcceptGroup()
+			StaticPopup_Hide("PARTY_INVITE")
+			break
+		end
+		i = i + 1
+	end
+
   elseif event == "MERCHANT_SHOW" then
 	  nrfrepair() -- split this out into its own function for hooking purposes, atleast until auto-sell is implimented
 
   elseif event == "TRAINER_SHOW" then
-    local avail = Nurfed:getopt("traineravailable")
-    if avail then SetTrainerServiceTypeFilter("unavailable", 0) end
+    if Nurfed:getopt("traineravailable") then SetTrainerServiceTypeFilter("unavailable", 0) end
+    
   elseif event == "ADDON_LOADED" then
     if arg1 == "Blizzard_InspectUI" then
       InspectPaperDollFrame:SetScript("OnShow", Nurfed_InspectOnShow)
@@ -531,9 +585,6 @@ panel:SetScript("OnShow", function(self)
     local loaded, reason = LoadAddOn("Nurfed_Options")
     NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")")
     self:SetScript("OnShow", nil)
-    --[[panel:SetScript("OnShow", function()
-		NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")")
-	end)]]
 end)
 panel.name = "Nurfed"
 NurfedHeaderTitle:SetText("Nurfed")
