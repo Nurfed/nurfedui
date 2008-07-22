@@ -13,6 +13,7 @@ NURFED_DEFAULT["raidgroup"] = 1
 NURFED_DEFAULT["raidclass"] = 1
 NURFED_DEFAULT["repair"] = 1
 NURFED_DEFAULT["repairlimit"] = 20
+NURFED_DEFAULT["autosell"] = 1
 NURFED_DEFAULT["timestamps"] = 1
 NURFED_DEFAULT["timestampsformat"] = "[%I:%M:%S]"
 NURFED_DEFAULT["traineravailable"] = 1
