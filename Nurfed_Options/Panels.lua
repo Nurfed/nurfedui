@@ -647,6 +647,11 @@ local panels = {
 			Anchor = { "TOPLEFT", "$parentcheck9", "BOTTOMLEFT", 0, -2 },
 			vars = { text = "Hide Main Bar", option = "hidemain", right = true, func = function() nrf_mainmenu() end, page = 1 },
 		},
+		check18 = {
+			template = "nrf_check",
+			Anchors = { "TOPRIGHT", "$parentinput1", "BOTTOMRIGHT", -10, -15 },
+			vars = { text = "Auto Sell", option = "autosell", page = 1, },
+		},
 		-- page 2
 		check11 = {
 			template = "nrf_check",

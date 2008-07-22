@@ -144,6 +144,13 @@ onshow = function(self)
 		value:ClearAllPoints()
 		value:SetPoint("TOP", self, "BOTTOM", 0, 0)
 	end
+--[[	if self.textdir == "right" then
+		text:ClearAllPoints()
+		text:SetPoint("LEFT", self:GetName(), "RIGHT", 1, 1)
+	elseif self.textdir == "left" then
+		text:ClearAllPoints()
+		text:SetPoint("RIGHT", self:GetName(), "LEFT", -1, 1)
+	end]]
 
 	local opt
 	if self.option then
