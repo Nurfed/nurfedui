@@ -1,6 +1,14 @@
 ---------------------------------------------------------
 -- Nurfed CombatLog
-
+local bit.band = bit.band
+local eventLst = {
+	["SPELL_CAST_SUCCESS"] = true,
+	["SPELL_CAST_START"] = true,
+	["SPELL_AURA_APPLIED"] = true,
+}
+local SPELLCASTGOOTHER = SPELLCASTGOOTHER
+local AURAADDEDOTHERHELPFUL = AURAADDEDOTHERHELPFUL
+--[[
 -- event suffixes
 TEXT_MODE_A_STRING_VALUE_SCHOOL = ""
 TEXT_MODE_A_STRING_RESULT_RESISTED = "R"
@@ -175,8 +183,29 @@ ACTION_SWING_MISSED_PARRY_FULL_TEXT = "$source attack was parried by $dest."
 ACTION_SWING_MISSED_RESIST_FULL_TEXT = "$source attack was fully resisted by $dest."
 ACTION_UNIT_DESTROYED_FULL_TEXT = "$dest was destroyed."
 ACTION_UNIT_DIED_FULL_TEXT = "$dest died."
-
-local function onevent(event, ...)
+]]
+--function module:COMBAT_LOG_EVENT_UNFILTERED(_, _, event, sourceGUID, sourceName, sourceFlags, nameGUID, name, nameFlags, id, spellName, _, id2, spellName2)
+local function onevent(_, _, event, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, id, spellName, _, type, spellName2)
+	if not eventLst[event] then return end
+	if bit.band(srcFlags or dstFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) ~= 0 then
+		if event == "SPELL_CAST_SUCCESS" or event == "SPELL_CAST_START" then
+			Nurfed_SpellAlert:AddMessage(SPELLCASTGOOTHER:format(srcName, "|cff999999"..spellName.."|r"))
+		elseif event == "SPELL_AURA_APPLIED" and type == "BUFF" then
+			Nurfed_BuffAlert:AddMessage(AURAADDEDOTHERHELPFUL:format(dstName, "|cff00ff00"..spell.."|r"))
+		end
+		--[[local prefix, suffix = string.split("_", event, 2)
+		if prefix == "SPELL" then
+			if suffix == "CAST_START" or suffix == "CAST_SUCCESS" then
+				Nurfed_SpellAlert:AddMessage(SPELLCASTGOOTHER:format(srcName, "|cff999999"..spellName.."|r"))
+				
+			elseif suffix == "AURA_APPLIED" and id2 == "BUFF" then
+				Nurfed_BuffAlert:AddMessage(format(AURAADDEDOTHERHELPFUL, dstName, "|cff00ff00"..spell.."|r"))
+			end
+		end]]
+	end
+end
+--[[
+local function onevent(event, ...)			
   local timestamp, tevent, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags = select(1, ...)
   local flags = srcFlags or dstFlags
   if bit.band(flags, COMBATLOG_OBJECT_REACTION_HOSTILE) ~= 0 then
@@ -196,7 +225,7 @@ local function onevent(event, ...)
     end
   end
 end
-
+]]
 Nurfed:regevent("COMBAT_LOG_EVENT_UNFILTERED", onevent)
 
 CreateFrame("MessageFrame", "Nurfed_SpellAlert", UIParent)
