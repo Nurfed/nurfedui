@@ -14,6 +14,7 @@ local UnitMana = UnitMana
 local UnitManaMax = UnitManaMax
 local UnitDebuff = UnitDebuff
 local UnitBuff = UnitBuff
+local playerClass = select(2, UnitClass("player"))
 local ghost = "Ghost"
 
 if GetLocale()=="deDE" then
@@ -799,7 +800,7 @@ local cure = {
 		["PALADIN"] = true,
 	},
 }
-
+		
 local damage = {
 	[1] = { (255/255), (100/255), (100/255) },-- 1 - physical
 	[2] = { (255/255), (255/255), (0/255) },-- 2 - holy
@@ -1767,16 +1768,26 @@ end
 
 local function updateauras(frame)
 	local unit = SecureButton_GetUnit(frame)
-	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale
-
+	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd
+	local isFriend, filterList, check
 	if frame.buff then
+		filterList = Nurfed:getopt("bufffilterlist")
+		for name in pairs(filterList) do check = true; break; end
+		filterList = check and filterList or nil
+		
 		total = 0
 		for i = 1, #frame.buff do
 			button = _G[frame:GetName().."buff"..i]
-			name, rank, texture, app, duration, left = UnitBuff(unit, i, frame.bfilter)
-			if name then
+			name, _, texture, app, duration, left = UnitBuff(unit, i, frame.bfilter)
+			--if name then
+			if name and not filterList or filterList and filterList[name] then
+				total = total + 1
+				-- reset to button position if we are using a filtering list.
+				button = filterList and _G[frame:GetName().."buff"..total] or button
+				
 				_G[button:GetName().."Icon"]:SetTexture(texture)
 				count = _G[button:GetName().."Count"]
+				
 				if app > 1 then
 					count:SetText(app)
 					count:Show()
@@ -1785,12 +1796,12 @@ local function updateauras(frame)
 				end
 				button.filter = frame.bfilter
 				button:Show()
-				total = total + 1
 				button:SetScript("OnUpdate", cooldowntext)
+				cd = _G[button:GetName().."Cooldown"]
 				if duration and duration > 0 then
-					CooldownFrame_SetTimer(_G[button:GetName().."Cooldown"], GetTime()-(duration-left), duration, 1)
+					CooldownFrame_SetTimer(cd, GetTime()-(duration-left), duration, 1)
 				else
-					_G[button:GetName().."Cooldown"]:Hide()
+					cd:Hide()
 				end
 			else
 				button:Hide()
@@ -1806,21 +1817,30 @@ local function updateauras(frame)
 			end
 		end
 	end
-
+	
 	if frame.debuff then
+		check = nil
+		filterList = Nurfed:getopt("debufffilterlist")
+		for name in pairs(filterList) do check = true; break; end
+		filterList = check and filterList or nil
+		
 		frame.cure = nil
 		total = 0
+		isFriend = UnitIsFriend("player", unit)
 		for i = 1, #frame.debuff do
 			button = _G[frame:GetName().."debuff"..i]
 			local filter = frame.dfilter
-			if (unit == "target" or unit == "focus") and not UnitIsFriend("player", unit) then
-				filter = nil
-			end
-			name, rank, texture, app, dtype, duration, left = UnitDebuff(unit, i, filter)
-			if name then
+			if (unit == "target" or unit == "focus") and not isFriend then filter = nil end
+
+			name, _, texture, app, dtype, duration, left = UnitDebuff(unit, i, filter)
+			if (name and (isFriend or not filterList)) or name and filterList and filterList[name] then
+				total = total + 1
+				-- reset to button position if we are using a filtering list.
+				button = filterList and _G[frame:GetName().."debuff"..total] or button
+
 				_G[button:GetName().."Icon"]:SetTexture(texture)
 				count = _G[button:GetName().."Count"]
-				border = _G[button:GetName().."Border"]
+
 				if app > 1 then
 					count:SetText(app)
 					count:Show()
@@ -1828,32 +1848,25 @@ local function updateauras(frame)
 					count:Hide()
 				end
 
-				if dtype then
-					color = DebuffTypeColor[dtype]
-				else
-					color = DebuffTypeColor["none"]
-				end
-				border:SetVertexColor(color.r, color.g, color.b)
+				color = DebuffTypeColor[dtype or "none"]
+				_G[button:GetName().."Border"]:SetVertexColor(color.r, color.g, color.b)
 				button.filter = frame.dfilter
 				button:Show()
-				cd=_G[button:GetName().."Cooldown"]
-				
-				if duration and duration > 0 then
-					CooldownFrame_SetTimer(_G[button:GetName().."Cooldown"], GetTime()-(duration-left), duration, 1)
-				else
-					_G[button:GetName().."Cooldown"]:Hide()
-				end
 
-				local class = select(2, UnitClass("player"))
-				if UnitIsFriend("player", unit) and dtype and cure[dtype] and cure[dtype][class] then
+				cd = _G[button:GetName().."Cooldown"]
+				if duration and duration > 0 then
+					CooldownFrame_SetTimer(cd, GetTime()-(duration-left), duration, 1)
+				else
+					cd:Hide()
+				end
+				if isFriend and dtype and cure[dtype] and cure[dtype][playerClass] then
 					if not button:GetScript("OnUpdate") then
 						button.flashtime = GetTime()
 						button.update = 0
 						button.flashdct = 1
 						button:SetScript("OnUpdate", aurafade)
-					
 					end
-					frame.cure = cure[dtype][class]
+					frame.cure = cure[dtype][playerClass]
 				else
 					button:SetScript("OnUpdate", cooldowntext)
 					button:SetAlpha(1)
