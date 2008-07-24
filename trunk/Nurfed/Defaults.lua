@@ -50,6 +50,8 @@ NURFED_DEFAULT[HAPPINESS_POINTS] = { 0.00, 1.00, 1.00 }
 NURFED_DEFAULT["showmap"] = 1
 NURFED_DEFAULT["cdaura"] = 1
 NURFED_DEFAULT["cdaction"] = 1
+NURFED_DEFAULT["debufffilterlist"] = {}
+NURFED_DEFAULT["bufffilterlist"] = {}
 
 -- ActionBars
 NURFED_DEFAULT["hidemain"] = 1
