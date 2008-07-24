@@ -9,6 +9,22 @@ local visible = { "show", "hide", "combat", "nocombat", "exists" }
 local setupFrameName, setupParentName, setupPoints
 
 
+local function addDeBuffFilter(type, buff)
+	if not buff or buff == "" then return end
+	local filterLst = Nurfed:getopt(type)
+	if not filterLst[buff] then
+		if not NURFED_SAVED[type] then
+			NURFED_SAVED[type] = {}
+		end
+		NURFED_SAVED[type][buff] = true
+	end
+end
+
+local function removeDeBuff(type, buff)
+	if not buff or buff == "" then return end
+	NURFED_SAVED[type][buff] = nil
+end
+
 local updateoptions = function()
 	local bar = Nurfed_MenuActionBars.bar
 	if bar then
@@ -1234,63 +1250,145 @@ local panels = {
 	name = "Units",
 	subtext = "Options that effect the unit frames created by Nurfed.",
 	menu = {
+		scroll = {
+			template = "nrf_scroll",
+			vars = { pages = 2 },
+			size = { 360, 320 },
+			Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 5, -8 },
+		},
+		scrollbg = {
+			type = "Frame",
+			Anchor = { "TOPRIGHT", "$parentscroll", "TOPRIGHT", 25, 6 },
+			size = { 24, 330 },
+			Backdrop = { 
+				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", 
+				edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", 
+				tile = true, 
+				tileSize = 12, 
+				edgeSize = 12, 
+				insets = { left = 2, right = 2, top = 2, bottom = 2 }, 
+			},
+			BackdropColor = { 0, 0, 0, 0.5 },
+		},
 		check1 = {
 			template = "nrf_check",
 			Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, 10 },
-			vars = { text = "Aura Cooldowns", option = "cdaura" },
+			vars = { text = "Aura Cooldowns", option = "cdaura", page = 1 },
 		},
 		check2 = {
 			template = "nrf_check",
 			Point = { "TOPLEFT", "$parentcheck1", "BOTTOMLEFT", 0, 0 },
-			vars = { text = "Color Mana Background", option = "changempbg" },
+			vars = { text = "Color Mana Background", option = "changempbg", page = 1 },
 		},
 		check3 = {
 			template = "nrf_check",
 			Point = { "TOPLEFT", "$parentcheck2", "BOTTOMLEFT", 0, 0 },
-			vars = { text = "Color Health Background", option = "changehpbg" },
+			vars = { text = "Color Health Background", option = "changehpbg", page = 1 },
 		},
 		swatch1 = {
 			template = "nrf_color",
 			Point = { "TOPLEFT", "$parentcheck3", "BOTTOMLEFT", 5, -5 },
-			vars = { text = MANA, option = MANA, func = setmana },
+			vars = { text = MANA, option = MANA, func = setmana, page = 1 },
 		},
 		swatch2 = {
 			template = "nrf_color",
 			Point = { "TOPLEFT", "$parentswatch1", "BOTTOMLEFT", 0, -5 },
-			vars = { text = RAGE_POINTS, option = RAGE_POINTS, func = setmana },
+			vars = { text = RAGE_POINTS, option = RAGE_POINTS, func = setmana, page = 1 },
 		},
 		swatch3 = {
 			template = "nrf_color",
 			Point = { "TOPLEFT", "$parentswatch2", "BOTTOMLEFT", 0, -5 },
-			vars = { text = FOCUS_POINTS, option = FOCUS_POINTS, func = setmana },
+			vars = { text = FOCUS_POINTS, option = FOCUS_POINTS, func = setmana, page = 1 },
 		},
 		swatch4 = {
 			template = "nrf_color",
 			Point = { "LEFT", "$parentswatch1", "RIGHT", 120, 0 },
-			vars = { text = ENERGY_POINTS, option = ENERGY_POINTS, func = setmana },
+			vars = { text = ENERGY_POINTS, option = ENERGY_POINTS, func = setmana, page = 1 },
 		},
 		swatch5 = {
 			template = "nrf_color",
 			Point = { "TOPRIGHT", "$parentswatch4", "BOTTOMRIGHT", 0, -5 },
-			vars = { text = HAPPINESS_POINTS, option = HAPPINESS_POINTS, func = setmana },
+			vars = { text = HAPPINESS_POINTS, option = HAPPINESS_POINTS, func = setmana, page = 1 },
 		},
 		button1 = {
 			template = "nrf_optbutton",
 			Anchor = { "TOPLEFT", "$parentswatch3", "BOTTOMLEFT", 55, -5 },
 			OnClick = function() Nurfed_DropMenu(mptype) end,
-			vars = { text = "MP Color", option = "mpcolor", func = setmp },
+			vars = { text = "MP Color", option = "mpcolor", func = setmp, page = 1 },
 		},
 		button2 = {
 			template = "nrf_optbutton",
 			Anchor = { "TOPLEFT", "$parentbutton1", "TOPRIGHT", 55, 0 },
 			OnClick = function() Nurfed_DropMenu(hptype) end,
-			vars = { text = "HP Color", option = "hpcolor", func = sethp },
+			vars = { text = "HP Color", option = "hpcolor", func = sethp, page = 1 },
 		},
 		hpscript = {
 			template = "nrf_multiedit",
-			size = { 350, 160 },
+			size = { 335, 160 },
 			Point = { "TOPLEFT", "$parentbutton1", "BOTTOMLEFT", -70, -7 },
-			vars = { option = "hpscript", func = sethp },
+			vars = { option = "hpscript", func = sethp, page = 1 },
+		},
+		button3 = {
+			template = "nrf_optbutton",
+			size = { 120, 18 },
+			Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", 20, 0 },
+			OnClick = function()
+				local t = {}
+				for i in pairs(Nurfed:getopt("bufffilterlist")) do
+					table.insert(t, i)
+				end
+				Nurfed_DropMenu(t)
+			end,
+			OnShow = function(self)
+				local text = _G[self:GetName().."Text"]
+				if text then
+					text:ClearAllPoints();
+					text:SetPoint("BOTTOM", self:GetName(), "TOP", 0, 0)
+					text:SetText(self.text)
+					text:Show()
+				end
+			end,
+			vars = { text = "Buff Filter List", func = function(text) NurfedUnitsPanelbutton3:SetText(""); removeDeBuff("bufffilterlist", text) end, page = 2 },
+		},
+		editbox1 = {
+			template = "nrf_editbox",
+			size = { 250, 18 },
+			Point = { "TOPLEFT", "$parentbutton3", "BOTTOMLEFT", -2, -18 },
+			OnEnterPressed = function(self) addDeBuffFilter("bufffilterlist", self:GetText()); self:ClearFocus(); self:SetText("") end,
+			OnEditFocusGained = function() this:HighlightText() this.focus = true end,
+			OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+			vars = { text = "Add Buff Filter", page = 2 },
+		},
+		button4 = {
+			template = "nrf_optbutton",
+			size = { 120, 18 },
+			Point = { "TOPLEFT", "$parenteditbox1", "BOTTOMLEFT", 0, -18 },
+			OnClick = function()
+				local t = {}
+				for i in pairs(Nurfed:getopt("debufffilterlist")) do
+					table.insert(t, i)
+				end
+				Nurfed_DropMenu(t)
+			end,
+			OnShow = function(self)
+				local text = _G[self:GetName().."Text"]
+				if text then
+					text:ClearAllPoints();
+					text:SetPoint("BOTTOM", self:GetName(), "TOP", 0, 0)
+					text:SetText(self.text)
+					text:Show()
+				end
+			end,
+			vars = { text = "Debuff Filter List", func = function(text) NurfedUnitsPanelbutton4:SetText(""); removeDeBuff("debufffilterlist", text) end, page = 2 },
+		},
+		editbox2 = {
+			template = "nrf_editbox",
+			size = { 250, 18 },
+			Point = { "TOPLEFT", "$parentbutton4", "BOTTOMLEFT", 0, -18 },
+			OnEnterPressed = function(self) addDeBuffFilter("debufffilterlist", self:GetText()); self:ClearFocus(); self:SetText("") end,
+			OnEditFocusGained = function() this:HighlightText() this.focus = true end,
+			OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+			vars = { text = "Add Debuff Filter", page = 2 },
 		},
 	},
 },

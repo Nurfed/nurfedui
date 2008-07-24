@@ -174,7 +174,16 @@ onshow = function(self)
 		value.val = self.val
 		value.func = self.func
 	elseif objtype == "EditBox" then
-		self:SetText(opt or "")
+		if type(opt) == "table" then
+			local text = ""
+			for name in pairs(opt) do
+				text = text..name.."\r"
+			end
+			self:SetText(text)
+		else		
+			self:SetText(opt or "")
+		end
+		
 	elseif objtype == "Button" then
 		local swatch = _G[self:GetName().."bg"]
 		if swatch then
