@@ -1,6 +1,6 @@
 ---------------------------------------------------------
 -- Nurfed CombatLog
-local bit.band = bit.band
+local bitband = bit.band
 local eventLst = {
 	["SPELL_CAST_SUCCESS"] = true,
 	["SPELL_CAST_START"] = true,
@@ -187,7 +187,7 @@ ACTION_UNIT_DIED_FULL_TEXT = "$dest died."
 --function module:COMBAT_LOG_EVENT_UNFILTERED(_, _, event, sourceGUID, sourceName, sourceFlags, nameGUID, name, nameFlags, id, spellName, _, id2, spellName2)
 local function onevent(_, _, event, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, id, spellName, _, type, spellName2)
 	if not eventLst[event] then return end
-	if bit.band(srcFlags or dstFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) ~= 0 then
+	if bitband(srcFlags or dstFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) ~= 0 then
 		if event == "SPELL_CAST_SUCCESS" or event == "SPELL_CAST_START" then
 			Nurfed_SpellAlert:AddMessage(SPELLCASTGOOTHER:format(srcName, "|cff999999"..spellName.."|r"))
 		elseif event == "SPELL_AURA_APPLIED" and type == "BUFF" then
