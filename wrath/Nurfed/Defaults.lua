@@ -13,6 +13,7 @@ NURFED_DEFAULT["raidgroup"] = 1
 NURFED_DEFAULT["raidclass"] = 1
 NURFED_DEFAULT["repair"] = 1
 NURFED_DEFAULT["repairlimit"] = 20
+NURFED_DEFAULT["autosell"] = 1
 NURFED_DEFAULT["timestamps"] = 1
 NURFED_DEFAULT["timestampsformat"] = "[%I:%M:%S]"
 NURFED_DEFAULT["traineravailable"] = 1
@@ -41,14 +42,24 @@ end
 ]]
 NURFED_DEFAULT["changehpbg"] = false
 NURFED_DEFAULT["changempbg"] = false
+-- localizing settings = bad :(
+--[[
 NURFED_DEFAULT[MANA] = { 0.00, 0.00, 1.00 }
-NURFED_DEFAULT[RAGE] = { 1.00, 0.00, 0.00 }
-NURFED_DEFAULT[FOCUS] = { 1.00, 0.50, 0.25 }
-NURFED_DEFAULT[ENERGY] = { 1.00, 1.00, 0.00 }
-NURFED_DEFAULT[HAPPINESS] = { 0.00, 1.00, 1.00 }
+NURFED_DEFAULT[RAGE_POINTS] = { 1.00, 0.00, 0.00 }
+NURFED_DEFAULT[FOCUS_POINTS] = { 1.00, 0.50, 0.25 }
+NURFED_DEFAULT[ENERGY_POINTS] = { 1.00, 1.00, 0.00 }
+NURFED_DEFAULT[HAPPINESS_POINTS] = { 0.00, 1.00, 1.00 }
+]]
+NURFED_DEFAULT["mana"] = { 0.00, 0.00, 1.00 }
+NURFED_DEFAULT["rage"] = { 1.00, 0.00, 0.00 }
+NURFED_DEFAULT["focus"] = { 1.00, 0.50, 0.25 }
+NURFED_DEFAULT["energy"] = { 1.00, 1.00, 0.00 }
+NURFED_DEFAULT["happiness"] = { 0.00, 1.00, 1.00 }
 NURFED_DEFAULT["showmap"] = 1
 NURFED_DEFAULT["cdaura"] = 1
 NURFED_DEFAULT["cdaction"] = 1
+NURFED_DEFAULT["debufffilterlist"] = {}
+NURFED_DEFAULT["bufffilterlist"] = {}
 
 -- ActionBars
 NURFED_DEFAULT["hidemain"] = 1

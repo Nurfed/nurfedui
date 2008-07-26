@@ -105,6 +105,53 @@ local function onupdate(self)
 	end
 end
 
+local function sellLoot()
+	local soldNum, soldItems, sold, startMoney = 0, "", nil, GetMoney()
+	for bag=0,4,1 do
+		for slot=1, GetContainerNumSlots(bag), 1 do
+			if GetContainerItemLink(bag, slot) then
+				local name, link, rarity = GetItemInfo(GetContainerItemLink(bag, slot))
+					if name and rarity == 0 and (not dnsLst[name]) then
+					local count = GetItemCount(link)
+					soldNum = soldNum + count
+					--soldItems = soldItems == "" and link or soldItems..", "..link
+					if not soldItems:find(link) then
+						if count ~= 1 then
+							soldItems = soldItems == "" and link.."x"..count or soldItems..", "..link.."x"..count
+						else
+							soldItems = soldItems == "" and link or soldItems..", "..link
+						end
+					end
+					--soldItems = soldItems == "" and count ~= 1 and link.."x"..count or link or soldItems..", "..count ~= 1 and link.."x"..count or link
+					UseContainerItem(bag, slot)
+					sold = true
+				end
+			end
+		end
+	end
+	if sold then
+		Nurfed:print(string.format(soldNum == 1 and L["|cffffffffSold |r%d |cffffffffItem: |r%s"] or L["|cffffffffSold |r%d |cffffffffItems: |r%s"], soldNum, soldItems))
+		-- delay after selling the items to be able to calculate the amount earned
+		local timer = 1
+		Nurfed_LockButton:SetScript("OnUpdate", function()
+			timer=timer+1
+			if timer >= 45 then
+				local money = GetMoney() - startMoney
+				if money == 0 then 
+					timer = 0
+					return
+				end
+
+				local gold = math.floor(money / (COPPER_PER_SILVER * SILVER_PER_GOLD))
+				local silver = math.floor((money - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
+				local copper = math.fmod(money, COPPER_PER_SILVER)
+				Nurfed:print(L["|cffffffffReceived|r |c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cfffffffffrom selling trash loot.|r"]:format(gold, silver, copper))
+				Nurfed_LockButton:SetScript("OnUpdate", nil)
+			end
+		end)
+	end
+end
+
 local function onevent(self, ...)
 	if event == "CHAT_MSG_WHISPER" and Nurfed:getopt("autoinvite") then
 		if IsPartyLeader() or IsRaidLeader() or IsRaidOfficer() or (GetNumPartyMembers() == 0 and GetNumRaidMembers() == 0) then
@@ -160,70 +207,48 @@ local function onevent(self, ...)
 		end
 
 	elseif event == "MERCHANT_SHOW" then
+		local repairStartMoney
 		if Nurfed:getopt("repair") then
-		  local limit = tonumber(Nurfed:getopt("repairlimit"))
-		  local money = tonumber(math.floor(GetMoney() / COPPER_PER_GOLD))
-		  if money >= limit then
-			local repairAllCost, canRepair = GetRepairAllCost()
-			if canRepair then
-			  local gold = math.floor(repairAllCost / (COPPER_PER_SILVER * SILVER_PER_GOLD))
-			  local silver = math.floor((repairAllCost - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
-			  local copper = math.fmod(repairAllCost, COPPER_PER_SILVER)
-			  if CanGuildBankRepair() then
-				RepairAllItems(1)
-				--Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs (Guild).|r")
-				Nurfed:print(L["|cffffffffSpent|r |c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cffffffffOn Repairs (Guild).|r"]:format(gold, silver, copper))
-			  else
-				RepairAllItems()
-				--Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs.|r")
-				Nurfed:print(L["|cffffffffSpent|r |c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cffffffffOn Repairs.|r"]:format(gold, silver, copper))
-			  end
-			end
-		  end
-		end
-		if Nurfed:getopt("autosell") then
-			local soldNum, soldItems, sold, startMoney = 0, "", nil, GetMoney()
-			for bag=0,4,1 do
-				for slot=1, GetContainerNumSlots(bag), 1 do
-					if GetContainerItemLink(bag, slot) then
-						local name, link, rarity = GetItemInfo(GetContainerItemLink(bag, slot))
-							if name and rarity == 0 and (not dnsLst[name]) then
-							soldNum = soldNum + GetItemCount(link)
-							soldItems = soldItems == "" and link or soldItems..", "..link
-							UseContainerItem(bag, slot)
-							sold = true
-						end
+			local limit = tonumber(Nurfed:getopt("repairlimit"))
+			local money = tonumber(math.floor(GetMoney() / COPPER_PER_GOLD))
+			if money >= limit then
+				local repairAllCost, canRepair = GetRepairAllCost()
+				if canRepair then
+					local gold = math.floor(repairAllCost / (COPPER_PER_SILVER * SILVER_PER_GOLD))
+					local silver = math.floor((repairAllCost - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
+					local copper = math.fmod(repairAllCost, COPPER_PER_SILVER)
+					repairStartMoney = GetMoney()
+					if CanGuildBankRepair() then
+						repairStartMoney = nil -- Nil it out here, but get it before this, just for processing and delays
+						RepairAllItems(1)
+						--Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs (Guild).|r")
+						Nurfed:print(L["|cffffffffSpent|r |c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cffffffffOn Repairs (Guild).|r"]:format(gold, silver, copper))
+					else
+						RepairAllItems()
+						--Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs.|r")
+						Nurfed:print(L["|cffffffffSpent|r |c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cffffffffOn Repairs.|r"]:format(gold, silver, copper))
 					end
 				end
 			end
-			if sold then
-				--if soldNum == 1 then
-					--Nurfed:print("|cffffffffSold |r"..soldNum.." |cffffffffItem: |r"..soldItems)
-				--	Nurfed:print(L["MultiSoldMsg"]:format(soldNum, soldItems))
-				--else
-					--Nurfed:print("|cffffffffSold |r"..soldNum.." |cffffffffItems: |r"..soldItems)
-				--	Nurfed:print(L["MultiSoldMsg"]:format(soldNum, soldItems))
-				--end
-				Nurfed:print(string.format(soldNum == 1 and L["|cffffffffSold |r%d |cffffffffItem: |r%s"] or L["|cffffffffSold |r%d |cffffffffItems: |r%s"], soldNum, soldItems))
+		end
+		if Nurfed:getopt("autosell") or true then
+			-- delay after repairing
+			if repairStartMoney then
 				local timer = 1
 				Nurfed_LockButton:SetScript("OnUpdate", function()
 					timer=timer+1
-					if timer >= 45 then
-						local money = GetMoney() - startMoney
-						if money == 0 then 
+					if timer >= 10 then
+						if GetMoney() < repairStartMoney then
+							Nurfed_LockButton:SetScript("OnUpdate", nil)
+							sellLoot()
+						else
 							timer = 0
 							return
 						end
-
-						local gold = math.floor(money / (COPPER_PER_SILVER * SILVER_PER_GOLD))
-						local silver = math.floor((money - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
-						local copper = math.fmod(money, COPPER_PER_SILVER)
-						--Nurfed:print("|cffffffffReceived|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cfffffffffrom selling trash loot.|r")
-						--Nurfed:print(L["RecievedMoneyMsg"]:format(gold, silver, copper))
-						Nurfed:print(L["|cffffffffReceived|r |c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cfffffffffrom selling trash loot.|r"]:format(gold, silver, copper))
-						Nurfed_LockButton:SetScript("OnUpdate", nil)
 					end
 				end)
+			else
+				sellLoot()
 			end
 		end
 
@@ -241,6 +266,26 @@ local function onevent(self, ...)
 		nrf_togglcast()
 		nrf_mainmenu()
 		CombatLogQuickButtonFrame_Custom:UnregisterEvent("PLAYER_ENTERING_WORLD")
+	if NURFED_SAVED[MANA] then
+		NURFED_SAVED["mana"] = NURFED_SAVED[MANA]
+		NURFED_SAVED[MANA] = nil
+	end
+	if NURFED_SAVED[RAGE_POINTS or RAGE] then
+		NURFED_SAVED["rage"] = NURFED_SAVED[RAGE_POINTS or RAGE]
+		NURFED_SAVED[RAGE_POINTS or RAGE] = nil
+	end
+	if NURFED_SAVED[ENERGY_POINTS or ENERGY] then
+		NURFED_SAVED["energy"] = NURFED_SAVED[ENERGY_POINTS or ENERGY]
+		NURFED_SAVED[ENERGY_POINTS or ENERGY] = nil
+	end
+	if NURFED_SAVED[FOCUS_POINTS or FOCUS] then
+		NURFED_SAVED["focus"] = NURFED_SAVED[FOCUS_POINTS or FOCUS]
+		NURFED_SAVED[FOCUS_POINTS or FOCUS] = nil
+	end
+	if NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS] then
+		NURFED_SAVED["happiness"] = NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS]
+		NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS] = nil
+	end
 
 	elseif event == "VARIABLES_LOADED" then
 		if self:IsUserPlaced() then

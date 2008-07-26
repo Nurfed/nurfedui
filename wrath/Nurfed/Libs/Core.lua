@@ -1,6 +1,15 @@
 ﻿------------------------------------------
 --    Nurfed Core Library
 ------------------------------------------
+-- remove this before push, its nice to have for beta though.  :)
+hooksecurefunc("QuestLog_UpdateQuestDetails", function()
+	local text = QuestLogQuestDescription:GetText()
+	text = text:gsub("north", "|cff3333ff%1|r")
+	text = text:gsub("south", "|cff3333ff%1|r")
+	text = text:gsub("east", "|cff3333ff%1|r")
+	text = text:gsub("west", "|cff3333ff%1|r")
+	QuestLogQuestDescription:SetText(text)
+end)
 
 local version = 1.11
 local _G = getfenv(0)
@@ -315,11 +324,11 @@ function util:getunitstat(unit, stat)
 		local color = self:getopt("mpcolor")
 		if color == "normal" then
 			local powertype = UnitPowerType(unit)
-			if powertype == 0 then r, g, b = unpack(self:getopt(MANA))
-			elseif powertype == 1 then r, g, b = unpack(self:getopt(RAGE))
-			elseif powertype == 2 then r, g, b = unpack(self:getopt(FOCUS))
-			elseif powertype == 3 then r, g, b = unpack(self:getopt(ENERGY))
-			elseif powertype == 4 then r, g, b = unpack(self:getopt(HAPPINESS))
+			if powertype == 0 then r, g, b = unpack(self:getopt("mana"))
+			elseif powertype == 1 then r, g, b = unpack(self:getopt("rage"))
+			elseif powertype == 2 then r, g, b = unpack(self:getopt("focus"))
+			elseif powertype == 3 then r, g, b = unpack(self:getopt("energy"))
+			elseif powertype == 4 then r, g, b = unpack(self:getopt("happiness"))
 			end
 		
 		elseif color == "class" then
@@ -836,6 +845,31 @@ function util:getspell(spell, rank)
   return spells[spell]
 end
 
+function util:getspells(search)
+	local spells = {}
+	local tabs = GetNumSpellTabs()
+	for tab = 1, tabs do
+		local _, _, offset, numSpells = GetSpellTabInfo(tab)
+		spells[tab] = {}
+		for i = 1, numSpells do
+			local spell = offset + i
+			if search then
+				local spellname, spellrank = GetSpellName(spell, BOOKTYPE_SPELL)
+				if search == spellname or search == spellname.."("..spellrank..")" then
+					return spell, spellrank, BOOKTYPE_SPELL
+				end
+			elseif not IsPassiveSpell(spell, BOOKTYPE_SPELL) then
+				local spellname, spellrank = GetSpellName(spell, BOOKTYPE_SPELL)
+				if not spells[tab][spellname] then
+					spells[tab][spellname] = {}
+					table.insert(spells[tab], spellname)
+				end
+				table.insert(spells[tab][spellname], spell)
+			end
+		end
+	end
+	return spells
+end
 util:regevent("LEARNED_SPELL_IN_TAB", updatespells)
 
 ----------------------------------------------------------------
