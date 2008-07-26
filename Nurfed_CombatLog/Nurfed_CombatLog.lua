@@ -33,7 +33,17 @@ local function onevent(_, _, event, srcGUID, srcName, srcFlags, dstGUID, dstName
 		end
 	end
 end
-Nurfed:regevent("COMBAT_LOG_EVENT_UNFILTERED", onevent)
+local function zonechange()
+	if GetZonePVPInfo() == "sanctuary" then
+		Nurfed:unregevent("COMBAT_LOG_EVENT_UNFILTERED", onevent)
+	else
+		Nurfed:regevent("COMBAT_LOG_EVENT_UNFILTERED", onevent)
+	end
+end
+
+Nurfed:regevent("PLAYER_LOGIN", zonechange)
+Nurfed:regevent("ZONE_CHANGED_NEW_AREA", zonechange)
+--Nurfed:regevent("COMBAT_LOG_EVENT_UNFILTERED", onevent)
 
 local function createhandle(name, title)
 	if not name or not title then return end
