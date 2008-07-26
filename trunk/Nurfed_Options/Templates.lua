@@ -2,9 +2,9 @@ local saveopt, onshow
 ------------------------------------------
 -- Option Menu Templates
 -- Slider value text
-local slidertext = function()
-	local value = math.round(this:GetValue(), this.deci)
-	_G[this:GetName().."value"]:SetText(value)
+local slidertext = function(self)
+	local value = math.round(self:GetValue(), self.deci)
+	_G[self:GetName().."value"]:SetText(value)
 end
 
 -- drop down menu
@@ -47,7 +47,7 @@ do	-- keep local dropmenu local...rofl?
 			if i == 1 then
 				row:SetPoint("TOPLEFT", "Nurfed"..menu.."Panelscroll", "TOPLEFT", 0, -3)
 			else
-				row:SetPoint("TOPLEFT", "Nurfed"..menu.."PanelRow"..(i - 1), "BOTTOMLEFT", 0, 0)
+				row:SetPoint("TOPLEFT", "Nurfed"..menu.."RowPanel"..(i - 1), "BOTTOMLEFT", 0, 0)
 			end
 		end
 	end
@@ -100,15 +100,15 @@ function Nurfed_Options_swatchCancelColor(frame, prev)
 	end
 end
 
-function Nurfed_Options_swatchOpenColorPicker()
+function Nurfed_Options_swatchOpenColorPicker(self)
 	CloseMenus()
-	ColorPickerFrame.func = this.swatchFunc
-	ColorPickerFrame.hasOpacity = this.hasOpacity
-	ColorPickerFrame.opacityFunc = this.opacityFunc
-	ColorPickerFrame.opacity = this.opacity
-	ColorPickerFrame:SetColorRGB(this.r, this.g, this.b)
-	ColorPickerFrame.previousValues = {r = this.r, g = this.g, b = this.b, a = this.opacity}
-	ColorPickerFrame.cancelFunc = this.cancelFunc
+	ColorPickerFrame.func = self.swatchFunc
+	ColorPickerFrame.hasOpacity = self.hasOpacity
+	ColorPickerFrame.opacityFunc = self.opacityFunc
+	ColorPickerFrame.opacity = self.opacity
+	ColorPickerFrame:SetColorRGB(self.r, self.g, self.b)
+	ColorPickerFrame.previousValues = {r = self.r, g = self.g, b = self.b, a = self.opacity}
+	ColorPickerFrame.cancelFunc = self.cancelFunc
 	ColorPickerFrame:Show()
 end
 
@@ -132,8 +132,10 @@ onshow = function(self)
 			value:SetPoint("RIGHT", self, "LEFT", -3, 0)
 		else
 			text:ClearAllPoints()
-			text:SetPoint("RIGHT", self:GetName(), "LEFT", -1, 1)
-			self:SetHitRectInsets(-100, 0, 0, 0)
+			text:SetPoint("RIGHT", self, "LEFT", -1, 1)
+			if text:GetText() ~= "" then
+				self:SetHitRectInsets(-text:GetWidth(), 0, 0, 0)
+			end
 		end
 	end
 	-- anchoring the value editbox of a slider in the template apparently does not
@@ -144,13 +146,9 @@ onshow = function(self)
 		value:ClearAllPoints()
 		value:SetPoint("TOP", self, "BOTTOM", 0, 0)
 	end
---[[	if self.textdir == "right" then
-		text:ClearAllPoints()
-		text:SetPoint("LEFT", self:GetName(), "RIGHT", 1, 1)
-	elseif self.textdir == "left" then
-		text:ClearAllPoints()
-		text:SetPoint("RIGHT", self:GetName(), "LEFT", -1, 1)
-	end]]
+	if self.fontobject then
+		text:SetFontObject(self.fontobject)
+	end
 
 	local opt
 	if self.option then
@@ -264,7 +262,7 @@ local templates = {
 		HighlightTextColor = { 0, 0.75, 1 },
 		DisabledTextColor = { 1, 0, 0 },
 		PushedTextOffset = { 1, -1 },
-		OnShow = function() this:SetWidth(this:GetTextWidth() + 12) this:SetScript("OnShow", nil) end,
+		OnShow = function(self) self:SetWidth(self:GetTextWidth() + 12) self:SetScript("OnShow", nil) end,
 	},
 	nrf_slider = {
 		type = "Slider",
@@ -293,8 +291,8 @@ local templates = {
 						saveopt(parent)
 					end
 				end,
-				OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-				OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+				OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+				OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 			},
 		},
 		OnShow = function(self) self:SetFrameLevel(30); self:EnableMouseWheel(true); onshow(self) end,
@@ -304,9 +302,9 @@ local templates = {
 			editbox:ClearFocus()
 			saveopt(self) 
 		end,
-		OnValueChanged = function() 
-			local value = math.round(this:GetValue(), this.deci)
-			_G[this:GetName().."value"]:SetText(value) 
+		OnValueChanged = function(self)
+			local value = math.round(self:GetValue(), self.deci)
+			_G[self:GetName().."value"]:SetText(value) 
 		end,
 		OnMouseWheel = function(self, change)
 			local value = self:GetValue()
@@ -344,10 +342,10 @@ local templates = {
 			},
 		},
 		OnShow = function(self) onshow(self) end,
-		OnEscapePressed = function() this:ClearFocus() end,
-		OnEnterPressed = function() this:ClearFocus() end,
-		OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-		OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+		OnEscapePressed = function(self) self:ClearFocus() end,
+		OnEnterPressed = function(self) self:ClearFocus() end,
+		OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+		OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 		OnTextChanged = function(self) end,
 	},
 	nrf_options = {
@@ -365,6 +363,116 @@ local templates = {
 		BackdropColor = { 0, 0, 0, 0.95 },
 		Alpha = 0,
 		--Hide = true,
+		children = {},
+	},
+	nrf_actionstates = {
+		type = "Button",
+		size = { 175, 14 },
+		children = {
+			delete = {
+				type = "Button",
+				layer = "ARTWORK",
+				size = { 14, 14 },
+				Anchor = { "LEFT", "$parent", "LEFT", 0, 0 },
+				NormalTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Up",
+				PushedTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Down",
+				HighlightTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Highlight",
+				OnClick = function() Nurfed_DeleteState() end,
+				OnEnter = function(self)
+					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+					GameTooltip:AddLine(DELETE, 1, 0, 0)
+					GameTooltip:Show()
+				end,
+				OnLeave = function() GameTooltip:Hide() end,
+			},
+			name = {
+				type = "FontString",
+				layer = "ARTWORK",
+				size = { 102, 14 },
+				Anchor = { "LEFT", "$parentdelete", "RIGHT", 5, 0 },
+				FontObject = "GameFontNormalSmall",
+				JustifyH = "LEFT",
+				TextColor = { 1, 1, 1 },
+			},
+			value = {
+				type = "FontString",
+				layer = "ARTWORK",
+				size = { 50, 14 },
+				Anchor = { "LEFT", "$parentname", "RIGHT", 5, 0 },
+				FontObject = "GameFontNormalSmall",
+				JustifyH = "RIGHT",
+				TextColor = { 1, 1, 1 },
+			},
+			HighlightTexture = {
+				type = "Texture",
+				layer = "BACKGROUND",
+				Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
+				BlendMode = "ADD",
+				Anchor = "all",
+			},
+		},
+	},
+	nrf_actionbars_row = {
+		type = "Button",
+		size = { 150, 14 },
+		children = {
+			expand = {
+				type = "Button",
+				layer = "ARTWORK",
+				size = { 14, 14 },
+				Anchor = { "LEFT", "$parent", "LEFT", 5, 0 },
+				NormalTexture = "Interface\\Buttons\\UI-PlusButton-Up",
+				PushedTexture = "Interface\\Buttons\\UI-PlusButton-Down",
+				HighlightTexture = "Interface\\Buttons\\UI-PlusButton-Hilight",
+				OnClick = function() Nurfed_ExpandBar() end,
+			},
+			name = {
+				type = "FontString",
+				layer = "ARTWORK",
+				size = { 105, 14 },
+				Anchor = { "BOTTOMLEFT", "$parentexpand", "BOTTOMRIGHT", 5, 0 },
+				FontObject = "GameFontNormal",
+				JustifyH = "LEFT",
+				TextColor = { 1, 1, 1 },
+			},
+			states = {
+				template = "nrf_check",
+				size = { 16, 16 },
+				Anchor = { "LEFT", "$parentname", "RIGHT", 5, 0 },
+				OnEnter = function(self)
+					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+					GameTooltip:AddLine("Show States", 1, 1, 0)
+					GameTooltip:Show()
+				end,
+				OnLeave = function() GameTooltip:Hide() end,
+				OnClick = function() Nurfed_ToggleStates() end,
+			},
+			delete = {
+				type = "Button",
+				layer = "ARTWORK",
+				size = { 14, 14 },
+				Anchor = { "LEFT", "$parentstates", "RIGHT", 5, 0 },
+				NormalTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Up",
+				PushedTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Down",
+				HighlightTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Highlight",
+				OnClick = function() Nurfed_DeleteBar() end,
+				OnEnter = function(self)
+					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+					GameTooltip:AddLine(DELETE, 1, 0, 0)
+					GameTooltip:Show()
+				end,
+				OnLeave = function() GameTooltip:Hide() end,
+			},
+			HighlightTexture = {
+				type = "Texture",
+				layer = "BACKGROUND",
+				Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
+				BlendMode = "ADD",
+				Anchor = "all",
+			},
+		},
+		OnClick = function() Nurfed_ActionBar_OnClick(arg1) end,
+		Hide = true,
 	},
 	nrf_color = {
 		type = "Button",
@@ -386,15 +494,15 @@ local templates = {
 			},
 		},
 		OnShow = function(self) onshow(self) end,
-		OnClick = function() Nurfed_Options_swatchOpenColorPicker() end,
+		OnClick = function(self) Nurfed_Options_swatchOpenColorPicker(self) end,
 	},
 	nrf_scroll = {
 		type = "ScrollFrame",
 		Anchor = { "LEFT", 0, 0 },
 		size = { 385, 271 },
 		uitemp = "FauxScrollFrameTemplate",
-		OnVerticalScroll = function() FauxScrollFrame_OnVerticalScroll(100, Nurfed_Options_ScrollMenu) end,
-		OnShow = function() Nurfed_Options_ScrollMenu() end,
+		OnVerticalScroll = function(self) FauxScrollFrame_OnVerticalScroll(100, Nurfed_Options_ScrollMenu) end,
+		OnShow = function(self) Nurfed_Options_ScrollMenu(self) end,
 	},
 	nrf_multieditinworking = {
 		type = "Frame",
@@ -441,9 +549,9 @@ local templates = {
 					onshow(self)
 					parent:GetScript("OnLoad")(parent)
 				end,
-				OnEscapePressed = function(self) this:ClearFocus() end,
-				OnEditFocusGained = function() this.focus = true end,
-				OnEditFocusLost = function(self) saveopt(self) this.focus = nil end,
+				OnEscapePressed = function(self) self:ClearFocus() end,
+				OnEditFocusGained = function(self) self.focus = true end,
+				OnEditFocusLost = function(self) saveopt(self) self.focus = nil end,
 				OnTabPressed = function(self) self:Insert("   ") end,
 				OnTextChanged = function(self)
 					local scrollBar = _G[self:GetParent():GetName().."ScrollBar"]
@@ -507,9 +615,9 @@ local templates = {
 					onshow(self)
 					parent:GetScript("OnLoad")(parent)
 				end,
-				OnEscapePressed = function(self) this:ClearFocus() end,
-				OnEditFocusGained = function() this.focus = true end,
-				OnEditFocusLost = function(self) saveopt(self) this.focus = nil end,
+				OnEscapePressed = function(self) self:ClearFocus() end,
+				OnEditFocusGained = function(self) self.focus = true end,
+				OnEditFocusLost = function(self) saveopt(self) self.focus = nil end,
 				OnTabPressed = function(self) self:Insert("   ") end,
 				OnTextChanged = function(self)
 					local scrollBar = _G[self:GetParent():GetName().."ScrollBar"]
@@ -526,20 +634,10 @@ local templates = {
 			ScrollBar = {
 				type = "ScrollFrame",
 				uitemp = "UIPanelScrollFrameTemplate",
---[[				Backdrop = {
-					bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-					edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-					tile = true,
-					tileSize = 16,
-					edgeSize = 10,
-					insets = { left = 2, right = 2, top = 2, bottom = 2 },
-				},
-				BackdropColor = { 0, 0, 0.2, 0.75 },]]
 				OnShow = function(self)
 					local parent = self:GetParent():GetName()
 					local child = _G[parent.."edit"]
 					local text = _G[parent.."Text"]
-					--child:SetWidth(self:GetParent():GetWidth())
 					text:SetText(self:GetParent().text or "")
 					self:SetScrollChild(child)
 				end,
@@ -550,15 +648,6 @@ local templates = {
 	nrf_multiedit = {
 		type = "ScrollFrame",
 		uitemp = "UIPanelScrollFrameTemplate",
-		--[[Backdrop = {
-			bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-			edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-			tile = true,
-			tileSize = 16,
-			edgeSize = 10,
-			insets = { left = 2, right = 2, top = 2, bottom = 2 },
-		},
-		BackdropColor = { 0, 0, 0.2, 0.75 },]]
 		children = {
 			Text = {
 				type = "FontString",
@@ -588,9 +677,9 @@ local templates = {
 					onshow(self)
 					parent:GetScript("OnLoad")(parent)
 				end,
-				OnEscapePressed = function(self) this:ClearFocus() end,
-				OnEditFocusGained = function() this.focus = true end,
-				OnEditFocusLost = function(self) saveopt(self) this.focus = nil end,
+				OnEscapePressed = function(self) self:ClearFocus() end,
+				OnEditFocusGained = function(self) self.focus = true end,
+				OnEditFocusLost = function(self) saveopt(self) self.focus = nil end,
 				OnTabPressed = function(self) self:Insert("   ") end,
 				OnEnterPressed = function(self) self:GetScript("OnTextChanged")() end,
 				OnTextChanged = function(self)
@@ -610,7 +699,6 @@ local templates = {
 			},
 			bg = {
 				type = "Frame",
-				--size = { 1, 1 },
 				Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, 0 },
 				Backdrop = {
 					bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
