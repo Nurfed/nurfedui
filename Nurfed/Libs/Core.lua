@@ -378,11 +378,11 @@ function util:getunitstat(unit, stat)
 		local color = self:getopt("mpcolor")
 		if color == "normal" then
 			local powertype = UnitPowerType(unit)
-			if powertype == 0 then r, g, b = unpack(self:getopt(MANA))
-			elseif powertype == 1 then r, g, b = unpack(self:getopt(RAGE_POINTS))
-			elseif powertype == 2 then r, g, b = unpack(self:getopt(FOCUS_POINTS))
-			elseif powertype == 3 then r, g, b = unpack(self:getopt(ENERGY_POINTS))
-			elseif powertype == 4 then r, g, b = unpack(self:getopt(HAPPINESS_POINTS))
+			if powertype == 0 then r, g, b = unpack(self:getopt("mana"))
+			elseif powertype == 1 then r, g, b = unpack(self:getopt("rage"))
+			elseif powertype == 2 then r, g, b = unpack(self:getopt("focus"))
+			elseif powertype == 3 then r, g, b = unpack(self:getopt("energy"))
+			elseif powertype == 4 then r, g, b = unpack(self:getopt("happiness"))
 			end
 		
 		elseif color == "class" then
@@ -899,6 +899,31 @@ function util:getspell(spell, rank)
   return spells[spell]
 end
 
+function util:getspells(search)
+	local spells = {}
+	local tabs = GetNumSpellTabs()
+	for tab = 1, tabs do
+		local _, _, offset, numSpells = GetSpellTabInfo(tab)
+		spells[tab] = {}
+		for i = 1, numSpells do
+			local spell = offset + i
+			if search then
+				local spellname, spellrank = GetSpellName(spell, BOOKTYPE_SPELL)
+				if search == spellname or search == spellname.."("..spellrank..")" then
+					return spell, spellrank, BOOKTYPE_SPELL
+				end
+			elseif not IsPassiveSpell(spell, BOOKTYPE_SPELL) then
+				local spellname, spellrank = GetSpellName(spell, BOOKTYPE_SPELL)
+				if not spells[tab][spellname] then
+					spells[tab][spellname] = {}
+					table.insert(spells[tab], spellname)
+				end
+				table.insert(spells[tab][spellname], spell)
+			end
+		end
+	end
+	return spells
+end
 util:regevent("LEARNED_SPELL_IN_TAB", updatespells)
 
 ----------------------------------------------------------------
@@ -946,6 +971,26 @@ local addonmsg = function(event, ...)
   end
 end
 
+util:addslash(function() 
+	if IsAddOnLoaded("Nurfed_OptionsAce3") then 
+		LibStub("AceConfigDialog-3.0"):Open("Nurfed") 
+	else 
+		LoadAddOn("Nurfed_OptionsAce3")
+		LibStub("AceConfigDialog-3.0"):Open("Nurfed") 
+	end
+end, "/nrf")
+
+util:addslash(function(...)
+	local arg, arg2 = string.split(" ", ...)
+	arg, arg2 = tonumber(arg), tonumber(arg2)
+	while arg <= arg2 do
+		if GetSpellLink(arg) then
+			Nurfed:print(GetSpellLink(arg))
+		end
+		arg = arg + 1
+	end
+end, "/nrfspelllinks")
+		
 util:regevent("CHAT_MSG_ADDON", addonmsg)
 Nurfed:setver("$Date$")
 Nurfed:setrev("$Rev$")

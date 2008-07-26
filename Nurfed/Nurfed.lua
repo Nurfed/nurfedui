@@ -237,6 +237,27 @@ local function onevent()
     nrf_togglcast()
     nrf_mainmenu()
     CombatLogQuickButtonFrame_Custom:UnregisterEvent("PLAYER_ENTERING_WORLD")
+	if NURFED_SAVED[MANA] then
+		NURFED_SAVED["mana"] = NURFED_SAVED[MANA]
+		NURFED_SAVED[MANA] = nil
+	end
+	if NURFED_SAVED[RAGE_POINTS or RAGE] then
+		NURFED_SAVED["rage"] = NURFED_SAVED[RAGE_POINTS or RAGE]
+		NURFED_SAVED[RAGE_POINTS or RAGE] = nil
+	end
+	if NURFED_SAVED[ENERGY_POINTS or ENERGY] then
+		NURFED_SAVED["energy"] = NURFED_SAVED[ENERGY_POINTS or ENERGY]
+		NURFED_SAVED[ENERGY_POINTS or ENERGY] = nil
+	end
+	if NURFED_SAVED[FOCUS_POINTS or FOCUS] then
+		NURFED_SAVED["focus"] = NURFED_SAVED[FOCUS_POINTS or FOCUS]
+		NURFED_SAVED[FOCUS_POINTS or FOCUS] = nil
+	end
+	if NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS] then
+		NURFED_SAVED["happiness"] = NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS]
+		NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS] = nil
+	end
+	
   elseif event == "VARIABLES_LOADED" then
     if this:IsUserPlaced() then
       this:SetUserPlaced(nil)
@@ -252,10 +273,11 @@ local function onevent()
     end
 
     for i = 0, 4 do
-      local color = Nurfed:getopt(ManaBarColor[i].prefix)
-      ManaBarColor[i].r = color[1]
-      ManaBarColor[i].g = color[2]
-      ManaBarColor[i].b = color[3]
+      --local color = Nurfed:getopt(ManaBarColor[i].prefix)
+		local color = Nurfed:getopt(i == 0 and "mana" or i == 1 and "rage" or i == 2 and "focus" or i == 3 and "energy" or i == 4 and "happiness")
+		ManaBarColor[i].r = color[1]
+		ManaBarColor[i].g = color[2]
+		ManaBarColor[i].b = color[3]
     end
 
     if NURFED_FRAMES.templates then
@@ -582,7 +604,7 @@ Nurfed:createtemp("uipanel", {
 
 local panel = Nurfed:create("NurfedHeader", "uipanel")
 panel:SetScript("OnShow", function(self)
-    local loaded, reason = LoadAddOn("Nurfed_Options")
+    LoadAddOn("Nurfed_Options")
     NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")")
     self:SetScript("OnShow", nil)
 end)
@@ -606,3 +628,4 @@ button:SetScript("OnClick", function() StaticPopup_Show("NRF_RELOADUI") end)
 
 Nurfed:setver("$Date$")
 Nurfed:setrev("$Rev$")
+
