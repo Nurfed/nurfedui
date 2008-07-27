@@ -125,6 +125,7 @@ local addnew = function()
 		if unit == "" then unit = nil end
 		NURFED_ACTIONBARS[text] = {
 			unit = unit,
+			--[[
 			rows = NurfedActionBarsPanelbarrows:GetValue(),
 			cols = NurfedActionBarsPanelbarcols:GetValue(),
 			scale = NurfedActionBarsPanelbarscale:GetValue(),
@@ -132,6 +133,14 @@ local addnew = function()
 			xgap = NurfedActionBarsPanelbarxgap:GetValue(),
 			ygap = NurfedActionBarsPanelbarygap:GetValue(),
 			visible = NurfedActionBarsPanelbarvisible:GetText(),
+			]]
+			rows = NurfedActionBarsPanelbarrows.default,
+			cols = NurfedActionBarsPanelbarcols.default,
+			scale = NurfedActionBarsPanelbarscale.default,
+			alpha = NurfedActionBarsPanelbaralpha.default,
+			xgap = NurfedActionBarsPanelbarxgap.default,
+			ygap = NurfedActionBarsPanelbarygap.default,
+			visible = NurfedActionBarsPanelbarvisible.default,
 			useunit = NurfedActionBarsPanelbaruseunit:GetChecked(),
 			buttons = {},
 			statemaps = {},
