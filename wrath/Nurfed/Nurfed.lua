@@ -302,7 +302,7 @@ local function onevent(self, ...)
 		end
 
 		for i = 0, 4 do
-			local color = Nurfed:getopt(i == 0 and MANA or i == 1 and RAGE or i == 2 and FOCUS or i == 3 and ENERGY or i == 4 and HAPPINESS)
+			local color = Nurfed:getopt(i == 0 and "mana" or i == 1 and "rage" or i == 2 and "focus" or i == 3 and "energy" or i == 4 and "happiness")
 			PowerBarColor[i].r = color[1]
 			PowerBarColor[i].g = color[2]
 			PowerBarColor[i].b = color[3]
