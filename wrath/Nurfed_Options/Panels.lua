@@ -1006,7 +1006,7 @@ local panels = {
 			button = {
 				type = "Frame",
 				size = { 100, 100 },
-				uitemp = "SecureStateDriverTemplate",
+				uitemp = "SecureHandlerStateTemplate",
 				Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -50, -150 },
 				Keyboard = true,
 				children = {
@@ -1751,11 +1751,13 @@ function Nurfed_ScrollActionBars()
 	for line = 1, 20 do
 		local offset = line + FauxScrollFrame_GetOffset(frame)
 		local row = getglobal("NurfedActionBarsRowPanel"..line)
-		if offset <= #bars then
-			format_row(row, offset)
-			row:Show()
-		else
-			row:Hide()
+		if row then
+			if offset <= #bars then
+				format_row(row, offset)
+				row:Show()
+			else
+				row:Hide()
+			end
 		end
 	end
 end
