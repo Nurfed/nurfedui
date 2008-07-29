@@ -3,12 +3,13 @@
 ------------------------------------------
 
 -- Locals
+local sellFrame = CreateFrame("Frame")
 local invite
 local pingflood = {}
 local afkstring = Nurfed:formatgs(RAID_MEMBERS_AFK, true)
 local ingroup = Nurfed:formatgs(ERR_ALREADY_IN_GROUP_S, true)
 local dnsLst = {
-	["Illidari Lord Balthas' Instructions"] = true,
+	[32823] = true,
 }
 -- Default Options
 NURFED_SAVED = NURFED_SAVED or {}
@@ -103,33 +104,106 @@ local function onupdate(self)
   end
 end
 
-function nrfrepair()
-    if Nurfed:getopt("repair") then
-      local limit = tonumber(Nurfed:getopt("repairlimit"))
-      local money = tonumber(math.floor(GetMoney() / COPPER_PER_GOLD))
-      if money >= limit then
-        local repairAllCost, canRepair = GetRepairAllCost()
-        if canRepair then
-          local gold = math.floor(repairAllCost / (COPPER_PER_SILVER * SILVER_PER_GOLD))
-          local silver = math.floor((repairAllCost - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
-          local copper = math.fmod(repairAllCost, COPPER_PER_SILVER)
-          if CanGuildBankRepair() then
-            RepairAllItems(1)
-            Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs (Guild).|r")
-          else
-            RepairAllItems()
-            Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs.|r")
+local function onevent(self, event, arg1, arg2, arg3, arg4, arg5)
+  if event == "CHAT_MSG_WHISPER" then
+    local invite = Nurfed:getopt("autoinvite")
+    if invite and (IsPartyLeader() or IsRaidLeader() or IsRaidOfficer() or (GetNumPartyMembers() == 0 and GetNumRaidMembers() == 0)) then
+      local text = string.lower(arg1)
+      local keyword = string.lower(Nurfed:getopt("keyword"))
+      if (string.find(text, "^"..keyword)) then
+        InviteUnit(arg2)
+        lastinvite = GetTime()
+      end
+    end
+  elseif event == "MINIMAP_PING" and Nurfed:getopt("ping") then
+	local name = UnitName(arg1)
+	if name ~= UnitName("player") and not pingflood[name] then
+		Nurfed:print(name.." Ping.", 1, 1, 1, 0)
+		pingflood[name] = GetTime()
+	end
+	
+  elseif event == "CHAT_MSG_SYSTEM" then
+	if arg1 == READY_CHECK_ALL_READY or string.find(arg1, afkstring) then
+      if Nurfed:getopt("readycheck") then
+        SendChatMessage(arg1, "RAID")
+      end
+    else
+      local invitetext = Nurfed:getopt("invitetext")
+      if invitetext and (IsPartyLeader() or IsRaidLeader() or IsRaidOfficer()) then
+        if string.find(arg1, ERR_GROUP_FULL, 1, true) and lastinvite then
+          local lastTell = ChatEdit_GetLastTellTarget(DEFAULT_CHAT_FRAME.editBox)
+          if lastTell ~= "" then
+            SendChatMessage("Party Full", "WHISPER", nil, lastTell)
+          end
+        else
+          local result = { string.find(arg1, ingroup) }
+          if (result[1]) then
+			SendChatMessage("Drop group and resend '"..Nurfed:getopt("keyword").."'", "WHISPER", nil, result[3])
           end
         end
       end
     end
+    
+  elseif event == "PARTY_INVITE_REQUEST" and Nurfed:getopt("autojoingroup") then
+	GuildRoster()
+	local i, num = 0, GetNumGuildMembers()
+	while i <= num do
+		local name = GetGuildRosterInfo(i)
+		if name == arg1 then
+			AcceptGroup()
+			StaticPopup_Hide("PARTY_INVITE")
+			break
+		end
+		i = i + 1
+	end
+
+  elseif event == "MERCHANT_SHOW" then
+	local isRepairing, startRepMoney
+	if Nurfed:getopt("repair") then
+		local limit = tonumber(Nurfed:getopt("repairlimit"))
+		local money = tonumber(math.floor(GetMoney() / COPPER_PER_GOLD))
+		if money >= limit then
+			local repairAllCost, canRepair = GetRepairAllCost()
+			if canRepair then
+				startRepMoney = GetMoney()
+				local gold = math.floor(repairAllCost / (COPPER_PER_SILVER * SILVER_PER_GOLD))
+				local silver = math.floor((repairAllCost - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
+				local copper = math.fmod(repairAllCost, COPPER_PER_SILVER)
+				if CanGuildBankRepair() and min(GetGuildBankWithdrawMoney(), GetGuildBankMoney()) > repairAllCost then
+					RepairAllItems(1)
+					Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs (Guild).|r")
+				else
+					isRepairing = true
+					RepairAllItems()
+					Nurfed:print("|cffffffffSpent|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cffffffffOn Repairs.|r")
+				end
+			end
+		end
+	end
     if Nurfed:getopt("autosell") then
+		if isRepairing then
+			local timer = 1
+			sellFrame:SetScript("OnUpdate", function()
+				timer = timer + 1
+				if timer >= 45 then
+					if GetMoney() == startRepMoney then
+						timer = 0
+						return
+					else
+						sellFrame:SetScript("OnUpdate", nil)
+						Nurfed_LockButton:GetScript("OnEvent")(Nurfed_LockButton, "MERCHANT_SHOW")
+					end
+				end
+			end)
+			return
+		end
+		
 		local soldNum, soldItems, sold, startMoney = 0, "", nil, GetMoney()
 		for bag=0,4,1 do
 			for slot=1, GetContainerNumSlots(bag), 1 do
 				if GetContainerItemLink(bag, slot) then
 					local name, link, rarity = GetItemInfo(GetContainerItemLink(bag, slot))
-						if name and rarity == 0 and (not dnsLst[name]) then
+						if name and rarity == 0 and (not dnsLst[link:find("Hitem:(%d+)")]) then
 						soldNum = soldNum + GetItemCount(link)
 						soldItems = soldItems == "" and link or soldItems..", "..link
 						UseContainerItem(bag, slot)
@@ -145,7 +219,7 @@ function nrfrepair()
 				Nurfed:print("|cffffffffSold |r"..soldNum.." |cffffffffItems: |r"..soldItems)
 			end
 			local timer = 1
-			Nurfed_LockButton:SetScript("OnUpdate", function()
+			sellFrame:SetScript("OnUpdate", function()
 				timer=timer+1
 				if timer >= 45 then
 					local money = GetMoney() - startMoney
@@ -158,78 +232,17 @@ function nrfrepair()
 					local silver = math.floor((money - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
 					local copper = math.fmod(money, COPPER_PER_SILVER)
 					Nurfed:print("|cffffffffReceived|r |c00ffff66"..gold.."g|r |c00c0c0c0"..silver.."s|r |c00cc9900"..copper.."c|r |cfffffffffrom selling trash loot.|r")
-					Nurfed_LockButton:SetScript("OnUpdate", nil)
+					sellFrame:SetScript("OnUpdate", nil)
 				end
 			end)
 		end
 	end
-end
 
-local function onevent()
-  if event == "CHAT_MSG_WHISPER" then
-    local invite = Nurfed:getopt("autoinvite")
-    if invite and (IsPartyLeader() or IsRaidLeader() or IsRaidOfficer() or (GetNumPartyMembers() == 0 and GetNumRaidMembers() == 0)) then
-      local text = string.lower(arg1)
-      local keyword = string.lower(Nurfed:getopt("keyword"))
-      if (string.find(text, "^"..keyword)) then
-        InviteUnit(arg2)
-        lastinvite = GetTime()
-      end
-    end
-  elseif event == "MINIMAP_PING" then
-    local show = Nurfed:getopt("ping")
-    if show then
-      local name = UnitName(arg1)
-      if name ~= UnitName("player") and not pingflood[name] then
-        Nurfed:print(name.." Ping.", 1, 1, 1, 0)
-        pingflood[name] = GetTime()
-      end
-    end
-  elseif event == "CHAT_MSG_SYSTEM" then
-    if arg1 == READY_CHECK_ALL_READY or string.find(arg1, afkstring) then
-      local readycheck = Nurfed:getopt("readycheck")
-      if readycheck then
-        SendChatMessage(arg1, "RAID")
-      end
-    else
-      local invitetext = Nurfed:getopt("invitetext")
-      if invitetext and (IsPartyLeader() or IsRaidLeader() or IsRaidOfficer()) then
-        if string.find(arg1, ERR_GROUP_FULL, 1, true) and lastinvite then
-          local lastTell = ChatEdit_GetLastTellTarget(DEFAULT_CHAT_FRAME.editBox)
-          if lastTell ~= "" then
-            SendChatMessage("Party Full", "WHISPER", nil, lastTell)
-          end
-        else
-          local result = { string.find(arg1, ingroup) }
-          if (result[1]) then
-            SendChatMessage("Drop group and resend '"..Nurfed:getopt("keyword").."'", "WHISPER", nil, result[3])
-          end
-        end
-      end
-    end
-  elseif event == "PARTY_INVITE_REQUEST" and Nurfed:getopt("autojoingroup") then
-	GuildRoster()
-	local i, num = 0, GetNumGuildMembers()
-	while i <= num do
-		local name = GetGuildRosterInfo(i)
-		if name == arg1 then
-			AcceptGroup()
-			StaticPopup_Hide("PARTY_INVITE")
-			break
-		end
-		i = i + 1
-	end
-
-  elseif event == "MERCHANT_SHOW" then
-	  nrfrepair() -- split this out into its own function for hooking purposes, atleast until auto-sell is implimented
-
-  elseif event == "TRAINER_SHOW" then
-    if Nurfed:getopt("traineravailable") then SetTrainerServiceTypeFilter("unavailable", 0) end
+  elseif event == "TRAINER_SHOW" and Nurfed:getopt("traineravailable") then
+	SetTrainerServiceTypeFilter("unavailable", 0)
     
-  elseif event == "ADDON_LOADED" then
-    if arg1 == "Blizzard_InspectUI" then
-      InspectPaperDollFrame:SetScript("OnShow", Nurfed_InspectOnShow)
-    end
+  elseif event == "ADDON_LOADED" and arg1 == "Blizzard_InspectUI" then
+	InspectPaperDollFrame:SetScript("OnShow", Nurfed_InspectOnShow)
     
   elseif event == "PLAYER_ENTERING_WORLD" then
     this:UnregisterEvent(event)
@@ -273,7 +286,6 @@ local function onevent()
     end
 
     for i = 0, 4 do
-      --local color = Nurfed:getopt(ManaBarColor[i].prefix)
 		local color = Nurfed:getopt(i == 0 and "mana" or i == 1 and "rage" or i == 2 and "focus" or i == 3 and "energy" or i == 4 and "happiness")
 		ManaBarColor[i].r = color[1]
 		ManaBarColor[i].g = color[2]
@@ -380,12 +392,12 @@ end
 local messageText = {}
 local function message(this, msg, r, g, b, id)
   if (msg and type(msg) == "string") then
-	-- lets reuse the same table over and over again now.  Prevents garbage
-    --for i in pairs(messageText) do messageText[i] = nil end
-	messageText[1] = nil; messageText[2] = nil -- there should not be anything more than 2, no need to do pairs
+	messageText[1] = nil; messageText[2] = nil
+	
     if Nurfed:getopt("timestamps") then
       table.insert(messageText, date(Nurfed:getopt("timestampsformat")))
     end
+    
     if not Nurfed:getopt("chatprefix") then
 		-- disable new coding until it gets fixed.  It is parsing out any text at the beginning of a line that
 		-- starts with [].  Regardless of its orgin(other mods)
