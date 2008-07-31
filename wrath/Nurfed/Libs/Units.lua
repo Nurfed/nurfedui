@@ -2482,6 +2482,7 @@ table.insert(UnitPopupMenus["PARTY"], "NRF_COMBATLOG")
 hooksecurefunc("UnitPopup_OnClick", combat)
 
 function Nurfed_UnitColors()
+	if not NURFED_FRAMES.frames then return end
 	for k in pairs(NURFED_FRAMES.frames) do
 		local frame = _G[k]
 		local unit = SecureButton_GetUnit(frame)

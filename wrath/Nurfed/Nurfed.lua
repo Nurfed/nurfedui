@@ -1,7 +1,7 @@
 ------------------------------------------
 --  Nurfed General Functions
 ------------------------------------------
-
+--## TODO:  Check Talents On Login (BUT NOT RELOAD!)
 -- Locals
 local sellFrame = CreateFrame("Frame")
 local invite
@@ -14,6 +14,7 @@ local dnsLst = {
 }
 -- Default Options
 NURFED_SAVED = NURFED_SAVED or {}
+NURFED_TALENTBINDINGS = NURFED_TALENTBINDINGS or {}
 
 local wowmenu = {
 	{ CHARACTER, function() CharacterMicroButton:Click() end },
@@ -287,7 +288,7 @@ local function onevent(self, ...)
 		end
 
 		for i = 0, 6 do
-			local color = Nurfed:getopt(i == 0 and "mana" or i == 1 and "rage" or i == 2 and "focus" or i == 3 and "energy" or i == 4 and "happiness" or i = 5 and "runes" or i == 6 and "runic_power")
+			local color = Nurfed:getopt(i == 0 and "mana" or i == 1 and "rage" or i == 2 and "focus" or i == 3 and "energy" or i == 4 and "happiness" or i == 5 and "runes" or i == 6 and "runic_power")
 			if color then
 				PowerBarColor[i].r = color[1]
 				PowerBarColor[i].g = color[2]
@@ -514,7 +515,70 @@ local function flood()
 end
 
 Nurfed:schedule(0.5, flood, true)
-
+----------------------------------------------------------------
+-- Talent Settings Detection by Apoco
+Nurfed:regevent("CHARACTER_POINTS_CHANGED", function()
+	if select(1, UnitCharacterPoints("player")) == 0 then
+		local tab1 = select(3, GetTalentTabInfo(1, false))
+		local tab2 = select(3, GetTalentTabInfo(2, false))
+		local tab3 = select(3, GetTalentTabInfo(3, false))
+		if true or Nurfed:getopt("specbars") then
+			if NURFED_TALENTBARS and NURFED_TALENTBARS[tab1] and NURFED_TALENTBARS[tab1][tab2] and NURFED_TALENTBARS[tab1][tab2][tab3] then
+				-- this is used for setting up bars without reloading
+				-- tivs: there is a problem with doing this because of the buttons names already existing and shit
+				-- when creating new bars.  Need assistance.
+				--for k in pairs(NURFED_ACTIONBARS) do
+				--	Nurfed:deletebar(k)
+				--end
+				NURFED_ACTIONBARS = {}
+				for i,v in pairs(NURFED_TALENTBARS[tab1][tab2][tab3]) do
+					NURFED_ACTIONBARS[i] = v
+				end
+				Nurfed:print(L["Nurfed: Found ActionBars based on talents.  Activating.  You must now reload the UI."])
+				StaticPopup_Show("NRF_RELOADUI")
+				-- this is used for setting up bars without reloading
+				--Nurfed:sendevent("VARIABLES_LOADED")
+				--Nurfed:sendevent("PLAYER_LOGIN")]]
+			end
+		end
+		
+		if true or Nurfed:getopt("specbindings") then
+			if NURFED_TALENTBINDINGS[tab1] and NURFED_TALENTBINDINGS[tab1][tab2] and NURFED_TALENTBINDINGS[tab1][tab2][tab3] then
+				for bind, tbl in pairs(NURFED_TALENTBINDINGS[tab1][tab2][tab3]) do	
+					if bind:find("^CLICK") then
+						-- nothing, using if not bind:find("^CLICK") didn't work -_-;
+					else
+						local key, key2 = unpack(tbl)
+						if key and type(key) == "string" then
+							if bind:find("^SPELL") then
+								SetBindingSpell(key, bind:gsub("^SPELL ", "", 1))
+							elseif bind:find("^MACRO") then
+								SetBindingMacro(key, bind:gsub("^MACRO ", "", 1))
+							elseif bind:find("^ITEM") then
+								SetBindingItem(key, bind:gsub("^ITEM ", "", 1))
+							else
+								SetBinding(key, bind)
+							end
+						end
+						if key2 and type(key2) == "string" then
+							if bind:find("^SPELL") then
+								SetBindingSpell(key2, bind:gsub("^SPELL ", "", 1))
+							elseif bind:find("^MACRO") then
+								SetBindingMacro(key2, bind:gsub("^MACRO ", "", 1))
+							elseif bind:find("^ITEM") then
+								SetBindingItem(key2, bind:gsub("^ITEM ", "", 1))
+							else
+								SetBinding(key2, bind)
+							end
+						end
+					end
+				end
+				SaveBindings(GetCurrentBindingSet())
+				Nurfed:print(L["Nurfed: Found KeyBindings based on talents.  Activating."])
+			end
+		end
+	end
+end)
 ----------------------------------------------------------------
 -- Add point gain to team frame
 for i = 1, 3 do

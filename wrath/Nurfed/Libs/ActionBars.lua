@@ -48,6 +48,7 @@ local IsUsableItem = _G.IsUsableItem
 local ItemHasRange = _G.ItemHasRange
 local IsItemInRange = _G.IsItemInRange
 local Nurfed = _G.Nurfed
+local L = _G.Nurfed:GetTranslations()
 
 -- Default Options
 NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
@@ -64,6 +65,7 @@ NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
 		visible = "show",
 	},
 }
+NURFED_TALENTBARS = NURFED_TALENTBARS or {}
 
 ----------------------------------------------------------------
 -- Button functions
@@ -436,11 +438,13 @@ end
 local function saveattrib(self, name, value)
 	--if string.find(name, "^%*") or string.find(name, "^shift") or string.find(name, "^ctrl") or string.find(name, "^alt") then
 	if name:find("^%*") or name:find("^shift") or name:find("^ctrl") or name:find("^alt") then
-		NURFED_ACTIONBARS[self:GetParent():GetName()].buttons[self:GetID()][name] = value
-		name = "state-parent"
+		if self:GetParent():GetName() ~= "UIParent" then
+			NURFED_ACTIONBARS[self:GetParent():GetName()].buttons[self:GetID()][name] = value
+			name = "state-parent"
+		end
 	end
 
-	if name == "state-parent" then
+	if name and name == "state-parent" then
 		seticon(self)
 	end
 end
@@ -536,16 +540,18 @@ local btnevents = {
 			if id > 0 then
 				local key = GetBindingKey("CLICK "..btn:GetName()..":LeftButton")
 				local parent = btn:GetParent():GetName()
-				NURFED_ACTIONBARS[parent].buttons[id].bind = key
-				if key then
-					key = Nurfed:binding(key)
-				end
-				if Nurfed:getopt("showbindings") then
-					_G[btn:GetName().."HotKey"]:SetText(key)
-					_G[btn:GetName().."HotKey"]:Show()
-				else
-					_G[btn:GetName().."HotKey"]:SetText(nil)
-					_G[btn:GetName().."HotKey"]:Hide()
+				if parent ~= "UIParent" then
+					NURFED_ACTIONBARS[parent].buttons[id].bind = key
+					if key then
+						key = Nurfed:binding(key)
+					end
+					if Nurfed:getopt("showbindings") then
+						_G[btn:GetName().."HotKey"]:SetText(key)
+						_G[btn:GetName().."HotKey"]:Show()
+					else
+						_G[btn:GetName().."HotKey"]:SetText(nil)
+						_G[btn:GetName().."HotKey"]:Hide()
+					end
 				end
 			end
 		end
@@ -671,14 +677,14 @@ Nurfed:schedule(ATTACK_BUTTON_FLASH_TIME, btnflash, true)
 ----------------------------------------------------------------
 -- Reset stance bar border
 hooksecurefunc("UIParent_ManageFramePositions", function()
-    if not MainMenuBar:IsShown() then
-      for i = 1, 10 do
-        local border = _G["ShapeshiftButton"..i.."NormalTexture"]
-        border:SetWidth(50)
-        border:SetHeight(50)
-      end
-    end
-  end)
+	if not MainMenuBar:IsShown() then
+		for i = 1, 10 do
+			local border = _G["ShapeshiftButton"..i.."NormalTexture"]
+			border:SetWidth(50)
+			border:SetHeight(50)
+		end
+	end
+end)
 
 ----------------------------------------------------------------
 -- Add cooldown text
@@ -808,18 +814,17 @@ end
 
 function Nurfed:deletebar(frame)
 	local hdr = _G[frame]
-	UnregisterUnitWatch(hdr)
-	hdr:SetAttribute("unit", nil)
-	RegisterStateDriver(hdr, "visibility", "hide")
-	hdr:Hide()
+	if hdr then
+		UnregisterUnitWatch(hdr)
+		hdr:SetAttribute("unit", nil)
+		RegisterStateDriver(hdr, "visibility", "hide")
+		hdr:Hide()
 
-	local children = { hdr:GetChildren() }
-	for _, child in ipairs(children) do
-		--if string.find(child:GetName(), "^Nurfed_Button") then
-		--	delbtn(child)
-		--end
-		if child:GetName():find("^Nurfed_Button") then
-			delbtn(child)
+		local children = { hdr:GetChildren() }
+		for _, child in ipairs(children) do
+			if child:GetName():find("^Nurfed_Button") then
+				delbtn(child)
+			end
 		end
 	end
 	NURFED_ACTIONBARS[frame] = nil
@@ -855,6 +860,13 @@ function Nurfed:updatehks(frame)
 		while vals.buttons[count] do
 			vals.buttons[count] = nil
 			count = count + 1
+		end
+		if hdr:IsUserPlaced() then
+			NURFED_ACTIONBARS[hdr:GetName()].Point = { hdr:GetPoint() }
+		end
+		if vals.Point then
+			hdr:ClearAllPoints()
+			hdr:SetPoint(unpack(vals.Point))
 		end
 	end
 end
@@ -901,9 +913,10 @@ Nurfed:createtemp("actionbar", {
 			OnDragStart = function(self) self:GetParent():StartMoving() end,
 			OnDragStop = function(self)
 				local parent = self:GetParent()
+				local pname = parent:GetName()
 				parent:StopMovingOrSizing()
-				if NURFED_ACTIONBARS[parent:GetName()] then
-					NURFED_ACTIONBARS[parent:GetName()].Point = { parent:GetPoint() }
+				if NURFED_ACTIONBARS[pname] then
+					NURFED_ACTIONBARS[pname].Point = { parent:GetPoint() }
 				else
 					parent:SetUserPlaced(true)
 				end
@@ -1034,7 +1047,7 @@ function nrf_updatemainbar(bar)
 	end
 end
 
-local function createbars()
+local function createbars(bars)
 	for k in pairs(NURFED_ACTIONBARS) do
 		Nurfed:createbar(k)
 	end
@@ -1042,18 +1055,16 @@ local function createbars()
 	local bar, drag
 	for k, v in pairs(blizzbars) do
 		bar = Nurfed:create("Nurfed_"..k, "actionbar")
-		bar:SetHeight(v)
-		if not bar:IsUserPlaced() and not bar.UserPoints then
-			bar:SetPoint("CENTER")
+		if bar then
+			bar:SetHeight(v)
+			if not bar:IsUserPlaced() then
+				bar:SetPoint("CENTER")
+			end
+			if k == "petbar" then
+				bar:SetAttribute("unit", "pet")
+			end
+			_G["Nurfed_"..k.."dragtext"]:SetText("Nurfed_"..k)
 		end
-		if k == "petbar" then
-			bar:SetAttribute("unit", "pet")
-		end
-		if bar.UserPoints then
-			bar:ClearAllPoints();
-			bar:SetPoint(unpack(bar.UserPoints))
-		end
-		_G["Nurfed_"..k.."dragtext"]:SetText("Nurfed_"..k)
 	end
 end
 
