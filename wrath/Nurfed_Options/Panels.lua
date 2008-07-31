@@ -1,4 +1,4 @@
-------------------------------------------
+ ------------------------------------------
 -- Option Menu Panels
 local L = Nurfed:GetTranslations()
 local hptype = { "class", "fade", "script", "pitbull" }
@@ -318,6 +318,7 @@ local sethp = function()
 	Nurfed:sethpfunc()
 	Nurfed_UnitColors()
 end
+
 local import, checkonline, addonmsg, cancel, accept
 do
 	local layout, received, sendname, acceptname
@@ -804,11 +805,109 @@ local panels = {
 
 	},
   },
+	{
+		name = "Talent Settings",
+		subtext = "Save settings based on talents.",
+		menu = {
+			addbar = {
+				template = "nrf_button",
+				Anchor = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", 0, 20 },
+				OnClick = function()
+					local tab1 = select(3, GetTalentTabInfo(1, false))
+					local tab2 = select(3, GetTalentTabInfo(2, false))
+					local tab3 = select(3, GetTalentTabInfo(3, false))
+					if not NURFED_TALENTBARS[tab1] then
+						NURFED_TALENTBARS[tab1] = {}
+					end
+					if not NURFED_TALENTBARS[tab1][tab2] then
+						NURFED_TALENTBARS[tab1][tab2] = {}
+					end
+					NURFED_TALENTBARS[tab1][tab2][tab3] = {}
+					for i,v in pairs(NURFED_ACTIONBARS) do
+						NURFED_TALENTBARS[tab1][tab2][tab3][i] = v
+					end
+					Nurfed:print("Nurfed: Saved ActionBar Settings for Spec:"..tab1..","..tab2..","..tab3)
+				end,
+				Text = L["Add Talent Action Bars"],
+			},
+			addbinding = {
+				template = "nrf_button",
+				Anchor = { "TOPLEFT", "$parentaddbar", "BOTTOMLEFT", 0, -20 },
+				OnClick = function()
+					local tab1 = select(3, GetTalentTabInfo(1, false))
+					local tab2 = select(3, GetTalentTabInfo(2, false))
+					local tab3 = select(3, GetTalentTabInfo(3, false))
+					if not NURFED_TALENTBINDINGS[tab1] then
+						NURFED_TALENTBINDINGS[tab1] = {}
+					end
+					if not NURFED_TALENTBINDINGS[tab1][tab2] then
+						NURFED_TALENTBINDINGS[tab1][tab2] = {}
+					end
+					NURFED_TALENTBINDINGS[tab1][tab2][tab3] = {}
+					--[[ this function sucks ass.  
+					-- Fail blizzard at making GetNumBindings and GetBinding not work with non-registered bindings
+					-- such as SetBindingSpell, SetBindingMacro, and SetBindingItem
+					-- very depressing
+					for i=0, GetNumBindings() do
+						local action, key1, key2 = GetBinding(i)
+						if key1 then
+							if key2 then
+								NURFED_TALENTBINDINGS[tab1][tab2][tab3][action] = { [1] = key1, [2] = key2 }
+							else
+								NURFED_TALENTBINDINGS[tab1][tab2][tab3][action] = key1
+							end
+						end
+					end]]
+					local permutations = {"SHIFT","CTRL","ALT","ALT-SHIFT","ALT-CTRL","CTRL-SHIFT","ALT-CTRL-SHIFT"}
+					local talentKeyLst = {
+						"ESCAPE","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","PRINTSCREEN",
+						"SCROLLLOCK","PAUSE","`","1","2","3","4","5","6","7","8","9","0","-","=","BACKSPACE","TAB",
+						"Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\\", "CAPSLOCK", "A", "S", "D", "F", "G", "H", 
+						"J", "K", "L", ";", "'", "ENTER", "SHIFT", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "SHIFT", "INSERT", 
+						"HOME", "PAGEUP", "DELETE", "END", "PAGEDOWN", "LEFT", "UP", "DOWN", "RIGHT", "NUMLOCK", "NUMPADDIVIDE", "NUMPADMULTIPLY", 
+						"NUMPADMINUS", "NUMPAD7", "NUMPAD8", "NUMPAD9", "NUMPADPLUS", "NUMPAD4", "NUMPAD5", "NUMPAD6", "NUMPAD1", "NUMPAD2", 
+						"NUMPAD3", "ENTER", "NUMPAD0", "NUMPADDECIMAL", 
+					}
+					for _, key in pairs(talentKeyLst) do
+						local action = GetBindingAction(key)
+						if action and action ~= "" then
+							if not NURFED_TALENTBINDINGS[tab1][tab2][tab3][action] then
+								NURFED_TALENTBINDINGS[tab1][tab2][tab3][action] = {}
+							end
+							table.insert(NURFED_TALENTBINDINGS[tab1][tab2][tab3][action], key)
+						end
+						for _, subkey in pairs(permutations) do
+							action = GetBindingAction(subkey.."-"..key)
+							if action and action ~= "" then
+								if not NURFED_TALENTBINDINGS[tab1][tab2][tab3][action] then
+									NURFED_TALENTBINDINGS[tab1][tab2][tab3][action] = {}
+								end
+								table.insert(NURFED_TALENTBINDINGS[tab1][tab2][tab3][action], subkey.."-"..key)
+							end
+						end
+					end
+					Nurfed:print("Nurfed: Saved Keybinding Settings for Spec:"..tab1..","..tab2..","..tab3)
+				end,
+				Text = L["Add Talent Keybindings"],
+			},
+		},
+	},
 	-- Action Bars Panel
 	{
 		name = "ActionBars",
 		subtext = "Change settings for the action bars provided by Nurfed.",
 		menu = {
+			savepos = {
+				template = "nrf_button",
+				Anchor = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", 0, 20 },
+				OnClick = function()
+					for name in pairs(NURFED_ACTIONBARS) do
+						NURFED_ACTIONBARS[name].Point = { _G[name]:GetPoint() }
+					end
+				end,
+				Text = L["Save Pos"],
+			},
+					
 			add = {
 				template = "nrf_editbox",
 				size = { 130, 18 },
@@ -826,7 +925,6 @@ local panels = {
 			scroll = {
 				type = "ScrollFrame",
 				size = { 165, 300 },
-				--Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 0, 0 },
 				Anchor = { "TOPLEFT", "$parentadd", "BOTTOMLEFT", 0, -5 },
 				uitemp = "FauxScrollFrameTemplate",
 				OnVerticalScroll = function() FauxScrollFrame_OnVerticalScroll(14, Nurfed_ScrollActionBars) end,
@@ -861,7 +959,7 @@ local panels = {
 								template = "nrf_button",
 								Anchor = { "LEFT", "$parent", "RIGHT", 0, 0 },
 								Text = "Unit",
-								OnClick = function() Nurfed_DropMenu(units) end,
+								OnClick = function(self) Nurfed_DropMenu(self, units) end,
 							},
 						},
 						OnTextChanged = function(self) updatebar(self) end,
@@ -870,7 +968,6 @@ local panels = {
 					},
 					useunit = {
 						template = "nrf_check",
-					--	Anchor = { "TOPRIGHT", 0, -7 },
 						Anchor = { "BOTTOM", "$parent", "TOP", -50, -10 },
 						OnClick = function(self) updatebar(self) end,
 						vars = { text = "Harm / Help", val = "useunit" },
@@ -884,10 +981,9 @@ local panels = {
 								template = "nrf_button",
 								Anchor = { "LEFT", "$parent", "RIGHT", 0, 0 },
 								Text = "Visible",
-								OnClick = function() Nurfed_DropMenu(visible) end,
+								OnClick = function(self) Nurfed_DropMenu(self, visible) end,
 							},
 						},
-						--OnTextChanged = function(self) updatebar(self) end,
 						OnEnterPressed = function(self) updatebar(self) end,
 						vars = { val = "visible", default = "show" },
 					},
@@ -1094,7 +1190,7 @@ local panels = {
 								template = "nrf_button",
 								Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
 								Text = "State",
-								OnClick = function() Nurfed_DropMenu(states) end,
+								OnClick = function(self) Nurfed_DropMenu(self, states) end,
 							},
 						},
 						OnTabPressed = function() NurfedActionBarsPanelstatesmap:SetFocus() end,
@@ -1183,7 +1279,7 @@ local panels = {
 {
 	name = "Setup",
 	subtext = "Assist in setting up your UI",
-		addon = "aX",
+	addon = "aX",
 	menu = {
 		framename = {
 			template = "nrf_editbox",
@@ -1270,94 +1366,94 @@ local panels = {
 	name = L["Units"],
 	subtext = L["Options that effect the unit frames created by Nurfed."],
 	menu = {
-			scroll = {
-				template = "nrf_scroll",
-				vars = { pages = 2 },
-				size = { 360, 320 },
-				Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 5, -8 },
+		scroll = {
+			template = "nrf_scroll",
+			vars = { pages = 2 },
+			size = { 360, 320 },
+			Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 5, -8 },
+		},
+		scrollbg = {
+			type = "Frame",
+			Anchor = { "TOPRIGHT", "$parentscroll", "TOPRIGHT", 25, 6 },
+			size = { 24, 330 },
+			Backdrop = { 
+				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", 
+				edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", 
+				tile = true, 
+				tileSize = 12, 
+				edgeSize = 12, 
+				insets = { left = 2, right = 2, top = 2, bottom = 2 }, 
 			},
-			scrollbg = {
-				type = "Frame",
-				Anchor = { "TOPRIGHT", "$parentscroll", "TOPRIGHT", 25, 6 },
-				size = { 24, 330 },
-				Backdrop = { 
-					bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", 
-					edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", 
-					tile = true, 
-					tileSize = 12, 
-					edgeSize = 12, 
-					insets = { left = 2, right = 2, top = 2, bottom = 2 }, 
-				},
-				BackdropColor = { 0, 0, 0, 0.5 },
-			},
+			BackdropColor = { 0, 0, 0, 0.5 },
+		},
 		check1 = {
 			template = "nrf_check",
 			Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, 10 },
-			vars = { text = L["Aura Cooldowns"], option = "cdaura" },
+			vars = { text = L["Aura Cooldowns"], option = "cdaura", page = 1 },
 		},
 		check2 = {
 			template = "nrf_check",
 			Point = { "TOPLEFT", "$parentcheck1", "BOTTOMLEFT", 0, 0 },
-			vars = { text = L["Color Mana Background"], option = "changempbg" },
+			vars = { text = L["Color Mana Background"], option = "changempbg", page = 1 },
 		},
 		check3 = {
 			template = "nrf_check",
 			Point = { "TOPLEFT", "$parentcheck2", "BOTTOMLEFT", 0, 0 },
-			vars = { text = L["Color Health Background"], option = "changehpbg" },
+			vars = { text = L["Color Health Background"], option = "changehpbg", page = 1 },
 		},
 		swatch1 = {
 			template = "nrf_color",
 			Point = { "TOPLEFT", "$parentcheck3", "BOTTOMLEFT", 5, -5 },
-			vars = { text = MANA, option = MANA, func = setmana },
+			vars = { text = MANA, option = "mana", func = setmana, page = 1 },
 		},
 		swatch2 = {
 			template = "nrf_color",
 			Point = { "TOPLEFT", "$parentswatch1", "BOTTOMLEFT", 0, -5 },
-			vars = { text = RAGE, option = RAGE, func = setmana },
+			vars = { text = RAGE, option = "rage", func = setmana, page = 1 },
 		},
 		swatch3 = {
 			template = "nrf_color",
 			Point = { "TOPLEFT", "$parentswatch2", "BOTTOMLEFT", 0, -5 },
-			vars = { text = FOCUS, option = FOCUS, func = setmana },
+			vars = { text = FOCUS, option = "focus", func = setmana, page = 1 },
 		},
 		swatch4 = {
 			template = "nrf_color",
 			Point = { "LEFT", "$parentswatch1", "RIGHT", 120, 0 },
-			vars = { text = ENERGY, option = ENERGY, func = setmana },
+			vars = { text = ENERGY, option = "energy", func = setmana, page = 1 },
 		},
 		swatch5 = {
 			template = "nrf_color",
 			Point = { "TOPRIGHT", "$parentswatch4", "BOTTOMRIGHT", 0, -5 },
-			vars = { text = HAPPINESS, option = HAPPINESS, func = setmana },
+			vars = { text = HAPPINESS, option = "happiness", func = setmana, page = 1 },
 		},
 		button1 = {
 			template = "nrf_optbutton",
 			Anchor = { "TOPLEFT", "$parentswatch3", "BOTTOMLEFT", 55, -5 },
 			OnClick = function(self) Nurfed_DropMenu(self, mptype) end,
-			vars = { text = L["MP Color"], option = "mpcolor", func = setmp },
+			vars = { text = L["MP Color"], option = "mpcolor", func = setmp, page = 1 },
 		},
 		button2 = {
 			template = "nrf_optbutton",
 			Anchor = { "LEFT", "$parentbutton1", "RIGHT", 55, 0 },
 			OnClick = function(self) Nurfed_DropMenu(self, hptype) end,
-			vars = { text = L["HP Color"], option = "hpcolor", func = sethp },
+			vars = { text = L["HP Color"], option = "hpcolor", func = sethp, page = 1 },
 		},
 		hpscript = {
 			template = "nrf_multiedit",
 			size = { 350, 160 },
 			Point = { "TOPLEFT", "$parentbutton1", "BOTTOMLEFT", -70, -7 },
-			vars = { option = "hpscript", func = sethp },
+			vars = { option = "hpscript", func = sethp, page = 1 },
 		},
 			button3 = {
 				template = "nrf_optbutton",
 				size = { 120, 18 },
 				Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", 20, 0 },
-				OnClick = function()
+				OnClick = function(self)
 					local t = {}
 					for i in pairs(Nurfed:getopt("bufffilterlist")) do
 						table.insert(t, i)
 					end
-					Nurfed_DropMenu(t)
+					Nurfed_DropMenu(self, t)
 				end,
 				OnShow = function(self)
 					local text = _G[self:GetName().."Text"]
@@ -1375,20 +1471,20 @@ local panels = {
 				size = { 250, 18 },
 				Point = { "TOPLEFT", "$parentbutton3", "BOTTOMLEFT", -2, -18 },
 				OnEnterPressed = function(self) addDeBuffFilter("bufffilterlist", self:GetText()); self:ClearFocus(); self:SetText("") end,
-				OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-				OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+				OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+				OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				vars = { text = "Add Buff Filter", page = 2 },
 			},
 			button4 = {
 				template = "nrf_optbutton",
 				size = { 120, 18 },
 				Point = { "TOPLEFT", "$parenteditbox1", "BOTTOMLEFT", 0, -18 },
-				OnClick = function()
+				OnClick = function(self)
 					local t = {}
 					for i in pairs(Nurfed:getopt("debufffilterlist")) do
 						table.insert(t, i)
 					end
-					Nurfed_DropMenu(t)
+					Nurfed_DropMenu(self, t)
 				end,
 				OnShow = function(self)
 					local text = _G[self:GetName().."Text"]
@@ -1406,8 +1502,8 @@ local panels = {
 				size = { 250, 18 },
 				Point = { "TOPLEFT", "$parentbutton4", "BOTTOMLEFT", 0, -18 },
 				OnEnterPressed = function(self) addDeBuffFilter("debufffilterlist", self:GetText()); self:ClearFocus(); self:SetText("") end,
-				OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-				OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+				OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+				OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				vars = { text = "Add Debuff Filter", page = 2 },
 			},
 		},

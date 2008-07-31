@@ -16,12 +16,15 @@ do	-- keep local dropmenu local...rofl?
 		local info = {}
 		local btn = self
 		local func
-		if btn.alt then
-			func = function() btn:SetText(self.value) btn.alt(btn) end
-		elseif btn:GetParent():GetObjectType() == "EditBox" then
-			func = function() btn:GetParent():SetText(self.value) end
+		
+		if self.alt then
+			func = function(self) btn:SetText(self.value) btn.alt(btn) end
+		elseif self:GetParent():GetObjectType() == "EditBox" then
+			func = function(self)
+				btn:GetParent():SetText(self.value) 
+			end
 		else
-			func = function() btn:SetText(self.value) saveopt(btn) end
+			func = function(self) btn:SetText(self.value) saveopt(btn) end
 		end
 		dropmenu.initialize = function()
 			for _, v in ipairs(tbl) do
@@ -254,6 +257,7 @@ local templates = {
 	},
 	nrf_button = {
 		type = "Button",
+		uitemp = "UIPanelButtonTemplate2",
 		size = { 60, 18 },
 		Backdrop = {
 			bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
@@ -270,8 +274,10 @@ local templates = {
 		DisabledTextColor = { 1, 0, 0 },
 		PushedTextOffset = { 1, -1 },
 		OnShow = function(self) 
+			_G[self:GetName().."Left"]:Hide()
+			_G[self:GetName().."Middle"]:Hide()
+			_G[self:GetName().."Right"]:Hide()
 			self:SetWidth(self:GetTextWidth() + 12) 
-			self:SetText(self.text)
 			self:SetScript("OnShow", nil)
 		end,
 	},
