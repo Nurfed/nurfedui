@@ -1,7 +1,16 @@
 ------------------------------------------
 --		Nurfed Units Library
 ------------------------------------------
-
+local debugCharList = {
+	["Apoco"] = true,
+	["Banvoli"] = true,
+}
+if debugCharList[UnitName("player")] then
+	Nurfed:print("Automatically Disabling Nurfed Unit Frames until they are fixed")
+	debugCharList = nil
+	return
+end
+debugCharList = nil
 --locals
 local units, tots
 local partyframes = {}
@@ -821,26 +830,26 @@ local classification = {
 ----------------------------------------------------------------
 -- Text variable replacements
 local replace = {
-	["$realm"] = function(t) return select(2, UnitName(this.unit)) or "" end,
-	["$faction"] = function(t) return UnitFactionGroup(this.unit) or "" end,
-	["$rname"] = function(t) return GetPVPRankInfo(UnitPVPRank(this.unit)) or "" end,
-	["$rnum"] = function(t) return select(2, GetPVPRankInfo(UnitPVPRank(this.unit))) or "" end,
-	["$race"] = function(t) return UnitRace(this.unit) or "" end,
-
-	["$name"] = function(t)
-		local name = UnitName(this.unit)
+	["$realm"] = function(self, t) return select(2, UnitName(self.unit)) or "" end,
+	["$faction"] = function(self, t) return UnitFactionGroup(self.unit) or "" end,
+	["$rname"] = function(self, t) return GetPVPRankInfo(UnitPVPRank(self.unit)) or "" end,
+	["$rnum"] = function(self, t) return select(2, GetPVPRankInfo(UnitPVPRank(self.unit))) or "" end,
+	["$race"] = function(self, t) return UnitRace(self.unit) or "" end,
+	["$threat"] = function(self, t) return UnitThreatSituation(self.threatRelativeTo, self.unit) end,
+	["$name"] = function(self, t)
+		local name = UnitName(self.unit)
 		local color
-		if UnitIsPlayer(this.unit) then
-			local eclass = select(2, UnitClass(this.unit))
+		if UnitIsPlayer(self.unit) then
+			local eclass = select(2, UnitClass(self.unit))
 			if eclass then
 				color = RAID_CLASS_COLORS[eclass].hex
 			end
 			
 		else
-			if UnitIsTapped(this.unit) and not UnitIsTappedByPlayer(this.unit) then
+			if UnitIsTapped(self.unit) and not UnitIsTappedByPlayer(self.unit) then
 				color = "|cff7f7f7f"
 			else
-				local reaction = UnitReaction(this.unit, "player")
+				local reaction = UnitReaction(self.unit, "player")
 				if reaction then
 					color = UnitReactionColor[reaction].hex
 				end
@@ -850,8 +859,8 @@ local replace = {
 	end,
 
 
-	["$key"] = function(t)
-			local id, found = gsub(this.unit, "party([1-4])", "%1")
+	["$key"] = function(self, t)
+			local id, found = gsub(self.unit, "party([1-4])", "%1")
 			if found == 1 then
 				local binding = GetBindingText(GetBindingKey("TARGETPARTYMEMBER"..id), "KEY_")
 				binding = Nurfed:binding(binding)
@@ -859,9 +868,9 @@ local replace = {
 			end
 	end,
 
-	["$level"] = function(t)
-			local level = UnitLevel(this.unit)
-			local classification = UnitClassification(this.unit)
+	["$level"] = function(self, t)
+			local level = UnitLevel(self.unit)
+			local classification = UnitClassification(self.unit)
 			local r, g, b
 			if level > 0 then
 				local color = GetDifficultyColor(level)
@@ -869,7 +878,7 @@ local replace = {
 				g = color.g
 				b = color.b
 			end
-			if UnitIsPlusMob(this.unit) then
+			if UnitIsPlusMob(self.unit) then
 				level = level.."+"
 			elseif level == 0 then
 				level = ""
@@ -884,21 +893,21 @@ local replace = {
 			return Nurfed:rgbhex(r, g, b)..level.."|r"
 	end,
 
-	["$class"] = function(t)
-			local class, eclass = UnitClass(this.unit)
-			if UnitIsPlayer(this.unit) then
+	["$class"] = function(self, t)
+			local class, eclass = UnitClass(self.unit)
+			if UnitIsPlayer(self.unit) then
 				if RAID_CLASS_COLORS[eclass] then
 					local color = RAID_CLASS_COLORS[eclass].hex or "|cffffffff"
 					class = color..class.."|r"
 				end
 			else
-				local unitclass = UnitClassification(this.unit)
-				if UnitCreatureType(this.unit) == "Humanoid" and UnitIsFriend("player", this.unit) then
+				local unitclass = UnitClassification(self.unit)
+				if UnitCreatureType(self.unit) == "Humanoid" and UnitIsFriend("player", self.unit) then
 					class = "NPC"
-				elseif UnitCreatureType(this.unit) == "Beast" and UnitCreatureFamily(this.unit) then
-					class = UnitCreatureFamily(this.unit)
+				elseif UnitCreatureType(self.unit) == "Beast" and UnitCreatureFamily(self.unit) then
+					class = UnitCreatureFamily(self.unit)
 				else
-					class = UnitCreatureType(this.unit)
+					class = UnitCreatureType(self.unit)
 				end
 				if classification[unitclass] then
 					class = classification[unitclass].." "..class
@@ -907,11 +916,11 @@ local replace = {
 			return class or ""
 	end,
 
-	["$guild"] = function(t)
-			local guild = GetGuildInfo(this.unit)
+	["$guild"] = function(self, t)
+			local guild = GetGuildInfo(self.unit)
 			if guild then
 				local color = "|cff00bfff"
-				if UnitIsInMyGuild(this.unit) then
+				if UnitIsInMyGuild(self.unit) then
 					color = "|cffff00ff"
 				end
 				guild = color..guild.."|r"
@@ -919,7 +928,7 @@ local replace = {
 			return guild or ""
 	end,
 
-	["$loot"] = function(t)
+	["$loot"] = function(self, t)
 		if GetNumPartyMembers() > 0 or GetNumRaidMembers() > 0 then
 			local loot = UnitLootMethod[GetLootMethod()].text
 			local color = ITEM_QUALITY_COLORS[GetLootThreshold()].hex
@@ -1545,13 +1554,13 @@ end
 
 ----------------------------------------------------------------
 -- Text replacement
-local function subtext(text)
+local function subtext(frame, text)
 	if not text then return end
 	local pre = string.find(text, "%$%a")
 	string.gsub(text, "%$%a+",
 		function (s)
 			if replace[s] then
-				text = string.gsub(text, s, replace[s])
+				text = string.gsub(text, s, replace[s](frame:GetParent(), s))
 			end
 		end
 	)
@@ -1566,7 +1575,7 @@ end
 
 local function formattext(frame)
 	if frame and frame.format then
-		local display = subtext(frame.format)
+		local display = subtext(frame, frame.format)
 		frame:SetText(display)
 	end
 end
@@ -2017,70 +2026,70 @@ local function updateframe(frame, notext)
 	end
 end
 local events = {
-	["PLAYER_ENTERING_WORLD"] = function(frame) updateframe(frame) end,
-	["PLAYER_FOCUS_CHANGED"] = function(frame) updateframe(frame) end,
-	["PLAYER_TARGET_CHANGED"] = function(frame) updateframe(frame) end,
-	["PLAYER_REGEN_DISABLED"] = function(frame) updatestatus(frame) end,
-	["PLAYER_REGEN_ENABLED"] = function(frame) updatestatus(frame) end,
-	["PLAYER_UPDATE_RESTING"] = function(frame) updatestatus(frame) end,
-	["PLAYER_COMBO_POINTS"] = function(frame) updatecombo(frame) end,
-	["PLAYER_XP_UPDATE"] = function(frame) updateinfo(frame, "XP") end,
-	["PLAYER_LEVEL_UP"] = function(frame) updateinfo(frame, "XP") end,
-	["UPDATE_FACTION"] = function(frame) updateinfo(frame, "XP") end,
-	["UPDATE_EXHAUSTION"] = function(frame) updateinfo(frame, "XP") end,
-	["PLAYER_GUILD_UPDATE"] = function(frame) formattext(frame.guild) end,
-	["RAID_TARGET_UPDATE"] = function(frame) updateraid(frame) end,
-	["PARTY_MEMBERS_CHANGED"] = function(frame)
-		if frame.isParty then
-			updateframe(frame)
+	["PLAYER_ENTERING_WORLD"] = function(self) updateframe(self) end,
+	["PLAYER_FOCUS_CHANGED"] = function(self) updateframe(self) end,
+	["PLAYER_TARGET_CHANGED"] = function(self) updateframe(self) end,
+	["PLAYER_REGEN_DISABLED"] = function(self) updatestatus(self) end,
+	["PLAYER_REGEN_ENABLED"] = function(self) updatestatus(self) end,
+	["PLAYER_UPDATE_RESTING"] = function(self) updatestatus(self) end,
+	["PLAYER_COMBO_POINTS"] = function(self) updatecombo(self) end,
+	["PLAYER_XP_UPDATE"] = function(self) updateinfo(self, "XP") end,
+	["PLAYER_LEVEL_UP"] = function(self) updateinfo(self, "XP") end,
+	["UPDATE_FACTION"] = function(self) updateinfo(self, "XP") end,
+	["UPDATE_EXHAUSTION"] = function(self) updateinfo(self, "XP") end,
+	["PLAYER_GUILD_UPDATE"] = function(self) formattext(self.guild) end,
+	["RAID_TARGET_UPDATE"] = function(self) updateraid(self) end,
+	["PARTY_MEMBERS_CHANGED"] = function(self)
+		if self.isParty then
+			updateframe(self)
 		else
-			updategroup(frame)
-			updateleader(frame)
-			updatemaster(frame)
-			updateloot(frame)
+			updategroup(self)
+			updateleader(self)
+			updatemaster(self)
+			updateloot(self)
 		end
 	end,
-	["PARTY_LEADER_CHANGED"] = function(frame)
-		updateleader(frame)
-		updatemaster(frame)
+	["PARTY_LEADER_CHANGED"] = function(self)
+		updateleader(self)
+		updatemaster(self)
 	end,
-	["PARTY_LOOT_METHOD_CHANGED"] = function(frame)
-		updatemaster(frame)
-		updateloot(frame)
+	["PARTY_LOOT_METHOD_CHANGED"] = function(self)
+		updatemaster(self)
+		updateloot(self)
 	end,
-	["RAID_ROSTER_UPDATE"] = function(frame) updategroup(frame) end,
-	["UPDATE_BINDINGS"] = function(frame) formattext(frame.key) end,
-	["UNIT_PET_EXPERIENCE"] = function(frame) updateinfo(frame, "XP") end,
-	["UNIT_PET"] = function(frame) updateframe(frame) end,
-	["UNIT_HEALTH"] = function(frame) updateinfo(frame, "Health") end,
-	["UNIT_MAXHEALTH"] = function(frame) updateinfo(frame, "Health") end,
-	["UNIT_MANA"] = function(frame) updateinfo(frame, "Mana") end,
-	["UNIT_ENERGY"] = function(frame) updateinfo(frame, "Mana") end,
-	["UNIT_RAGE"] = function(frame) updateinfo(frame, "Mana") end,
-	["UNIT_FOCUS"] = function(frame) updateinfo(frame, "Mana") end,
-	["UNIT_MAXMANA"] = function(frame) updateinfo(frame, "Mana") end,
-	["UNIT_MAXENERGY"] = function(frame) updateinfo(frame, "Mana") end,
-	["UNIT_MAXRAGE"] = function(frame) updateinfo(frame, "Mana") end,
-	["UNIT_MAXFOCUS"] = function(frame) updateinfo(frame, "Mana") end,
-	["UNIT_COMBAT"] = function(frame, ...) updatedamage(frame, ...) end,
-	["UNIT_AURA"] = function(frame) updateauras(frame) end,
-	["UNIT_DISPLAYPOWER"] = function(frame) manacolor(frame) end,
-	["UNIT_PORTRAIT_UPDATE"] = function(frame)
-		local unit = SecureButton_GetUnit(frame)
-		SetPortraitTexture(frame.portrait, unit)
+	["RAID_ROSTER_UPDATE"] = function(self) updategroup(self) end,
+	["UPDATE_BINDINGS"] = function(self) formattext(self.key) end,
+	["UNIT_PET_EXPERIENCE"] = function(self) updateinfo(self, "XP") end,
+	["UNIT_PET"] = function(self) updateframe(self) end,
+	["UNIT_HEALTH"] = function(self) updateinfo(self, "Health") end,
+	["UNIT_MAXHEALTH"] = function(self) updateinfo(self, "Health") end,
+	--["UNIT_MANA"] = function(self) updateinfo(self, "Mana") end,
+	--["UNIT_ENERGY"] = function(self) updateinfo(self, "Mana") end,
+	--["UNIT_RAGE"] = function(self) updateinfo(self, "Mana") end,
+	--["UNIT_FOCUS"] = function(self) updateinfo(self, "Mana") end,
+	--["UNIT_MAXMANA"] = function(self) updateinfo(self, "Mana") end,
+	--["UNIT_MAXENERGY"] = function(self) updateinfo(self, "Mana") end,
+	--["UNIT_MAXRAGE"] = function(self) updateinfo(self, "Mana") end,
+	--["UNIT_MAXFOCUS"] = function(self) updateinfo(self, "Mana") end,
+	--["UNIT_COMBAT"] = function(self, ...) updatedamage(self, ...) end,
+	["UNIT_AURA"] = function(self) updateauras(self) end,
+	["UNIT_DISPLAYPOWER"] = function(self) manacolor(self) end,
+	["UNIT_PORTRAIT_UPDATE"] = function(self)
+		local unit = SecureButton_GetUnit(self)
+		SetPortraitTexture(self.portrait, unit)
 	end,
-	["UNIT_FACTION"] = function(frame) updatepvp(frame) end,
-	["UNIT_LEVEL"] = function(frame)
-		updateinfo(frame, "XP")
-		formattext(frame.level)
+	["UNIT_FACTION"] = function(self) updatepvp(self) end,
+	["UNIT_LEVEL"] = function(self)
+		updateinfo(self, "XP")
+		formattext(self.level)
 	end,
-	["UNIT_NAME_UPDATE"] = function(frame)
-		updatename(frame)
-		updatetext(frame)
+	["UNIT_NAME_UPDATE"] = function(self)
+		updatename(self)
+		updatetext(self)
 	end,
-	["UNIT_DYNAMIC_FLAGS"] = function(frame) formattext(frame.name) end,
-	["UNIT_CLASSIFICATION_CHANGED"] = function(frame) formattext(frame.level) end,
-	["UNIT_HAPPINESS"] = function(frame) updatehappiness(frame) end,
+	["UNIT_DYNAMIC_FLAGS"] = function(self) formattext(self.name) end,
+	["UNIT_CLASSIFICATION_CHANGED"] = function(self) formattext(self.level) end,
+	["UNIT_HAPPINESS"] = function(self) updatehappiness(self) end,
 }
 
 local function onevent(event, ...)
@@ -2089,10 +2098,10 @@ local function onevent(event, ...)
 		if UnitExists(unit) then
 			this = frame
 			if event == "UNIT_PET" then
-				if (arg1 == "player" and unit == "pet") or (arg1 == string.gsub(unit, "pet", "")) then
+				if (arg1 == "player" and unit == "pet") or (arg1 == unit:gsub("pet", "")) then
 					events[event](frame, ...)
 				end
-			elseif string.find(event, "^UNIT_") then
+			elseif event:find("^UNIT_") then
 				if arg1 == unit then
 					events[event](frame, ...)
 				end
@@ -2160,14 +2169,17 @@ function Nurfed:unitimbue(frame)
 		frame:SetScript("OnAttributeChanged", showparty)
 		table.insert(events, "UNIT_COMBAT")
 		table.insert(events, "PARTY_MEMBERS_CHANGED")
+		
 	elseif frame.unit == "target" then
 		table.insert(events, "PLAYER_TARGET_CHANGED")
 		table.insert(events, "UNIT_DYNAMIC_FLAGS")
 		table.insert(events, "UNIT_CLASSIFICATION_CHANGED")
 		frame:SetScript("OnHide", TargetFrame_OnHide)
 		frame:SetScript("OnShow", TargetFrame_OnShow)
+		
 	elseif frame.unit == "focus" then
 		table.insert(events, "PLAYER_FOCUS_CHANGED")
+		
 	elseif string.find(frame.unit, "pet", 1, true) then
 		if frame.unit == "pet" then
 			frame.punit = "player"
@@ -2176,21 +2188,25 @@ function Nurfed:unitimbue(frame)
 	elseif frame.unit == "player" then
 		table.insert(events, "UNIT_COMBAT")
 	end
-
+--[[
 	if found == 1 then
 		dropdown = _G["PartyMemberFrame"..id.."DropDown"]
-	elseif string.find(frame.unit, "^raid") then
+		
+	--elseif string.find(frame.unit, "^raid") then
+	elseif frame.unit:find("^raid") then
 		frame.isRaid = true
-		FriendsDropDown.initialize = UnitPopup_ShowMenu(_G[UIDROPDOWNMENU_OPEN_MENU], "RAID", this.unit, UnitName(this.unit), this:GetID())
+		--FriendsDropDown.initialize = UnitPopup_ShowMenu(_G[UIDROPDOWNMENU_OPEN_MENU], "RAID", this.unit, UnitName(this.unit), this:GetID())
+		FriendsDropDown.initialize = UnitPopup_ShowMenu(_G[UIDROPDOWNMENU_OPEN_MENU], "RAID", frame.unit, UnitName(frame.unit), frame:GetID())
 		FriendsDropDown.displayMode = "MENU"
 		dropdown = FriendsDropDown
 	else
 		dropdown = _G[string.gsub(frame.unit, "^%l", string.upper).."FrameDropDown"]
 	end
+	
 	if dropdown then
-		menufunc = function() ToggleDropDownMenu(1, nil, dropdown, "cursor") end
+		--menufunc = function() ToggleDropDownMenu(1, nil, dropdown, "cursor") end
 	end
-
+	]]
 	SecureUnitButton_OnLoad(frame, frame.unit, menufunc)
 	if found == 1 then
 		table.insert(partyframes, frame)
@@ -2233,7 +2249,8 @@ function Nurfed:unitimbue(frame)
 				table.insert(events, "PLAYER_COMBO_POINTS")
 			elseif pre == "feedback" then
 				table.insert(events, "UNIT_COMBAT")
-			elseif pre == "buff" or pre == "debuff" and not string.find(frame.unit, "target", 2, true) then
+			--elseif pre == "buff" or pre == "debuff" and not string.find(frame.unit, "target", 2, true) then
+			elseif pre == "buff" or pre == "debuff" and not frame.unit:find("target", 2, true) then
 				table.insert(events, "UNIT_AURA")
 			end
 		end
@@ -2242,9 +2259,12 @@ function Nurfed:unitimbue(frame)
 
 	local update = function(child)
 		local objtype = child:GetObjectType()
-		local childname = string.gsub(child:GetName(), name, "")
-		if not string.find(childname, "^target") and not string.find(childname, "^pet") then
-			local pre = string.sub(childname, 1, 2)
+		--local childname = string.gsub(child:GetName(), name, "")
+		local childname = child:GetName():gsub(name, "")
+		--if not string.find(childname, "^target") and not string.find(childname, "^pet") then
+		if not childname:find("^target") and not childname:find("^pet") then
+			--local pre = string.sub(childname, 1, 2)
+			local pre = childname:sub(1, 2)
 			if pre == "hp" or pre == "mp" or pre == "xp" then
 				if pre == "hp" then
 					pre = "Health"
@@ -2259,17 +2279,25 @@ function Nurfed:unitimbue(frame)
 						child.endvalue = 1
 						child.fade = 1
 						child.startvalue = 0
+						-- testing reasons for lag, disabling gliding
 						child:SetScript("OnUpdate", glide)
+						
 					elseif child.ani == "fade" then
 						fade(child)
 					end
 				end
-			elseif string.find(childname, "^combo") then
+				
+			--elseif string.find(childname, "^combo") then
+			elseif childname:find("^combo") then
 				regstatus("combo", child)
-			elseif string.find(childname, "^pvp") then
+				
+			--elseif string.find(childname, "^pvp") then
+			elseif childname:find("^pvp") then
 				table.insert(events, "UNIT_FACTION")
 				frame.pvp = child
-			elseif string.find(childname, "^status") then
+				
+			--elseif string.find(childname, "^status") then
+			elseif childname:find("^status") then
 				table.insert(events, "PLAYER_REGEN_DISABLED")
 				table.insert(events, "PLAYER_REGEN_ENABLED")
 				table.insert(events, "PLAYER_UPDATE_RESTING")
@@ -2277,22 +2305,28 @@ function Nurfed:unitimbue(frame)
 			elseif objtype == "FontString" then
 				if child.format then
 					string.gsub(child.format, "%$%a+",
-						function (s)
+						function(s)
 							if s == "$guild" then
 								table.insert(events, "PLAYER_GUILD_UPDATE")
 								frame.guild = child
+								
 							elseif s == "$level" then
 								table.insert(events, "UNIT_LEVEL")
 								frame.level = child
+								
 							elseif s == "$key" then
 								table.insert(events, "UPDATE_BINDINGS")
 								frame.key = child
+								
 							elseif s == "$name" then
 								frame.name = child
+								
 							elseif s == "$loot" then
 								frame.loot = child
 								table.insert(events, "PARTY_MEMBERS_CHANGED")
 								table.insert(events, "PARTY_LOOT_METHOD_CHANGED")
+							elseif s == "$threat" then
+								table.insert(events, "THREAT_STATUS_UPDATE")
 							end
 						end
 					)
@@ -2327,10 +2361,13 @@ function Nurfed:unitimbue(frame)
 					elseif texture == "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Races" then
 						frame.race = child
 					end
-				elseif string.find(childname, "^portrait") or child.isportrait then
+				--elseif string.find(childname, "^portrait") or child.isportrait then
+				elseif childname:find("^portrait") or child.isportrait then
 					table.insert(events, "UNIT_PORTRAIT_UPDATE")
 					frame.portrait = child
-				elseif string.find(childname, "^rank") then
+					
+				--elseif string.find(childname, "^rank") then
+				elseif childname:find("^rank") then
 					frame.rank = child
 				end
 			elseif objtype == "PlayerModel" then
@@ -2351,10 +2388,13 @@ function Nurfed:unitimbue(frame)
 				if not child.full then
 					child:SetScript("OnUpdate", function(self) self:SetCamera(0) end)
 				end
+				
 			elseif objtype == "MessageFrame" then
 				regstatus("feedback", child)
+				
 			elseif objtype == "Button" then
-				if string.find(childname, "^buff") or string.find(childname, "^debuff") then
+				--if string.find(childname, "^buff") or string.find(childname, "^debuff") then
+				if childname:find("^buff") or childname:find("^debuff") then
 					local cd = _G[child:GetName().."Cooldown"]
 					if not cd then
 						cd = CreateFrame("Cooldown", child:GetName().."Cooldown", child, "CooldownFrameTemplate")
@@ -2367,7 +2407,8 @@ function Nurfed:unitimbue(frame)
 					local border = _G[child:GetName().."Border"]
 					local count = _G[child:GetName().."Count"]
 					local icon = _G[child:GetName().."Icon"]
-					if string.find(childname, "^debuff") then
+					--if string.find(childname, "^debuff") then
+					if childname:find("^debuff") then
 						local id, found = gsub(childname, "debuff([0-9]+)", "%1")
 						border:ClearAllPoints()
 						border:SetAllPoints(child)
@@ -2395,8 +2436,10 @@ function Nurfed:unitimbue(frame)
 						child:SetScript("OnLeave", nil)
 					end
 				end
+				
 			elseif objtype == "StatusBar" then
-				if string.find(childname, "^casting") then
+				--if string.find(childname, "^casting") then
+				if childname:find("^casting") then
 					if child:GetParent() ~= frame then
 						child.parent = child:GetParent()
 					end
@@ -2425,10 +2468,13 @@ function Nurfed:unitimbue(frame)
 				end
 			end
 		elseif objtype == "Button" then
-			if string.find(childname, "^target") then
+			--if string.find(childname, "^target") then
+			if childname:find("^target") then
 				child.unit = frame.unit..childname
 				self:unitimbue(child)
-			elseif string.find(childname, "^pet") then
+				
+			--elseif string.find(childname, "^pet") then
+			elseif childname:find("^pet") then
 				child.punit = frame.unit
 				child.unit = gsub(frame.unit.."pet", "^([^%d]+)([%d]+)[pP][eE][tT]$", "%1pet%2")
 				self:unitimbue(child)
@@ -2440,7 +2486,8 @@ function Nurfed:unitimbue(frame)
 		update(_G[child])
 	end
 
-	if string.find(frame.unit, "target", 2) then
+	--if string.find(frame.unit, "target", 2) then
+	if frame.unit:find("target", 2) then
 		if not tots then
 			tots = {}
 			Nurfed:schedule(0.15, totupdate, true)
@@ -2458,9 +2505,9 @@ function Nurfed:unitimbue(frame)
 	end
 end
 
-local function combat()
+local function combat(self)
 	local dropdownFrame = _G[UIDROPDOWNMENU_INIT_MENU]
-	local button = this.value
+	local button = self.value
 	local unit = dropdownFrame.unit
 	local name = dropdownFrame.name
 	local server = dropdownFrame.server

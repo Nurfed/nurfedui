@@ -272,7 +272,6 @@ local function HealthGradient(perc)
 	end
 end
 
-local lmh4
 function util:getunitstat(unit, stat)
 	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb
 	if stat == "XP" then
@@ -297,22 +296,6 @@ function util:getunitstat(unit, stat)
 	else
 		curr = _G["Unit"..stat](unit)
 		max = _G["Unit"..stat.."Max"](unit)
-		if stat == "Health" then
-			if MobHealth3 then
-				curr, max = MobHealth3:GetUnitHealth(unit, curr, max, UnitName(unit), UnitLevel(unit))
-			end
-			if not lmh4 and not IsAddOnLoaded("LibMobHealth-4.0") and GetAddOnMetadata("LibMobHealth-4.0", "Version") then
-				local isLoaded, reason = LoadAddOn("LibMobHealth-4.0")
-				if isLoaded ~= 1 then
-					self:print(reason)
-				else
-					lmh4 = LibStub("LibMobHealth-4.0")
-				end
-			end
-			if lmh4 then
-				curr, max = lmh4:GetUnitHealth(unit)
-			end
-		end
 	end
 
 	if not UnitIsConnected(unit) then
