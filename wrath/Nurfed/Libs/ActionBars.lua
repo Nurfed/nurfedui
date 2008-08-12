@@ -31,6 +31,7 @@ local GameTooltip = _G.GameTooltip
 local GetSpellName = _G.GetSpellName
 local GetItemInfo = _G.GetItemInfo
 local GetMacroBody = _G.GetMacroBody
+local GetCompanionInfo = _G.GetCompanionInfo
 local SecureCmdOptionParse = _G.SecureCmdOptionParse
 local InCombatLockdown = _G.InCombatLockdown
 local convert = _G.convert
@@ -49,7 +50,7 @@ local ItemHasRange = _G.ItemHasRange
 local IsItemInRange = _G.IsItemInRange
 local Nurfed = _G.Nurfed
 local L = _G.Nurfed:GetTranslations()
-
+local nrfCompanionID, nrfCompanionType, nrfCompanionSlot
 -- Default Options
 NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
 	["Nurfed_Bar1"] = {
@@ -82,6 +83,7 @@ local function updateitem(btn)
 				count:SetText(nil)
 			end
 			border:Hide()
+			
 		elseif btn.type == "item" then
 			local num = GetItemCount(btn.spell)
 			if num > 1 then
@@ -218,15 +220,25 @@ local function seticon(btn)
 		if new then
 			spell = SecureButton_GetModifiedAttribute(btn, new, value)
 			if spell then
-				if new == "companion" then
-					local creatureID, creatureName, icon, active = GetCompanionInfo("mount" or "critter", spell)
-					text = icon
-				
-				elseif new == "spell" then
+				if new == "spell" then
 					texture = GetSpellTexture(spell)
+					if not texture then
+						local attrib = btn:GetAttribute("*companionID")
+						if attrib then
+							local attribType = btn:GetAttribute("*companionType")
+							local attribSlot = btn:GetAttribute("*companionSlot")
+							if attribType and attribSlot then
+								texture = select(4, GetCompanionInfo(attribType, attribSlot))
+							else
+								texture = select(3, GetSpellInfo(attrib))
+							end
+							btn.spellid = attrib
+						end
+					end
 					if IsAttackSpell(spell) or IsAutoRepeatSpell(spell) then
 						btn.attack = true
 					end
+					
 				elseif new == "item" then
 					local itemid = SecureButton_GetModifiedAttribute(btn, "itemid", value)
 					if itemid then
@@ -234,10 +246,12 @@ local function seticon(btn)
 					end
 				
 				elseif new == "macro" then
-					spell, texture = GetMacroInfo(spell)
-					-- fix the damn autoshot texture so its not whirlwind....nice one blizzard
-					if texture == "Interface\\Icons\\Ability_Whirlwind" and playerClass == "HUNTER" then
-						texture = GetSpellTexture("Auto Shot")
+					local id = btn:GetAttribute("*macroID")
+					if id then
+						texture = GetActionTexture(id)
+						spell = GetActionText(id)
+					else
+						spell, texture = GetMacroInfo(spell)
 					end
 					if Nurfed:getopt("macrotext") then
 						text:SetText(spell)
@@ -274,12 +288,18 @@ local function btnenter(self)
 		if self.type == "spell" then
 			local id = Nurfed:getspell(self.spell)
 			if id then
+				
 				local rank = select(2, GetSpellName(id, BOOKTYPE_SPELL))
-				GameTooltip:SetSpell(id, BOOKTYPE_SPELL)
+				GameTooltip:SetHyperlink(GetSpellLink(id, BOOKTYPE_SPELL))
 				if rank then
 					GameTooltipTextRight1:SetText(rank)
 					GameTooltipTextRight1:SetTextColor(0.5, 0.5, 0.5)
 					GameTooltipTextRight1:Show()
+				end
+			else
+				local attrib = self:GetAttribute("*companionID")
+				if attrib then
+					GameTooltip:SetHyperlink("spell:"..attrib)
 				end
 			end
 		
@@ -297,7 +317,7 @@ local function btnenter(self)
 					local id = Nurfed:getspell(action)
 					if id then
 						local rank = select(2, GetSpellName(id, BOOKTYPE_SPELL))
-						GameTooltip:SetSpell(id, BOOKTYPE_SPELL)
+						GameTooltip:SetHyperlink(GetSpellLink(id, BOOKTYPE_SPELL))
 						if rank then
 							GameTooltipTextRight1:SetText(rank)
 							GameTooltipTextRight1:SetTextColor(0.5, 0.5, 0.5)
@@ -311,7 +331,7 @@ local function btnenter(self)
 	end
 end
 
-local function start(self)
+local function btndragstart(self)
 	if not NRF_LOCKED and not InCombatLockdown() then
 		local state = self:GetParent():GetAttribute("state")
 		if state == "0" then
@@ -323,10 +343,14 @@ local function start(self)
 			spell = SecureButton_GetModifiedAttribute(self, new, value)
 			if spell then
 				if new == "spell" then
-					--local id = Nurfed:getspell(spell)
-					--PickupSpell(id, BOOKTYPE_SPELL)
-					-- don't localize something to use it once
-					PickupSpell(Nurfed:getspell(spell), BOOKTYPE_SPELL)
+					if self:GetAttribute("*companionID") then
+						nrfCompanionID = self:GetAttribute("*companionID")
+						nrfCompanionType = self:GetAttribute("*companionType")
+						nrfCompanionSlot = self:GetAttribute("*companionSlot")
+						PickupCompanion(nrfCompanionType, nrfCompanionSlot)
+					else
+						PickupSpell(Nurfed:getspell(spell), BOOKTYPE_SPELL)
+					end
 				elseif new == "item" then
 					PickupItem(spell)
 				elseif new == "macro" then
@@ -389,34 +413,57 @@ local function btnreceivedrag(self)
 
 		self:SetAttribute("*type"..value, cursor)
 		if cursor == "spell" then
-			local spell, rank = GetSpellName(arg1, arg2)
-			if not spell and not rank then-- companion shit
-				--debug(GetCompanionInfo("mount" or "critter", arg2))
+			if arg1 == 0 and arg2 == "spell" and nrfCompanionType and nrfCompanionSlot and nrfCompanionSlot then
+				local spell = GetSpellInfo(nrfCompanionID)
+				self:SetAttribute("*spell"..value, spell)
+				self:SetAttribute("*companionID", nrfCompanionID)
+				self:SetAttribute("*companionType", nrfCompanionType)
+				self:SetAttribute("*companionSlot", nrfCompanionSlot)
+				nrfCompanionType = nil
+				nrfCompanionSlot = nil
+				nrfCompanionID = nil
 			else
-				--if string.find(rank, RANK) then
+				local spell, rank = GetSpellName(arg1, arg2)
 				if rank:find(RANK) then
 					spell = spell.."("..rank..")"
-				--elseif string.find(spell, "%(") then
 				elseif spell:find("%(") then
 					spell = spell.."()"
 				end
 				self:SetAttribute("*spell"..value, spell)
-				self:SetAttribute("*item"..value, nil)
-				self:SetAttribute("*itemid"..value, nil)
-				self:SetAttribute("*macro"..value, nil)
+				self:SetAttribute("*companionID", nil)
+				self:SetAttribute("*companionType", nil)
+				self:SetAttribute("*companionSlot", nil)
 			end
+			self:SetAttribute("*item"..value, nil)
+			self:SetAttribute("*itemid"..value, nil)
+			self:SetAttribute("*macro"..value, nil)
+			self:SetAttribute("*macroID", nil)
+			
 		elseif cursor == "item" then
 			--local item = GetItemInfo(arg1)
 			self:SetAttribute("*spell"..value, nil)
+			self:SetAttribute("*companionID", nil)
+			self:SetAttribute("*companionType", nil)
+			self:SetAttribute("*companionSlot", nil)
 			--self:SetAttribute("*item"..value, item)
 			self:SetAttribute("*item"..value, GetItemInfo(arg1))
 			self:SetAttribute("*itemid"..value, arg1)
 			self:SetAttribute("*macro"..value, nil)
+			self:SetAttribute("*macroID", nil)
 		elseif cursor == "macro" then
 			self:SetAttribute("*spell"..value, nil)
+			self:SetAttribute("*companionID", nil)
+			self:SetAttribute("*companionType", nil)
+			self:SetAttribute("*companionSlot", nil)
 			self:SetAttribute("*item"..value, nil)
 			self:SetAttribute("*itemid"..value, nil)
 			self:SetAttribute("*macro"..value, arg1)
+			for i=1, 72 do
+				if select(2, GetActionInfo(i)) == arg1 then
+					self:SetAttribute("*macroID", i)
+					break
+				end
+			end
 		end
 		ClearCursor()
 
@@ -437,7 +484,7 @@ end
 
 local function saveattrib(self, name, value)
 	--if string.find(name, "^%*") or string.find(name, "^shift") or string.find(name, "^ctrl") or string.find(name, "^alt") then
-	if name:find("^%*") or name:find("^shift") or name:find("^ctrl") or name:find("^alt") then
+	if name:find("^%*") or name:find("^shift") or name:find("^ctrl") or name:find("^alt") or name:find("^spellid") then
 		if self:GetParent():GetName() ~= "UIParent" then
 			NURFED_ACTIONBARS[self:GetParent():GetName()].buttons[self:GetID()][name] = value
 			name = "state-parent"
@@ -530,6 +577,11 @@ local btnevents = {
 			seticon(btn)
 		end
 	end,
+	["COMPANION_UPDATE"] = function(btn)
+		if btn:GetAttribute("*companionID") then
+			seticon(btn)
+		end
+	end,
 	["MODIFIER_STATE_CHANGED"] = function(btn) seticon(btn) end,
 	["ACTIONBAR_UPDATE_USABLE"] = function(btn) updatecooldown(btn) end,
 	["UPDATE_INVENTORY_ALERTS"] = function(btn) updatecooldown(btn) end,
@@ -602,7 +654,7 @@ local function btnupdate()
 	for _, btn in ipairs(live) do
 		local r, g, b = 1, 1, 1
 		local unit = SecureButton_GetUnit(btn)
-		if btn.type == "spell" then
+		if btn.type == "spell" and not btn.spellid then
 			if IsCurrentSpell(btn.spell) then
 				btn:SetChecked(true)
 			else
@@ -616,7 +668,7 @@ local function btnupdate()
 			elseif SpellHasRange(btn.spell) and IsSpellInRange(btn.spell, unit) == 0 then
 				r, g, b = 1, 0, 0
 			end
-			
+	
 		elseif btn.type == "item" then
 			if not IsUsableItem(btn.spell) then
 				r, g, b = 0.4, 0.4, 0.4
@@ -1220,5 +1272,15 @@ function nrf_mainmenu()
 		MainMenuBar:Hide()
 	end
 end
+
+hooksecurefunc("CompanionButton_OnDrag", function(self)
+	local check1, check2, check3 = GetCursorInfo()
+	if check1 == "spell" and check2 == 0 and check3 == "spell" then
+		nrfCompanionID = self.spellID
+		nrfCompanionType = PetPaperDollFrameCompanionFrame.mode
+		nrfCompanionSlot = dragged
+	end
+end)
+
 Nurfed:setver("$Date$")
 Nurfed:setrev("$Rev$")
