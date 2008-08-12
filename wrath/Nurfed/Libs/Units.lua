@@ -5,7 +5,7 @@ local debugCharList = {
 	["Apoco"] = true,
 	["Banvoli"] = true,
 }
-if debugCharList[UnitName("player")] then
+if not debugCharList[UnitName("player")] then
 	Nurfed:print("Automatically Disabling Nurfed Unit Frames until they are fixed")
 	debugCharList = nil
 	return
