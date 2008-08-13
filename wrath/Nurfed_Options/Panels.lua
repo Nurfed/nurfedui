@@ -28,7 +28,14 @@ end
 local updateoptions = function()
 	local bar = NurfedActionBarsPanel.bar
 	if bar then
-		local vals = NURFED_ACTIONBARS[bar]
+		--local vals = NURFED_ACTIONBARS[bar]
+		local vals
+		for i in ipairs(NURFED_ACTIONBARS) do
+			if NURFED_ACTIONBARS[i].name == bar then
+				vals = NURFED_ACTIONBARS[i]
+				break
+			end
+		end
 		NurfedActionBarsPanelbarrows:SetValue(vals.rows)
 		NurfedActionBarsPanelbarcols:SetValue(vals.cols)
 		NurfedActionBarsPanelbarscale:SetValue(vals.scale)
@@ -44,7 +51,14 @@ end
 local addstate = function()
 	local bar = NurfedActionBarsPanel.bar
 	if bar then
-		local statemaps = NURFED_ACTIONBARS[bar].statemaps
+		--local statemaps = NURFED_ACTIONBARS[bar].statemaps
+		local statemaps
+		for i in ipairs(NURFED_ACTIONBARS) do
+			if NURFED_ACTIONBARS[i].name == bar then
+				statemaps = NURFED_ACTIONBARS[i].statemaps
+				break
+			end
+		end
 		local state = NurfedActionBarsPanelstatesstate:GetText()
 		local map = NurfedActionBarsPanelstatesmap:GetText()
 		state = string.trim(state)
@@ -119,11 +133,51 @@ local addnew = function()
 		this = this:GetParent()
 	end
 	local text = this:GetText()
-	if text ~= "" and not NURFED_ACTIONBARS[text] then
+	local add = true
+	for i in ipairs(NURFED_ACTIONBARS) do
+		if NURFED_ACTIONBARS[i].name == text then
+			add = false
+			break
+		end
+	end
+	if text ~= "" and add then
 		local unit = NurfedActionBarsPanelbarunit:GetText()
 		unit = string.trim(unit)
 		if unit == "" then unit = nil end
-		NURFED_ACTIONBARS[text] = {
+		local bscale, brows, bcols, balpha, bxgap, bygap, bvisible, buseunit
+		do
+			local scale = NurfedActionBarsPanelbarscale:GetValue()
+			bscale = scale > 0 and scale or 1
+			local rows = NurfedActionBarsPanelbarrows:GetValue()
+			brows = rows > 0 and rows or 1
+			local cols = NurfedActionBarsPanelbarcols:GetValue()
+			bcols = cols > 0 and cols or 12
+			local alpha = NurfedActionBarsPanelbaralpha:GetValue()
+			balpha = alpha > 0 and alpha or 1
+			local xgap = NurfedActionBarsPanelbarxgap:GetValue()
+			bxgap = xgap > -40 and xgap or 0
+			local ygap = NurfedActionBarsPanelbarygap:GetValue()
+			bygap = ygap > -40 and ygap or 0
+			local visible = NurfedActionBarsPanelbarvisible:GetText()
+			bvisible = visible or ""
+			local useunit = NurfedActionBarsPanelbaruseunit:GetChecked()
+			buseunit = not not useunit
+		end
+		table.insert(NURFED_ACTIONBARS, {
+			name = text,
+			unit = unit,
+			rows = brows,
+			cols = bcols,
+			scale = bscale,
+			alpha = balpha,
+			xgap = bxgap,
+			ygap = bygap,
+			visible = bvisible,
+			useunit = buseunit,
+			buttons = {},
+			statemaps = {},
+		})
+		--[[NURFED_ACTIONBARS[text] = {
 			unit = unit,
 			rows = NurfedActionBarsPanelbarrows:GetValue(),
 			cols = NurfedActionBarsPanelbarcols:GetValue(),
@@ -135,7 +189,7 @@ local addnew = function()
 			useunit = NurfedActionBarsPanelbaruseunit:GetChecked(),
 			buttons = {},
 			statemaps = {},
-		}
+		}]]
 		Nurfed:createbar(text)
 		this:SetText("")
 		Nurfed_ScrollActionBars()
@@ -160,7 +214,13 @@ local updatebar = function(self)
 		elseif objtype == "Button" then
 			value = self:GetText()
 		end
-		NURFED_ACTIONBARS[bar][self.val] = value
+		--NURFED_ACTIONBARS[bar][self.val] = value
+		for i in ipairs(NURFED_ACTIONBARS) do
+			if NURFED_ACTIONBARS[i].name == bar then
+				NURFED_ACTIONBARS[i][self.val] = value
+				break
+			end
+		end
 
 		local hdr = getglobal(bar)
 		if self.val == "scale" then
@@ -901,8 +961,8 @@ local panels = {
 				template = "nrf_button",
 				Anchor = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", 0, 20 },
 				OnClick = function()
-					for name in pairs(NURFED_ACTIONBARS) do
-						NURFED_ACTIONBARS[name].Point = { _G[name]:GetPoint() }
+					for i in ipairs(NURFED_ACTIONBARS) do
+						NURFED_ACTIONBARS[i].Point = { _G[NURFED_ACTIONBARS[i].name]:GetPoint() }
 					end
 				end,
 				Text = L["Save Pos"],
@@ -1791,8 +1851,11 @@ end
 
 function Nurfed_ScrollActionBars()
 	local bars = {}
-	for k in pairs(NURFED_ACTIONBARS) do
+	--[[for k in pairs(NURFED_ACTIONBARS) do
 		table.insert(bars, k)
+	end]]
+	for i in ipairs(NURFED_ACTIONBARS) do
+		table.insert(bars, NURFED_ACTIONBARS[i].name)
 	end
 	table.sort(bars, function(a, b) return a < b end)
 	for k, v in ipairs(bars) do
@@ -1912,7 +1975,12 @@ function Nurfed_DeleteState()
 	local state = this:GetParent().state
 	local bar = NurfedActionBarsPanel.bar
 	local hdr = getglobal(bar)
-	NURFED_ACTIONBARS[bar].statemaps[state] = nil
+	for i in ipairs(NURFED_ACTIONBARS) do
+		if NURFED_ACTIONBARS[i].name == bar then
+			NURFED_ACTIONBARS[i].statemaps[state] = nil
+			break
+		end
+	end
 	hdr:SetAttribute("statemap-"..state, nil)
 	Nurfed:updatebar(hdr)
 	Nurfed_ScrollActionBarsStates()
@@ -1921,7 +1989,12 @@ end
 function Nurfed_DeleteBar()
 	local bar = this:GetParent().bar
 	Nurfed:deletebar(bar)
-	NURFED_ACTIONBARS[bar] = nil
+	for i in ipairs(NURFED_ACTIONBARS) do
+		if NURFED_ACTIONBARS[i].name == bar then
+			NURFED_ACTIONBARS[i] = nil
+			break
+		end
+	end
 	Nurfed_ScrollActionBars()
 	NurfedActionBarsPanel.bar = nil
 end
