@@ -82,14 +82,6 @@ NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
 		visible = "show",
 	},
 }
--- autoupgrade!
-if not NURFED_ACTIONBARS[1] then
-	for i,v in pairs(NURFED_ACTIONBARS) do
-		NURFED_ACTIONBARS[#NURFED_ACTIONBARS+1] = v
-		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = i
-		NURFED_ACTIONBARS[i] = nil
-	end
-end
 NURFED_TALENTBARS = NURFED_TALENTBARS or {}
 
 ----------------------------------------------------------------
@@ -436,6 +428,7 @@ local function btnreceivedrag(self)
 		end
 
 		self:SetAttribute("*type"..value, cursor)
+		--TODO: Rewrite this so it clears values cleaner
 		if cursor == "spell" then
 			if arg1 == 0 and arg2 == "spell" and nrfCompanionType and nrfCompanionSlot and nrfCompanionSlot then
 				local spell = GetSpellInfo(nrfCompanionID)
@@ -511,9 +504,9 @@ local function saveattrib(self, name, value)
 	if name:find("^%*") or name:find("^shift") or name:find("^ctrl") or name:find("^alt") or name:find("^spellid") then
 		local parent = self:GetParent():GetName()
 		if parent and parent ~= "UIParent" then
-			for i in ipairs(NURFED_ACTIONBARS) do
-				if NURFED_ACTIONBARS[i].name == parent then
-					NURFED_ACTIONBARS[i].buttons[self:GetID()][name] = value
+			for i,v in ipairs(NURFED_ACTIONBARS) do
+				if v.name == parent then
+					v.buttons[self:GetID()][name] = value
 					break
 				end
 			end
@@ -586,9 +579,9 @@ local function delbtn(btn)
 	--local attribs = NURFED_ACTIONBARS[btn:GetParent():GetName()].buttons[btn:GetID()]
 	local attribs
 	local parent = btn:GetParent():GetName()
-	for i in ipairs(NURFED_ACTIONBARS) do
-		if NURFED_ACTIONBARS[i].name == parent then
-			attribs = NURFED_ACTIONBARS[i].buttons[btn:GetID()]
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		if v.name == parent then
+			attribs = v.buttons[btn:GetID()]
 			break
 		end
 	end
@@ -635,9 +628,9 @@ local btnevents = {
 				local parent = btn:GetParent():GetName()
 				if parent ~= "UIParent" then
 					--NURFED_ACTIONBARS[parent].buttons[id].bind = key
-					for i in ipairs(NURFED_ACTIONBARS) do
-						if NURFED_ACTIONBARS[i].name == parent then
-							NURFED_ACTIONBARS[i].buttons[id].bind = key
+					for i,v in ipairs(NURFED_ACTIONBARS) do
+						if v.name == parent then
+							v.buttons[id].bind = key
 							break
 						end
 					end
@@ -816,18 +809,15 @@ function Nurfed:updatebar(hdr)
 	end
 
 	--local vals = NURFED_ACTIONBARS[hdr:GetName()]
-	local vals
-	for i in ipairs(NURFED_ACTIONBARS) do
+	local vals = self:GetSettingsTable(hdr:GetName())
+	--[[for i in ipairs(NURFED_ACTIONBARS) do
 		if NURFED_ACTIONBARS[i].name == hdr:GetName() then
 			vals = NURFED_ACTIONBARS[i]
 			break
 		end
-	end
-	if vals and vals.statemaps then
+	end]]
+	if vals.statemaps then
 		for k, v in pairs(vals.statemaps) do
-			--if string.find(k, "%-") then
-			--	k = string.gsub(k, "%-", ":")
-			--end
 			if k:find("%-") then
 				k = k:gsub("%-", ":")
 			end
@@ -933,25 +923,26 @@ function Nurfed:deletebar(frame)
 			end
 		end
 	end
-	--NURFED_ACTIONBARS[frame] = nil
-	for i in ipairs(NURFED_ACTIONBARS) do
-		if NURFED_ACTIONBARS[i].name == hdr:GetName() then
-			NURFED_ACTIONBARS[i] = nil
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		if v.name == hdr:GetName() then
+			table.remove(NURFED_ACTIONBARS, i)
 			break
 		end
 	end
 end
 
-function Nurfed:createbar(frame)
-	--local vals = NURFED_ACTIONBARS[frame]
-	local vals
-	for i in ipairs(NURFED_ACTIONBARS) do
-		if NURFED_ACTIONBARS[i].name == frame then
-			vals = NURFED_ACTIONBARS[i]
-			break
+function Nurfed:GetSettingsTable(frame)
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		if v.name == frame then
+			return v
 		end
 	end
-	assert(vals, "NO VARS!:"..frame)	
+	return nil
+end
+
+function Nurfed:createbar(frame)
+	--local vals = NURFED_ACTIONBARS[frame]
+	local vals = self:GetSettingsTable(frame)
 	local hdr = _G[frame] or Nurfed:create(frame, "actionbar")
 	if hdr and type(hdr) == "table" then
 		hdr:SetScale(vals.scale)
@@ -973,13 +964,7 @@ end
 
 function Nurfed:updatehks(frame)
 	--local vals = NURFED_ACTIONBARS[frame]
-	local vals
-	for i in ipairs(NURFED_ACTIONBARS) do
-		if NURFED_ACTIONBARS[i].name == frame then
-			vals = NURFED_ACTIONBARS[i]
-			break
-		end
-	end
+	local vals = self:GetSettingsTable(frame)
 	local hdr = _G[frame] or Nurfed:create(frame, "actionbar")
 	if hdr and type(hdr) == "table" then
 		local count = Nurfed:updatebar(hdr)
@@ -988,10 +973,9 @@ function Nurfed:updatehks(frame)
 			count = count + 1
 		end
 		if hdr:IsUserPlaced() then
-			--NURFED_ACTIONBARS[hdr:GetName()].Point = { hdr:GetPoint() }
-			for i in ipairs(NURFED_ACTIONBARS) do
-				if NURFED_ACTIONBARS[i].name == hdr:GetName() then
-					NURFED_ACTIONBARS[i].Point = { hdr:GetPoint() }
+			for i,v in ipairs(NURFED_ACTIONBARS) do
+				if v.name == hdr:GetName() then
+					v.Point = { hdr:GetPoint() }
 					break
 				end
 			end
@@ -1053,9 +1037,10 @@ Nurfed:createtemp("actionbar", {
 				else
 					parent:SetUserPlaced(true)
 				end]]
-				for i in ipairs(NURFED_ACTIONBARS) do
-					if NURFED_ACTIONBARS[i].name == pname then
-						NURFED_ACTIONBARS[i].Point = { parent:GetPoint() }
+				for i,v in ipairs(NURFED_ACTIONBARS) do
+					if v.name == pname then
+						--NURFED_ACTIONBARS[i].Point = { parent:GetPoint() }
+						v.Point = { parent:GetPoint() }
 						break
 					end
 				end
@@ -1112,8 +1097,8 @@ local function barevent(event, ...)
 	--[[for k in pairs(NURFED_ACTIONBARS) do
 		barevents[event](_G[k])
 	end]]
-	for i in ipairs(NURFED_ACTIONBARS) do
-		barevents[event](_G[NURFED_ACTIONBARS[i].name])
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		barevents[event](_G[v.name])
 	end
 end
 
@@ -1195,8 +1180,8 @@ local function createbars(bars)
 	--[[for k in pairs(NURFED_ACTIONBARS) do
 		Nurfed:createbar(k)
 	end]]
-	for i in ipairs(NURFED_ACTIONBARS) do
-		Nurfed:createbar(NURFED_ACTIONBARS[i].name)
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		Nurfed:createbar(v.name)
 	end
 
 	local bar, drag
@@ -1215,15 +1200,26 @@ local function createbars(bars)
 	end
 end
 
-Nurfed:regevent("VARIABLES_LOADED", createbars)
+Nurfed:regevent("VARIABLES_LOADED", function()
+	-- autoupgrade!
+	if not NURFED_ACTIONBARS[1] then
+		for i,v in pairs(NURFED_ACTIONBARS) do
+			if type(i) == "string" and type(v) == "table" then
+				NURFED_ACTIONBARS[#NURFED_ACTIONBARS+1] = v
+				NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = i
+				NURFED_ACTIONBARS[i] = nil
+			end
+		end
+	end
+	createbars()
+end)
+
 Nurfed:regevent("PLAYER_LOGIN", function()
 	--[[for k in pairs(NURFED_ACTIONBARS) do
 		Nurfed:updatehks(k)
 	end]]
-	for i in ipairs(NURFED_ACTIONBARS) do
-		for k in pairs(NURFED_ACTIONBARS[i]) do
-			Nurfed:updatehks(NURFED_ACTIONBARS[i].name)
-		end
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		Nurfed:updatehks(v.name)
 	end
 	isloaded = true
 	Nurfed:sendevent("UPDATE_BINDINGS")
@@ -1382,5 +1378,86 @@ hooksecurefunc("CompanionButton_OnDrag", function(self)
 	end
 end)
 
+------------------------- default settings shit....kthxdie?
+function Nurfed_CreateDefaultActionBar(type)
+	assert(type, "NO TYPE TO CREATE A DEFAULT FOR DUMBASS!")
+	--for i in ipairs(NURFED_ACTIONBARS) do
+	--	NURFED_ACTIONBARS[i] = nil
+	--end
+	local typeLst = {
+		["rogueStealth"] = true,
+		["druidNoStealth"] = true,
+		["druidStealth"] = true,
+		["warriorStance"] = true,
+	}	
+	if typeLst[type] then
+		table.insert(NURFED_ACTIONBARS, {
+			["visible"] = "show",
+			["useunit"] = false,
+			["buttons"] = {
+				{}, {}, {}, {}, -- [4]
+				{}, {}, {}, {}, -- [8]
+				{}, {}, {}, {}, -- [12]
+				{}, {}, {}, {}, -- [16]
+				{}, {}, {}, {}, -- [20]
+				{}, {}, {}, {}, -- [24]
+			},
+			["scale"] = 1.0,
+			["rows"] = 2,
+			["alpha"] = 1,
+			["cols"] = 12,
+			["Point"] = {
+				"CENTER",
+			},
+			["unit"] = "",
+			["statemaps"] = {
+			},
+			["ygap"] = 7,
+			["xgap"] = 7,
+		})
+	end
+	if type == "rogueStealth" then
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_RogueStealthBar"
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
+			["stealth:0"] = "s1",
+			["stealth:1"] = "s2",
+		}
+	elseif type == "druidNoStealth" then
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_DruidNoStealthBar"
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
+			["actionbar:1, stance:0"] = "s0",
+			["actionbar:1, stance:1"] = "s1",
+			["actionbar:1, stance:2"] = "s2",
+			["actionbar:1, stance:3"] = "s3",
+			["actionbar:1, stance:4"] = "s4",
+			["actionbar:1, stance:5"] = "s5",
+			["actionbar:2"] = "p2",
+			["actionbar:3"] = "p3",
+		}
+	
+	elseif type == "druidStealth" then
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_DruidStealthBar"
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
+			["actionbar:1, stance:0"] = "s0",
+			["actionbar:1, stance:1"] = "s1",
+			["actionbar:1, stance:2"] = "s2",
+			["actionbar:1, stance:3, nostealth"] = "s3",
+			["actionbar:1, stance:3, stealth"] = "st3",
+			["actionbar:1, stance:4"] = "s4",
+			["actionbar:1, stance:5"] = "s5",
+			["actionbar:2"] = "p2",
+			["actionbar:3"] = "p3",
+		}
+	elseif type == "warriorStance" then
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_WarriorStanceBar"
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
+			["stance:1"] = "s1",
+			["stance:2"] = "s2",
+			["stance:3"] = "s3",
+		}
+	end
+	StaticPopup_Show("NRF_RELOADUI")
+end
+	
 Nurfed:setver("$Date$")
 Nurfed:setrev("$Rev$")
