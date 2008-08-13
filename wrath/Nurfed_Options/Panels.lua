@@ -1004,6 +1004,54 @@ local panels = {
 				BackdropColor = { 0, 0, 0, 1 },
 				Anchor = { "TOPLEFT", "$parentadd", "BOTTOMLEFT", 0, -5 },
 			},
+			defaults = {
+				type = "Frame",
+				size = { 230, 100 },
+				Anchor = { "TOPLEFT", "$parentadd", "BOTTOMRIGHT", 65, 25 },
+				--Hide = true,
+				children = {
+					desc = {
+						type = "FontString",
+						layer = "ARTWORK",
+						Anchor = { "TOPLEFT", 0, -7 },
+						FontObject = "GameFontNormalSmall",
+						JustifyH = "LEFT",
+						Text = L["Settings Templates"],
+					},
+					roguestealthbar = {
+						template = "nrf_button",
+						Text = L["Rogue Stealth Bar"],
+						Point = { "TOPLEFT", "$parentdesc", "BOTTOMLEFT", 0, -7 },
+						OnClick = function() 
+							Nurfed_CreateDefaultActionBar("rogueStealth")
+						end,
+					},
+					druidbarnostealth = {
+						template = "nrf_button",
+						Text = L["Druid Form Bar (No Stealth)"],
+						Point = { "TOPLEFT", "$parentroguestealthbar", "BOTTOMLEFT", 0, -7 },
+						OnClick = function()
+							Nurfed_CreateDefaultActionBar("druidNoStealth")
+						end,
+					},
+					druidbarstealth = {
+						template = "nrf_button",
+						Text = L["Druid Form Bar (Stealth)"],
+						Point = { "TOPLEFT", "$parentdruidbarnostealth", "BOTTOMLEFT", 0, -7 },
+						OnClick = function()
+							Nurfed_CreateDefaultActionBar("druidStealth")
+						end,
+					},
+					warriorstancebar = {
+						template = "nrf_button",
+						Text = L["Warrior Stance Bar"],
+						Point = { "TOPLEFT", "$parentdruidbarstealth", "BOTTOMLEFT", 0, -7 },
+						OnClick = function()
+							Nurfed_CreateDefaultActionBar("warriorStance")
+						end,
+					},
+				},
+			},
 			bar = {
 				type = "Frame",
 				size = { 230, 100 },
@@ -1791,37 +1839,44 @@ local panels = {
 table.sort(panels, function(a, b) return b.name > a.name end)
 
 for _, info in ipairs(panels) do
-  if not info.addon or IsAddOnLoaded(info.addon) then
-    local name = string.format("Nurfed%sPanel", info.name)
-    local panel = Nurfed:create(name, "uipanel")
-    panel.name = info.name
-    panel.parent = "Nurfed"
-    panel.default = function() end
+	if not info.addon or IsAddOnLoaded(info.addon) then
+		local name = string.format("Nurfed%sPanel", info.name)
+		local panel = Nurfed:create(name, "uipanel")
+		panel.name = info.name
+		panel.parent = "Nurfed"
+		panel.default = function() end
     
-    getglobal(name.."Title"):SetText(info.name)
-    getglobal(name.."SubText"):SetText(info.subtext)
+		getglobal(name.."Title"):SetText(info.name)
+		getglobal(name.."SubText"):SetText(info.subtext)
 
-    for opt, tbl in pairs(info.menu) do
-      Nurfed:create(name..opt, tbl, panel)
-    end
-	if name == "NurfedActionBarsPanel" then
-		panel.expand = {}
-		Nurfed_GenerateMenu("ActionBars", "nrf_actionbars_row", 19)
-		panel:SetScript("OnHide", function()
-			NurfedActionBarsPanelbuttondefault:SetParent(NurfedActionBarsPanelbutton)
-			NurfedActionBarsPanelbuttonhelp:SetParent(NurfedActionBarsPanelbutton)
-			NurfedActionBarsPanelbuttonharm:SetParent(NurfedActionBarsPanelbutton)
-		end)
+		for opt, tbl in pairs(info.menu) do
+			Nurfed:create(name..opt, tbl, panel)
+		end
+		if name == "NurfedActionBarsPanel" then
+			panel.expand = {}
+			Nurfed_GenerateMenu("ActionBars", "nrf_actionbars_row", 19)
+			panel:SetScript("OnHide", function()
+				NurfedActionBarsPanelbuttondefault:SetParent(NurfedActionBarsPanelbutton)
+				NurfedActionBarsPanelbuttonhelp:SetParent(NurfedActionBarsPanelbutton)
+				NurfedActionBarsPanelbuttonharm:SetParent(NurfedActionBarsPanelbutton)
+			end)
+		end
+
+		InterfaceOptions_AddCategory(panel)
 	end
-
-    InterfaceOptions_AddCategory(panel)
-  end
 end
 
 function Nurfed_ScrollActionBarsStates()
 	local states = {}
 	local bar = NurfedActionBarsPanel.bar
-	local tbl = NURFED_ACTIONBARS[bar].statemaps
+	--local tbl = NURFED_ACTIONBARS[bar].statemaps
+	local tbl
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		if v.name == bar then
+			tbl = v.statemaps
+			break
+		end
+	end
 	for k, v in pairs(tbl) do
 		table.insert(states, { k, v })
 	end
@@ -1941,6 +1996,7 @@ function Nurfed_ActionBar_OnClick(button)
 	NurfedActionBarsPanelbar:Hide()
 	NurfedActionBarsPanelstates:Hide()
 	NurfedActionBarsPanelbutton:Hide()
+	NurfedActionBarsPaneldefaults:Show()
 	NurfedActionBarsPanelbuttondefault:SetParent(NurfedActionBarsPanelbutton)
 	NurfedActionBarsPanelbuttonhelp:SetParent(NurfedActionBarsPanelbutton)
 	NurfedActionBarsPanelbuttonharm:SetParent(NurfedActionBarsPanelbutton)
@@ -1948,7 +2004,8 @@ function Nurfed_ActionBar_OnClick(button)
 		NurfedActionBarsPanel.bar = nil
 	else
 		NurfedActionBarsPanel.bar = barname
-		local bar = getglobal(barname)
+		NurfedActionBarsPaneldefaults:Hide()
+		local bar = _G[barname]
 		if bar:GetID() > 0 then
 			NurfedActionBarsPanelbutton:Show()
 			local hdr = bar:GetParent()
@@ -1991,7 +2048,8 @@ function Nurfed_DeleteBar()
 	Nurfed:deletebar(bar)
 	for i in ipairs(NURFED_ACTIONBARS) do
 		if NURFED_ACTIONBARS[i].name == bar then
-			NURFED_ACTIONBARS[i] = nil
+			--NURFED_ACTIONBARS[i] = nil
+			table.remove(NURFED_ACTIONBARS, i)
 			break
 		end
 	end

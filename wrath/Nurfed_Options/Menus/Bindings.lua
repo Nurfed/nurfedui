@@ -120,10 +120,10 @@ function Nurfed_ScrollBindings()
       table.insert(listing, { v, true, "ITEM" })
     end
 
-    for k in pairs(NURFED_ACTIONBARS) do
+    for _, v in ipairs(NURFED_ACTIONBARS) do
       table.insert(listing, { " ", "|cffffff00" })
-      table.insert(listing, { k, "|cffff00ff" })
-      local btns = { getglobal(k):GetChildren() }
+      table.insert(listing, { v.name, "|cffff00ff" })
+      local btns = { getglobal(v.name):GetChildren() }
       for _, btn in ipairs(btns) do
         if btn:GetID() > 0 then
           table.insert(listing, { btn:GetName(), true, "CLICK" })
