@@ -1733,6 +1733,46 @@ local panels = {
 			},
 		},
 	},
+	{
+		name = "Beta Shit",
+		subtext = "Configure hidding settings for the beta.  Use at your own risk.",
+		menu = {
+			shadows = {
+				template = "nrf_slider",
+				Anchor = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", 0, -24 },
+				vars = {
+					text = "Shadows",
+					--option = "chatfadetime",
+					low = 0,
+					high = 6,
+					min = 0,
+					max = 6,
+					step = 1,
+					format = "%.0f",
+					--func = function() nrf_togglechat() end,
+					func = function(val) SetCVar("extShadowQuality", val) end,
+				},
+			},
+			threatbar = {
+				template = "nrf_check",
+				Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 0, -8 },
+				vars = { 
+					text = "Enable Threat Menu",
+					--option = "threatmenu", 
+					func = function(val) 
+						debug(val)
+						if val then
+							IsThreatWarningEnabled = function() return true end
+							SetCVar("showThreatMeter", 1)
+						else
+							IsThreatWarningEnabled = function() return false end
+							SetCVar("showThreatMeter", 0)
+						end
+					end,
+				},
+			},
+		},
+	},
 
   -- AddOns Panel
   {
