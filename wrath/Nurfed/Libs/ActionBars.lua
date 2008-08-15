@@ -18,7 +18,8 @@ local GetMacroSpell = _G.GetMacroSpell
 local GetSpellCount = _G.GetSpellCount
 local GetSpellCooldown = _G.GetSpellCooldown
 local GetItemCooldown = _G.GetItemCooldown
-local CooldownFrame_SetTimer = _G.CooldownFrame_SetTimer
+-- upvalueing this...makes it not work?  oddness.
+--local CooldownFrame_SetTimer = _G.CooldownFrame_SetTimer
 local SecureButton_GetAttribute = _G.SecureButton_GetAttribute
 local SecureButton_GetUnit = _G.SecureButton_GetUnit
 local SecureButton_GetModifiedAttribute = _G.SecureButton_GetModifiedAttribute
@@ -147,8 +148,8 @@ end
 
 local function updatecooldown(btn)
 	local start, duration, enable = 0, 0, 0
-	local cooldown = _G[btn:GetName().."Cooldown"]
-	if btn.spell then
+	--local cooldown = _G[btn:GetName().."Cooldown"]
+	if btn.spell and not btn.spellid then
 		if btn.type == "spell" then
 			start, duration, enable = GetSpellCooldown(btn.spell)
 		elseif btn.type == "item" then
@@ -164,13 +165,14 @@ local function updatecooldown(btn)
 		end
 	end
 	if start and duration then
-		CooldownFrame_SetTimer(cooldown, start, duration, enable)
+		CooldownFrame_SetTimer(_G[btn:GetName().."Cooldown"], start, duration, enable)
 	end
 end
 -- unlocalize and change the name to an unused global to allow hooking from PT3Bar and AutoBar etc
 -- No Reason to use "CooldownCount" etc if this function does everything we want in a nice clean fashion
 --local cooldowntext = function(btn)
-nrfcooldowntext = function(btn)
+--nrfcooldowntext = function(btn)
+function nrfcooldowntext(btn)
 	local cd = _G[btn:GetName().."Cooldown"]
 	if cd.text and cd.cool then
 		local cdscale = cd:GetScale()
@@ -430,9 +432,9 @@ local function btnreceivedrag(self)
 		self:SetAttribute("*type"..value, cursor)
 		--TODO: Rewrite this so it clears values cleaner
 		if cursor == "spell" then
+			local spell, rank
 			if arg1 == 0 and arg2 == "spell" and nrfCompanionType and nrfCompanionSlot and nrfCompanionSlot then
-				local spell = GetSpellInfo(nrfCompanionID)
-				self:SetAttribute("*spell"..value, spell)
+				spell = GetSpellInfo(nrfCompanionID)
 				self:SetAttribute("*companionID", nrfCompanionID)
 				self:SetAttribute("*companionType", nrfCompanionType)
 				self:SetAttribute("*companionSlot", nrfCompanionSlot)
@@ -440,17 +442,17 @@ local function btnreceivedrag(self)
 				nrfCompanionSlot = nil
 				nrfCompanionID = nil
 			else
-				local spell, rank = GetSpellName(arg1, arg2)
+				spell, rank = GetSpellName(arg1, arg2)
 				if rank:find(RANK) then
 					spell = spell.."("..rank..")"
 				elseif spell:find("%(") then
 					spell = spell.."()"
 				end
-				self:SetAttribute("*spell"..value, spell)
 				self:SetAttribute("*companionID", nil)
 				self:SetAttribute("*companionType", nil)
 				self:SetAttribute("*companionSlot", nil)
 			end
+			self:SetAttribute("*spell"..value, spell)
 			self:SetAttribute("*item"..value, nil)
 			self:SetAttribute("*itemid"..value, nil)
 			self:SetAttribute("*macro"..value, nil)

@@ -205,6 +205,7 @@ local class = {
 	["PRIEST"]	= { 0.49609375, 0.7421875, 0.25, 0.5 },
 	["WARLOCK"]	= { 0.7421875, 0.98828125, 0.25, 0.5 },
 	["PALADIN"]	= { 0, 0.25, 0.5, 0.75 },
+	["DEATHKNIGHT"] = { 0.77, 0.12, 0.23, 0.25 },
 	["PETS"]	= { 0, 1, 0, 1 },
 }
 -- these are seperate from the above lists, used for Pitbull settings
@@ -218,6 +219,7 @@ local colorLst = {
 	["ROGUE"]		= { 0, 0.9607, 0.4117 },
 	["MAGE"]		= { 0.4823, [3] = 1 },
 	["WARLOCK"]		= { 0.7333, 0.6431, 1 },
+	["DEATHKNIGHT"] = { 0.77, 0.12, 0.23 },
 	
 	["disconnected"]	= { 0.2666, 0.2862, 0.2588 },
 	["dead"]			= { 0.2549, 0.2784, 0.3215 },
