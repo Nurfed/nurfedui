@@ -1422,7 +1422,319 @@ local panels = {
 		name = "CombatLog",
 		subtext = "Options that affect the combat log appearance.",
 		addon = "Nurfed_CombatLog",
-		menu = {},
+		menu = {
+			spellText = {
+				type = "FontString",
+				layer = "ARTWORK",
+				FontObject = "GameFontNormal",
+				JustifyH = "LEFT",
+				ShadowColor = { 0, 0, 0, 0.75},
+				ShadowOffset = { -1, -1 },
+				Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, 8 },
+				Text = "Spell Alert Settings",
+			},
+			spellEnable = {
+				template = "nrf_check",
+				Anchor = { "TOPLEFT", "$parentspellText", "BOTTOMLEFT", 0, -6 },
+				vars = { text = "Enable", option = "enabled", cltbl = "spell", event = "NURFED_COMBATLOG_SETTINGS_CHANGED" },
+			},
+			spellTest = {
+				template = "nrf_button",
+				Text = "Test",
+				Point = { "TOPRIGHT", "$parentspellText", "BOTTOMRIGHT", 0, -6 },
+				OnClick = function() 
+					--Nurfed_SpellAlert:AddMessage("|TInterface\\Icons\\Spell_Shadow_LifeDrain:24:24:-5|t"..SPELLCASTGOOTHER:format("Superbadboy", "|cffca4cd9Suicide|r"))
+					Nurfed_SpellAlert:AddMessage("|T"..select(3, GetSpellInfo(7))..":24:24:-5|t"..SPELLCASTGOOTHER:format("Superbadboy", "|cffca4cd9"..GetSpellInfo(7).."|r"))
+				end,
+			},
+			spellWidth = {
+				template = "nrf_slider",
+				Anchor = { "TOPLEFT", "$parentspellEnable", "BOTTOMLEFT", 0, -10 },
+				vars = {
+					text = "Width",
+					option = "width",
+					cltbl = "spell",
+					low = 0,
+					high = 2048,
+					min = 0,
+					max = 2048,
+					step = 10,
+					format = "%.0f",
+					fontobject = "GAMEFONTNORMALSMALL",
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				},
+			},
+			spellHeight = {
+				template = "nrf_slider",
+				Anchor = { "TOPLEFT", "$parentspellWidth", "BOTTOMLEFT", 0, -30 },
+				vars = {
+					text = "Height",
+					option = "height",
+					cltbl = "spell",
+					low = 0,
+					high = 2048,
+					min = 0,
+					max = 2048,
+					step = 10,
+					format = "%.0f",
+					fontobject = "GAMEFONTNORMALSMALL",
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				},
+			},
+			spellVisibleTime = {
+				template = "nrf_slider",
+				Anchor = { "TOPLEFT", "$parentspellHeight", "BOTTOMLEFT", 0, -30 },
+				vars = {
+					text = "Text Visible Time",
+					option = "visibleTime",
+					cltbl = "spell",
+					low = 0,
+					high = 10,
+					min = 0,
+					max = 10,
+					step = 0.01,
+					deci = 2,
+					format = "%.2f",
+					fontobject = "GAMEFONTNORMALSMALL",
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				},
+			},
+			spellFadeDuration = {
+				template = "nrf_slider",
+				Anchor = { "TOPLEFT", "$parentspellVisibleTime", "BOTTOMLEFT", 0, -30 },
+				vars = {
+					text = "Text Fade Duration",
+					option = "fadeDuration",
+					cltbl = "spell",
+					low = 0,
+					high = 10,
+					min = 0,
+					max = 10,
+					step = 0.01,
+					deci = 2,
+					format = "%.2f",
+					fontobject = "GAMEFONTNORMALSMALL",
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				},
+			},
+			spellFontHeight = {
+				template = "nrf_slider",
+				Anchor = { "TOPLEFT", "$parentspellFadeDuration", "BOTTOMLEFT", 0, -30 },
+				vars = {
+					text = "Text Height",
+					option = "fontHeight",
+					cltbl = "spell",
+					low = 0,
+					high = 48,
+					min = 1,
+					max = 48,
+					step = 1,
+					format = "%.0f",
+					fontobject = "GAMEFONTNORMALSMALL",
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				},
+			},
+			spellInsertMode = {
+				template = "nrf_optbutton",
+				Anchor = { "TOPLEFT", "$parentspellFontHeight", "BOTTOMLEFT", 0, -32 },
+				OnClick = function() Nurfed_DropMenu({"TOP", "BOTTOM"}) end,
+				vars = { 
+					text = "Insert Mode", 
+					option = "insertMode", 
+					cltbl = "spell", 
+					textpoint = { "BOTTOM", "self", "TOP", 0, 2 },
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				 },
+			},
+			spellfontStyle = {
+				template = "nrf_optbutton",
+				Anchor = { "TOPRIGHT", "$parentspellFontHeight", "BOTTOMRIGHT", 0, -32 },
+				OnClick = function() Nurfed_DropMenu({"OUTLINE", "THICKOUTLINE", "MONOCHROME"}) end,
+				vars = { 
+					text = "Font Style", 
+					option = "fontStyle", 
+					cltbl = "spell", 
+					textpoint = { "BOTTOM", "self", "TOP", 0, 2 },
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				 },
+			},
+			spellfontJustifyH = {
+				template = "nrf_optbutton",
+				Anchor = { "TOPLEFT", "$parentspellInsertMode", "BOTTOMRIGHT", -15, -13 },
+				OnClick = function() Nurfed_DropMenu({"CENTER", "LEFT", "RIGHT"}) end,
+				vars = { 
+					text = "Font Justify-H", 
+					option = "fontJustifyH", 
+					cltbl = "spell", 
+					textpoint = { "BOTTOM", "self", "TOP", 0, 2 },
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				 },
+			},
+			-- splitter
+			splitter = {
+				type = "Frame",
+				Anchor = { "TOP", "$parentSubText", "BOTTOM", 8, 8 },
+				size = { 1, 340 },
+				Backdrop = { 
+					bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", 
+					edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", 
+					tile = true, 
+					tileSize = 12, 
+					edgeSize = 12, 
+					insets = { left = 2, right = 2, top = 2, bottom = 2 }, 
+				},
+				BackdropColor = { 0, 0, 0, 0.5 },
+				BackdropBorderColor = { 0, 0, 0, 0.5 },
+			},
+			-- buff
+			buffText = {
+				type = "FontString",
+				layer = "ARTWORK",
+				FontObject = "GameFontNormal",
+				JustifyH = "LEFT",
+				ShadowColor = { 0, 0, 0, 0.75},
+				ShadowOffset = { -1, -1 },
+				Point = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", -2, 8 },
+				Text = "Buff Alert Settings",
+			},
+			buffEnable = {
+				template = "nrf_check",
+				Anchor = { "TOPLEFT", "$parentbuffText", "BOTTOMLEFT", 0, -6 },
+				vars = { text = "Enable", option = "enabled", cltbl = "buff", event = "NURFED_COMBATLOG_SETTINGS_CHANGED" },
+			},
+			buffTest = {
+				template = "nrf_button",
+				Text = "Test",
+				Point = { "TOPRIGHT", "$parentbuffText", "BOTTOMRIGHT", 0, -6 },
+				OnClick = function() 
+					--Nurfed_BuffAlert:AddMessage("|TInterface\\Icons\\Spell_Shadow_LifeDrain:24:24:-5|t"..AURAADDEDOTHERHELPFUL:format("Superbadboy", "|cffca4cd9Suicide|r"))
+					Nurfed_BuffAlert:AddMessage("|T"..select(3, GetSpellInfo(7))..":24:24:-5|t"..AURAADDEDOTHERHELPFUL:format("Superbadboy", "|cffca4cd9"..GetSpellInfo(7).."|r"))
+				end,
+			},
+			buffWidth = {
+				template = "nrf_slider",
+				Anchor = { "TOPLEFT", "$parentbuffEnable", "BOTTOMLEFT", 0, -10 },
+				vars = {
+					text = "Width",
+					option = "width",
+					cltbl = "buff",
+					low = 0,
+					high = 2048,
+					min = 0,
+					max = 2048,
+					step = 10,
+					format = "%.0f",
+					fontobject = "GAMEFONTNORMALSMALL",
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED",
+				},
+			},
+			buffHeight = {
+				template = "nrf_slider",
+				Anchor = { "TOPLEFT", "$parentbuffWidth", "BOTTOMLEFT", 0, -30 },
+				vars = {
+					text = "Height",
+					option = "height",
+					cltbl = "buff",
+					low = 0,
+					high = 2048,
+					min = 0,
+					max = 2048,
+					step = 10,
+					format = "%.0f",
+					fontobject = "GAMEFONTNORMALSMALL", 
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				},
+			},
+			buffVisibleTime = {
+				template = "nrf_slider",
+				Anchor = { "TOPLEFT", "$parentbuffHeight", "BOTTOMLEFT", 0, -30 },
+				vars = {
+					text = "Text Visible Time",
+					option = "visibleTime",
+					cltbl = "buff",
+					low = 0,
+					high = 10,
+					min = 0,
+					max = 10,
+					step = 0.01,
+					deci = 2,
+					format = "%.2f",
+					fontobject = "GAMEFONTNORMALSMALL",
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				},
+			},
+			buffFadeDuration = {
+				template = "nrf_slider",
+				Anchor = { "TOPLEFT", "$parentbuffVisibleTime", "BOTTOMLEFT", 0, -30 },
+				vars = {
+					text = "Text Fade Duration",
+					option = "fadeDuration",
+					cltbl = "buff",
+					low = 0,
+					high = 10,
+					min = 0,
+					max = 10,
+					step = 0.01,
+					deci = 2,
+					format = "%.2f",
+					fontobject = "GAMEFONTNORMALSMALL",
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				},
+			},
+			buffFontHeight = {
+				template = "nrf_slider",
+				Anchor = { "TOPLEFT", "$parentbuffFadeDuration", "BOTTOMLEFT", 0, -30 },
+				vars = {
+					text = "Text Height",
+					option = "fontHeight",
+					cltbl = "buff",
+					low = 0,
+					high = 48,
+					min = 1,
+					max = 48,
+					step = 1,
+					format = "%.0f",
+					fontobject = "GAMEFONTNORMALSMALL",
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				},
+			},
+			buffInsertMode = {
+				template = "nrf_optbutton",
+				Anchor = { "TOPLEFT", "$parentbuffFontHeight", "BOTTOMLEFT", 0, -32 },
+				OnClick = function() Nurfed_DropMenu({"TOP", "BOTTOM"}) end,
+				vars = { 
+					text = "Insert Mode", 
+					option = "insertMode", 
+					cltbl = "buff", 
+					textpoint = { "BOTTOM", "self", "TOP", 0, 2 },
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				 },
+			},
+			bufffontStyle = {
+				template = "nrf_optbutton",
+				Anchor = { "TOPRIGHT", "$parentbuffFontHeight", "BOTTOMRIGHT", 0, -32 },
+				OnClick = function() Nurfed_DropMenu({"OUTLINE", "THICKOUTLINE", "MONOCHROME"}) end,
+				vars = { 
+					text = "Font Style", 
+					option = "fontStyle", 
+					cltbl = "buff", 
+					textpoint = { "BOTTOM", "self", "TOP", 0, 2 },
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				 },
+			},
+			bufffontJustifyH = {
+				template = "nrf_optbutton",
+				Anchor = { "TOPLEFT", "$parentbuffInsertMode", "BOTTOMRIGHT", -15, -13 },
+				OnClick = function() Nurfed_DropMenu({"CENTER", "LEFT", "RIGHT"}) end,
+				vars = { 
+					text = "Font Justify-H", 
+					option = "fontJustifyH", 
+					cltbl = "buff", 
+					textpoint = { "BOTTOM", "self", "TOP", 0, 2 },
+					event = "NURFED_COMBATLOG_SETTINGS_CHANGED"
+				 },
+			},
+		},
 	},
 	-- Frames Panel
 	{ 
