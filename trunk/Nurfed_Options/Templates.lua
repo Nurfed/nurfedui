@@ -131,13 +131,26 @@ onshow = function(self)
 			value:ClearAllPoints()
 			value:SetPoint("RIGHT", self, "LEFT", -3, 0)
 		else
-			text:ClearAllPoints()
-			text:SetPoint("RIGHT", self, "LEFT", -1, 1)
-			if text:GetText() ~= "" then
-				self:SetHitRectInsets(-text:GetWidth(), 0, 0, 0)
+			if not self.textpoint then
+				text:ClearAllPoints()
+				text:SetPoint("RIGHT", self, "LEFT", -1, 1)
+				if text:GetText() ~= "" then
+					self:SetHitRectInsets(-text:GetWidth(), 0, 0, 0)
+				end
 			end
 		end
 	end
+	--set the proper hitrec ffs.  dont use unneeded space kthx?
+	if objtype == "CheckButton" and text and text ~= "" and point and not point:find("RIGHT") then
+		self:SetHitRectInsets(0, -text:GetWidth(), 0, 0)
+	end
+	if self.textpoint then
+		text:ClearAllPoints()
+		local p1, p2, p3, p4, p5 = unpack(self.textpoint)
+		p2 = p2 == "self" and self or p2 == "parent" and self:GetParent() or _G[p2]
+		text:SetPoint(p1, p2, p3, p4, p5)
+	end
+	
 	-- anchoring the value editbox of a slider in the template apparently does not
 	-- move it...at all.  It is still getting anchored to the left/right
 	-- even when the anchor to pos is not set to RIGHT at all
@@ -152,7 +165,11 @@ onshow = function(self)
 
 	local opt
 	if self.option then
-		opt = Nurfed:getopt(self.option)
+		if self.cltbl then
+			opt = NURFED_COMBATLOG_SAVED[self.cltbl][self.option]
+		else
+			opt = Nurfed:getopt(self.option)
+		end
 	elseif self.default then
 		opt = self.default
 	end
@@ -169,8 +186,10 @@ onshow = function(self)
 		end
 
 		value.option = self.option
+		value.cltbl = self.cltbl
 		value.val = self.val
 		value.func = self.func
+		value.event = self.event
 	elseif objtype == "EditBox" then
 		if type(opt) == "table" then
 			local text = ""
@@ -224,7 +243,7 @@ saveopt = function(self)
 		value = self:GetText()
 	end
 
-	if self.option then
+	if self.option and not self.cltbl then
 		local opt = self.option
 		if value == NURFED_DEFAULT[opt] then
 			NURFED_SAVED[opt] = nil
@@ -232,9 +251,15 @@ saveopt = function(self)
 			NURFED_SAVED[opt] = value
 		end
 	end
+	if self.cltbl then
+		NURFED_COMBATLOG_SAVED[self.cltbl][self.option] = value or false
+	end
 
 	if self.func then
 		self.func(value)
+	end
+	if self.event then
+		Nurfed:sendevent(self.event)
 	end
 end
 
@@ -271,6 +296,7 @@ local templates = {
 			value = {
 				template = "nrf_editbox",
 				FontObject = "GameFontNormalSmall",
+				JustifyH = "CENTER",
 				size = { 35, 18 },
 				Anchor = { "TOP", "$parent", "BOTTOM", 0, 0 },
 				Backdrop = {
@@ -295,7 +321,15 @@ local templates = {
 				OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 			},
 		},
-		OnShow = function(self) self:SetFrameLevel(30); self:EnableMouseWheel(true); onshow(self) end,
+		OnShow = function(self) 
+			self:SetFrameLevel(30)
+			self:EnableMouseWheel(true)
+			onshow(self)
+			local min,max = self:GetMinMaxValues();
+			if max >= 1000 or self.deci then 
+				_G[self:GetName().."value"]:SetWidth(42)
+			end
+		end,
 		OnMouseUp = function(self) 
 			local editbox = _G[self:GetName().."value"]
 			editbox:SetCursorPosition(0)
