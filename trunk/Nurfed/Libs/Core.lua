@@ -49,72 +49,12 @@ end
 
 ----------------------------------------------------------------
 -- Utility functions
-local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver
--- no opt = Core, 1 = Options, 2 = Arena
-function util:setver(ver, opt)
-	ver = ver:gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1")
-	ver = ver:match("-%d%d"):gsub("-", "").."."..ver:match("-%d%d", 6):gsub("-", "").."."..ver:match("%d%d%d%d")
-	if opt then
-		if opt == 1 then
-			if not nrfo_ver or ver > nrfo_ver then
-				nrfo_ver = ver
-			end
-		elseif opt == 2 then
-			if not nrfa_ver or ver > nrfa_ver then
-				nrfa_ver = ver
-			end
-		end
-	else
-		if not nrf_ver or ver > nrf_ver then
-			nrf_ver = ver
-		end
+function util:print(msg, out, r, g, b, ...)
+	if type(out) == "string" then
+		msg = msg:format(out, r, g, b, ...)
 	end
-end
-
-function util:getver(opt)
-	if opt then
-		if opt == 1 then
-			return nrfo_ver or "Not Installed"
-		elseif opt == 2 then
-			return nrfa_ver or "Not Installed"
-		end
-	end
-	return nrf_ver or "Unknown"
-end
-
-function util:setrev(rev, opt)
-	rev = rev:gsub("%$", ""):gsub("%s$", "", 1)
-	if opt then
-		if opt == 1 then
-			if not nrfo_rev or rev > nrfo_rev then
-				nrfo_rev = rev
-			end
-		elseif opt == 2 then
-			if not nrfa_rev or rev > nrfa_rev then
-				nrfa_rev = rev
-			end
-		end
-	else
-		if not nrf_rev or rev > nrf_rev then
-			nrf_rev = rev
-		end
-	end
-end
-
-function util:getrev(opt)
-	if opt then
-		if opt == 1 then
-			return nrfo_rev or ""
-		elseif opt == 2 then
-			return nrfa_rev or ""
-		end
-	end
-	return nrf_rev or ""
-end
-
-function util:print(msg, out, r, g, b)
-  out = _G["ChatFrame"..(out or 1)]
-  out:AddMessage(msg, (r or 1), (g or 1), (b or 1))
+	out	= _G["ChatFrame"..(type(out) == "number" and out or 1)]
+	out:AddMessage(msg, (type(r) == "number" and r or 1), (type(g) == "number" and g or 1), (type(b) == "number" and b or 1))
 end
 
 function util:rgbhex(r, g, b)
@@ -758,10 +698,14 @@ function util:unregevent(event, func)
 end
 
 local function onevent(self, event, ...)
-  local tbl = events[event]
-  for _, func in ipairs(tbl) do
-	  func(event, ...)
-  end
+	local tbl = events[event]
+	if tbl then
+		for _, func in ipairs(tbl) do
+			func(event, ...)
+		end
+	else
+		Nurfed:print("Nurfed-Error: Called UnregisteredEvent: %s", event)
+	end
 end
 
 frame:SetScript("OnEvent", onevent)
@@ -953,7 +897,82 @@ function Nurfed_ToggleOptions()
 end
 
 util:addslash(Nurfed_ToggleOptions, "/nurfed")
+----------------------------------------------------------------
+-- Addon version system
+local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver, nrfcl_ver, nrfcl_rev
+-- no opt = Core, 1 = Options, 2 = Arena, 3 = Combat Log
+function util:setver(ver, opt)
+	ver = ver:gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1")
+	ver = ver:match("-%d%d"):gsub("-", "").."."..ver:match("-%d%d", 6):gsub("-", "").."."..ver:match("%d%d%d%d")
+	if opt then
+		if opt == 1 then
+			if not nrfo_ver or ver > nrfo_ver then
+				nrfo_ver = ver
+			end
+		elseif opt == 2 then
+			if not nrfa_ver or ver > nrfa_ver then
+				nrfa_ver = ver
+			end
+		elseif opt == 3 then
+			if not nrfcl_ver or ver > nrfcl_ver then
+				nrfcl_ver = ver
+			end
+		end
+	else
+		if not nrf_ver or ver > nrf_ver then
+			nrf_ver = ver
+		end
+	end
+end
 
+function util:getver(opt)
+	if opt then
+		if opt == 1 then
+			return nrfo_ver or "Not Installed"
+		elseif opt == 2 then
+			return nrfa_ver or "Not Installed"
+		elseif opt == 3 then
+			return nrfcl_ver or "Not Installed"
+		end
+	end
+	return nrf_ver or "Unknown"
+end
+
+function util:setrev(rev, opt)
+	rev = rev:gsub("%$", ""):gsub("%s$", "", 1)
+	if opt then
+		if opt == 1 then
+			if not nrfo_rev or rev > nrfo_rev then
+				nrfo_rev = rev
+			end
+		elseif opt == 2 then
+			if not nrfa_rev or rev > nrfa_rev then
+				nrfa_rev = rev
+			end
+		elseif opt == 3 then
+			if not nrfcl_rev or rev > nrfcl_rev then
+				nrfcl_rev = rev
+			end
+		end
+	else
+		if not nrf_rev or rev > nrf_rev then
+			nrf_rev = rev
+		end
+	end
+end
+
+function util:getrev(opt)
+	if opt then
+		if opt == 1 then
+			return nrfo_rev or ""
+		elseif opt == 2 then
+			return nrfa_rev or ""
+		elseif opt == 3 then
+			return nrfcl_rev or ""
+		end
+	end
+	return nrf_rev or ""
+end
 ----------------------------------------------------------------
 -- Addon message database
 local addonfunc = {}
@@ -970,15 +989,6 @@ local addonmsg = function(event, ...)
 	end
   end
 end
-
-util:addslash(function() 
-	if IsAddOnLoaded("Nurfed_OptionsAce3") then 
-		LibStub("AceConfigDialog-3.0"):Open("Nurfed") 
-	else 
-		LoadAddOn("Nurfed_OptionsAce3")
-		LibStub("AceConfigDialog-3.0"):Open("Nurfed") 
-	end
-end, "/nrf")
 
 util:addslash(function(...)
 	local arg, arg2 = string.split(" ", ...)

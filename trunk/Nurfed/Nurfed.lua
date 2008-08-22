@@ -145,16 +145,15 @@ local function onevent(self, event, arg1, arg2, arg3, arg4, arg5)
     end
     
   elseif event == "PARTY_INVITE_REQUEST" and Nurfed:getopt("autojoingroup") then
-	GuildRoster()
-	local i, num = 0, GetNumGuildMembers()
-	while i <= num do
+	local i = 1
+	while i do
 		local name = GetGuildRosterInfo(i)
 		if name == arg1 then
 			AcceptGroup()
 			StaticPopup_Hide("PARTY_INVITE")
-			break
+			return
 		end
-		i = i + 1
+		i = name and i+1 or nil
 	end
 
   elseif event == "MERCHANT_SHOW" then
@@ -199,13 +198,24 @@ local function onevent(self, event, arg1, arg2, arg3, arg4, arg5)
 		end
 		
 		local soldNum, soldItems, sold, startMoney = 0, "", nil, GetMoney()
+		local soldLst = {}
 		for bag=0,4,1 do
 			for slot=1, GetContainerNumSlots(bag), 1 do
 				if GetContainerItemLink(bag, slot) then
 					local name, link, rarity = GetItemInfo(GetContainerItemLink(bag, slot))
-						if name and rarity == 0 and (not dnsLst[link:find("Hitem:(%d+)")]) then
-						soldNum = soldNum + GetItemCount(link)
-						soldItems = soldItems == "" and link or soldItems..", "..link
+						if name and not dnsLst[link:find("Hitem:(%d+)")] and (rarity == 0 or true and rarity == 2) then
+						if not soldLst[name] then
+							if GetItemCount(link) ~= 1 then
+								soldNum = soldNum + GetItemCount(link)
+								soldItems = soldItems == "" and link or soldItems..", "..link.."x"..GetItemCount(link)
+							else
+								soldNum = soldNum + 1
+								soldItems = soldItems == "" and link or soldItems..", "..link
+							end
+							soldLst[name] = true
+						else
+							soldItems = soldItems:gsub(link, link.."x"..GetItemCount(link))
+						end
 						UseContainerItem(bag, slot)
 						sold = true
 					end
@@ -325,6 +335,7 @@ Nurfed:create("Nurfed_LockButton", {
     "CHAT_MSG_SYSTEM",
     "PLAYER_ENTERING_WORLD",
     "VARIABLES_LOADED",
+    "PARTY_INVITE_REQUEST",
   },
   children = {
     dropdown = { type = "Frame" },
@@ -617,7 +628,7 @@ Nurfed:createtemp("uipanel", {
 local panel = Nurfed:create("NurfedHeader", "uipanel")
 panel:SetScript("OnShow", function(self)
     LoadAddOn("Nurfed_Options")
-    NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")")
+    NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")\r|cffddeeffCombatLog Version:|r "..Nurfed:getver(3).."("..Nurfed:getrev(3)..")")
     self:SetScript("OnShow", nil)
 end)
 panel.name = "Nurfed"
