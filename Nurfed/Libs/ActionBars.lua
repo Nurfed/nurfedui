@@ -184,11 +184,13 @@ local function seticon(btn)
             texture = select(10, GetItemInfo(itemid))
           end
         elseif new == "macro" then
-          spell, texture = GetMacroInfo(spell)
-			-- fix the damn autoshot texture so its not whirlwind....nice one blizzard
-			if texture == "Interface\\Icons\\Ability_Whirlwind" and playerClass == "HUNTER" then
-				texture = GetSpellTexture("Auto Shot")
-			end
+					local id = btn:GetAttribute("*macroID")
+					if id then
+						texture = GetActionTexture(id)
+						spell = GetActionText(id)
+					else
+						spell, texture = GetMacroInfo(spell)
+					end
           if Nurfed:getopt("macrotext") then
             text:SetText(spell)
           end
@@ -347,18 +349,26 @@ local function btnreceivedrag(self)
       self:SetAttribute("*item"..value, nil)
       self:SetAttribute("*itemid"..value, nil)
       self:SetAttribute("*macro"..value, nil)
+	  self:SetAttribute("*macroID", nil)
     elseif cursor == "item" then
       local item = GetItemInfo(arg1)
       self:SetAttribute("*spell"..value, nil)
       self:SetAttribute("*item"..value, item)
       self:SetAttribute("*itemid"..value, arg1)
       self:SetAttribute("*macro"..value, nil)
+	  self:SetAttribute("*macroID", nil)
     elseif cursor == "macro" then
       self:SetAttribute("*spell"..value, nil)
       self:SetAttribute("*item"..value, nil)
       self:SetAttribute("*itemid"..value, nil)
       self:SetAttribute("*macro"..value, arg1)
-    end
+		for i=1, 72 do
+			if select(2, GetActionInfo(i)) == arg1 then
+				self:SetAttribute("*macroID", i)
+				break
+			end
+		end
+	end
     ClearCursor()
     
     if oldtype and oldspell then
