@@ -9,6 +9,10 @@ local pingflood = {}
 local afkstring = Nurfed:formatgs(RAID_MEMBERS_AFK, true)
 local ingroup = Nurfed:formatgs(ERR_ALREADY_IN_GROUP_S, true)
 local dnsLst = {
+	[20558] = true,
+	[20559] = true,
+	[20560] = true,
+	[29024] = true,
 	[32823] = true,
 }
 -- Default Options
@@ -410,19 +414,6 @@ local function message(this, msg, r, g, b, id)
     end
     
     if not Nurfed:getopt("chatprefix") then
-		-- disable new coding until it gets fixed.  It is parsing out any text at the beginning of a line that
-		-- starts with [].  Regardless of its orgin(other mods)
-		-- example: ChatFrame1:AddMessage("[2:20:40] Testthis plx")
-		-- result: [2] Testthisplx
-		-- found error with the combathistory option of Nurfed UnitFrames
-		-- May end up adding in options to configure each chat channel prefix
-		------------
-		--local _, _, channel = string.find(msg, "^%[(.-)%]")
-		--if channel then
-		--	msg = string.gsub(msg, channel, string.sub(channel, 1, 1))
-		--end
-		------------
-		-- remove this note after next commit
 		local _, _, channel = msg:find("^%[(.-)%]")
 		if channel then
 			if channel:match("^%d%.%s") then
