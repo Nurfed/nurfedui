@@ -180,3 +180,5 @@ Nurfed:regevent("NURFED_LOCK", function()
 	end
 end)
 Nurfed:sendevent("NURFED_COMBATLOG_SETTINGS_CHANGED")
+Nurfed:setver("$Date: 2008-07-26 16:28:50 -0400 (Sat, 26 Jul 2008) $", 3)
+Nurfed:setrev("$Rev: 180 $", 3)
