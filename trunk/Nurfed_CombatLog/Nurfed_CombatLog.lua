@@ -7,6 +7,31 @@ local SPELLCASTGOOTHER = _G.SPELLCASTGOOTHER
 local AURAADDEDOTHERHELPFUL = _G.AURAADDEDOTHERHELPFUL
 local COMBATLOG_OBJECT_REACTION_HOSTILE = _G.COMBATLOG_OBJECT_REACTION_HOSTILE
 local COMBATLOG_OBJECT_CONTROL_PLAYER = _G.COMBATLOG_OBJECT_CONTROL_PLAYER
+NURFED_COMBATLOG_SAVED = NURFED_COMBATLOG_SAVED or {
+	spell = {
+		enabled = true,
+		height = 90,
+		width = UIParent:GetWidth(),
+		insertMode = "TOP",
+		visibleTime = 1,
+		fadeDuration = 0.5,
+		fontHeight = 18,
+		fontStyle = "OUTLINE",
+		fontJustifyH = "CENTER",
+	},
+	buff = {
+		enabled = true,
+		height = 90,
+		width = UIParent:GetWidth(),
+		insertMode = "TOP",
+		visibleTime = 1,
+		fadeDuration = 0.5,
+		fontHeight = 18,
+		fontStyle = "OUTLINE",
+		fontJustifyH = "CENTER",
+	},
+}
+
 
 local damage = {
 	[1] = "|cffff6464",-- 1 - physical
@@ -33,6 +58,7 @@ local function onevent(_, _, event, srcGUID, srcName, srcFlags, dstGUID, dstName
 		end
 	end
 end
+
 local function zonechange()
 	if GetZonePVPInfo() == "sanctuary" then
 		Nurfed:unregevent("COMBAT_LOG_EVENT_UNFILTERED", onevent)
@@ -41,9 +67,39 @@ local function zonechange()
 	end
 end
 
+
 Nurfed:regevent("PLAYER_LOGIN", zonechange)
 Nurfed:regevent("ZONE_CHANGED_NEW_AREA", zonechange)
---Nurfed:regevent("COMBAT_LOG_EVENT_UNFILTERED", onevent)
+Nurfed:regevent("NURFED_COMBATLOG_SETTINGS_CHANGED", function()
+	Nurfed_SpellAlert:SetWidth(NURFED_COMBATLOG_SAVED.spell.width)
+	Nurfed_SpellAlert:SetHeight(NURFED_COMBATLOG_SAVED.spell.height)
+	Nurfed_SpellAlert:SetInsertMode(NURFED_COMBATLOG_SAVED.spell.insertMode)
+	Nurfed_SpellAlert:SetTimeVisible(NURFED_COMBATLOG_SAVED.spell.visibleTime)
+	Nurfed_SpellAlert:SetFadeDuration(NURFED_COMBATLOG_SAVED.spell.fadeDuration)
+	Nurfed_SpellAlert:SetFont("Fonts\\FRIZQT__.TTF", NURFED_COMBATLOG_SAVED.spell.fontHeight, NURFED_COMBATLOG_SAVED.spell.fontStyle)
+	Nurfed_SpellAlert:SetJustifyH(NURFED_COMBATLOG_SAVED.spell.fontJustifyH)
+	if NURFED_COMBATLOG_SAVED.spell.enabled then
+		eventLst["SPELL_CAST_SUCCESS"] = true
+		eventLst["SPELL_CAST_START"] = true
+	else
+		eventLst["SPELL_CAST_SUCCESS"] = false
+		eventLst["SPELL_CAST_START"] = false
+	end
+	
+	Nurfed_BuffAlert:SetWidth(NURFED_COMBATLOG_SAVED.buff.width)
+	Nurfed_BuffAlert:SetHeight(NURFED_COMBATLOG_SAVED.buff.height)
+	Nurfed_BuffAlert:SetInsertMode(NURFED_COMBATLOG_SAVED.buff.insertMode)
+	Nurfed_BuffAlert:SetTimeVisible(NURFED_COMBATLOG_SAVED.buff.visibleTime)
+	Nurfed_BuffAlert:SetFadeDuration(NURFED_COMBATLOG_SAVED.buff.fadeDuration)
+	Nurfed_BuffAlert:SetFont("Fonts\\FRIZQT__.TTF", NURFED_COMBATLOG_SAVED.buff.fontHeight, NURFED_COMBATLOG_SAVED.buff.fontStyle)
+	Nurfed_BuffAlert:SetJustifyH(NURFED_COMBATLOG_SAVED.buff.fontJustifyH)
+	if NURFED_COMBATLOG_SAVED.buff.enabled then
+		eventLst["SPELL_AURA_APPLIED"] = true
+	else
+		eventLst["SPELL_AURA_APPLIED"] = false
+	end
+end)
+
 
 local function createhandle(name, title)
 	if not name or not title then return end
@@ -82,34 +138,45 @@ local function createhandle(name, title)
 		 end
 	end)
 end
-createhandle("Nrf_SpellAlert", "Nurfed_SpellAlert")
+local function creategrid(name, parent)
+	if not name or not _G[parent] then return end
+	local f = CreateFrame("Frame", name, UIParent)
+	f:SetWidth(_G[parent]:GetWidth())
+	f:SetHeight(_G[parent]:GetHeight())
+	f:SetBackdrop({
+		bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+		tile = true,
+		tileSize = 16,
+		insets = { left = 0, right = 0, top = 0, bottom = 0 }
+		})
+	f:SetBackdropColor(0,0,0)
+	f:SetAllPoints(_G[parent])
+	f:Hide()
+end
 
+createhandle("Nurfed_SpellAlertAnchor", "Nurfed_SpellAlert")
 CreateFrame("MessageFrame", "Nurfed_SpellAlert", UIParent)
-Nurfed_SpellAlert:SetWidth(UIParent:GetWidth())
-Nurfed_SpellAlert:SetHeight(20)
-Nurfed_SpellAlert:SetInsertMode("TOP")
 Nurfed_SpellAlert:SetFrameStrata("HIGH")
-Nurfed_SpellAlert:SetTimeVisible(1)
-Nurfed_SpellAlert:SetFadeDuration(0.5)
-Nurfed_SpellAlert:SetPoint("CENTER", "Nrf_SpellAlert", 0, -13)
-Nurfed_SpellAlert:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE")
+Nurfed_SpellAlert:SetPoint("TOP", "Nurfed_SpellAlertAnchor", "BOTTOM", 0, -13)
+creategrid("Nurfed_SpellAlertGrid", "Nurfed_SpellAlert")
 
-createhandle("Nrf_BuffAlert", "Nurfed_BuffAlert")
+createhandle("Nurfed_BuffAlertAnchor", "Nurfed_BuffAlert")
 CreateFrame("MessageFrame", "Nurfed_BuffAlert", UIParent)
-Nurfed_BuffAlert:SetWidth(UIParent:GetWidth())
-Nurfed_BuffAlert:SetHeight(20)
-Nurfed_BuffAlert:SetInsertMode("TOP")
 Nurfed_BuffAlert:SetFrameStrata("HIGH")
-Nurfed_BuffAlert:SetTimeVisible(1)
-Nurfed_BuffAlert:SetFadeDuration(0.5)
-Nurfed_BuffAlert:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE")
-Nurfed_BuffAlert:SetPoint("CENTER", "Nrf_BuffAlert", 0, -13)
+Nurfed_BuffAlert:SetPoint("TOP", "Nurfed_BuffAlertAnchor", "BOTTOM", 0, -13)
+creategrid("Nurfed_BuffAlertGrid", "Nurfed_BuffAlert")
+
 Nurfed:regevent("NURFED_LOCK", function()
 	if NRF_LOCKED then
-		Nrf_BuffAlert:Hide()
-		Nrf_SpellAlert:Hide()
+		Nurfed_BuffAlertAnchor:Hide()
+		Nurfed_BuffAlertGrid:Hide()
+		Nurfed_SpellAlertAnchor:Hide()
+		Nurfed_SpellAlertGrid:Hide()
 	else
-		Nrf_BuffAlert:Show()
-		Nrf_SpellAlert:Show()
+		Nurfed_BuffAlertAnchor:Show()
+		Nurfed_BuffAlertGrid:Show()
+		Nurfed_SpellAlertAnchor:Show()
+		Nurfed_SpellAlertGrid:Show()
 	end
 end)
+Nurfed:sendevent("NURFED_COMBATLOG_SETTINGS_CHANGED")
