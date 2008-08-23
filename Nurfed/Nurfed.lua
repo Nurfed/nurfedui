@@ -207,7 +207,7 @@ local function onevent(self, event, arg1, arg2, arg3, arg4, arg5)
 			for slot=1, GetContainerNumSlots(bag), 1 do
 				if GetContainerItemLink(bag, slot) then
 					local name, link, rarity = GetItemInfo(GetContainerItemLink(bag, slot))
-						if name and not dnsLst[link:find("Hitem:(%d+)")] and (rarity == 0 or true and rarity == 2) then
+					if name and not dnsLst[link:find("Hitem:(%d+)")] and rarity == 0 then
 						if not soldLst[name] then
 							if GetItemCount(link) ~= 1 then
 								soldNum = soldNum + GetItemCount(link)
