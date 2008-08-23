@@ -1,16 +1,6 @@
 ------------------------------------------
 --		Nurfed Units Library
 ------------------------------------------
-local debugCharList = {
-	["Apoco"] = true,
-	["Banvoli"] = true,
-}
-if not debugCharList[UnitName("player")] then
-	Nurfed:print("Automatically Disabling Nurfed Unit Frames until they are fixed")
-	debugCharList = nil
-	return
-end
-debugCharList = nil
 --locals
 local units, tots
 local partyframes = {}
@@ -47,7 +37,6 @@ local combatlog = {
 	party3 = {},
 	party4 = {},
 }
-
 -- Default Options
 NURFED_FRAMES = NURFED_FRAMES or {
 	templates = {
@@ -284,6 +273,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 		Nurfed_Party = {
 			type = "Button",
 			uitemp = "SecureUnitButtonTemplate",
+			--uitemp = "SecurePartyHeaderTemplate",
 			size = { 180, 41 },
 			FrameStrata = "LOW",
 			ClampedToScreen = true,
@@ -768,6 +758,16 @@ NURFED_FRAMES = NURFED_FRAMES or {
 				buff7 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff6", "RIGHT", 0, 0 } },
 				buff8 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff7", "RIGHT", 0, 0 } },
 				buff9 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff8", "RIGHT", 0, 0 } },
+				--[[buff1 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "TOPLEFT", "$parent", "BOTTOMLEFT", 4, 2 } },
+				buff2 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff1", "RIGHT", 0, 0 } },
+				buff3 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff2", "RIGHT", 0, 0 } },
+				buff4 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff3", "RIGHT", 0, 0 } },
+				buff5 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff4", "RIGHT", 0, 0 } },
+				buff6 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff5", "RIGHT", 0, 0 } },
+				buff7 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff6", "RIGHT", 0, 0 } },
+				buff8 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff7", "RIGHT", 0, 0 } },
+				buff9 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff8", "RIGHT", 0, 0 } },
+				]]
 				debuff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parentbuff1", "BOTTOMLEFT", 0, -1 } },
 				debuff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff1", "RIGHT", 0, 0 } },
 				debuff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff2", "RIGHT", 0, 0 } },
@@ -1615,7 +1615,7 @@ end
 
 local function updatecombo(frame)
 	if frame.combo then
-		local comboPoints = GetComboPoints()
+		local comboPoints = GetComboPoints("player", "target")
 		for _, child in ipairs(frame.combo) do
 			if comboPoints > 0 then
 				local objtype = child:GetObjectType()
@@ -1771,16 +1771,27 @@ end
 
 local function updateauras(frame)
 	local unit = SecureButton_GetUnit(frame)
-	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale
-
+	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd
+	local isFriend, filterList, check
 	if frame.buff then
+		filterList = Nurfed:getopt("bufffilterlist")
+		for name in pairs(filterList) do check = true; break; end
+		filterList = check and filterList or nil
+		
 		total = 0
 		for i = 1, #frame.buff do
 			button = _G[frame:GetName().."buff"..i]
-			name, rank, texture, app, type, duration, left = UnitBuff(unit, i, frame.bfilter)
-			if name then
+			--name, _, texture, app, duration, left = UnitBuff(unit, i, frame.bfilter)
+			name, rank, texture, app, dtype, duration, left = UnitBuff(unit, i, frame.bfilter)
+			--if name then
+			if name and not filterList or filterList and filterList[name] then
+				total = total + 1
+				-- reset to button position if we are using a filtering list.
+				button = filterList and _G[frame:GetName().."buff"..total] or button
+				
 				_G[button:GetName().."Icon"]:SetTexture(texture)
 				count = _G[button:GetName().."Count"]
+				
 				if app > 1 then
 					count:SetText(app)
 					count:Show()
@@ -1789,12 +1800,12 @@ local function updateauras(frame)
 				end
 				button.filter = frame.bfilter
 				button:Show()
-				total = total + 1
 				button:SetScript("OnUpdate", cooldowntext)
+				cd = _G[button:GetName().."Cooldown"]
 				if duration and duration > 0 then
-					CooldownFrame_SetTimer(_G[button:GetName().."Cooldown"], GetTime()-(duration-left), duration, 1)
+					CooldownFrame_SetTimer(cd, left - duration, duration, 1)
 				else
-					_G[button:GetName().."Cooldown"]:Hide()
+					cd:Hide()
 				end
 			else
 				button:Hide()
@@ -1810,48 +1821,49 @@ local function updateauras(frame)
 			end
 		end
 	end
-
+	
 	if frame.debuff then
+		check = nil
+		filterList = Nurfed:getopt("debufffilterlist")
+		for name in pairs(filterList) do check = true; break; end
+		filterList = check and filterList or nil
+		
 		frame.cure = nil
 		total = 0
+		isFriend = UnitIsFriend("player", unit)
 		for i = 1, #frame.debuff do
 			button = _G[frame:GetName().."debuff"..i]
-			--[[local filter = frame.dfilter
-			if (unit == "target" or unit == "focus") and not UnitIsFriend("player", unit) then
-				filter = nil
-			end
-			name, rank, texture, app, dtype, duration, left = UnitDebuff(unit, i, filter)]]
-			name, rank, texture, app, dtype, duration, left = UnitDebuff(unit, i, ((unit == "target" or unit == "focus") and not UnitIsFriend("player", unit)) and nil or frame.dfilter)
-			if name then
+			local filter = frame.dfilter
+			if (unit == "target" or unit == "focus") and not isFriend then filter = nil end
+
+			name, rank, texture, app, dtype, duration, left = UnitDebuff(unit, i, filter)
+			if (name and (isFriend or not filterList)) or name and filterList and filterList[name] then
+				total = total + 1
+				-- reset to button position if we are using a filtering list.
+				button = filterList and _G[frame:GetName().."debuff"..total] or button
+
 				_G[button:GetName().."Icon"]:SetTexture(texture)
 				count = _G[button:GetName().."Count"]
-				border = _G[button:GetName().."Border"]
+
 				if app > 1 then
 					count:SetText(app)
 					count:Show()
 				else
 					count:Hide()
 				end
-				--[[
-				if dtype then
-					color = DebuffTypeColor[dtype]
-				else
-					color = DebuffTypeColor["none"]
-				end]]
+
 				color = DebuffTypeColor[dtype or "none"]
-				border:SetVertexColor(color.r, color.g, color.b)
+				_G[button:GetName().."Border"]:SetVertexColor(color.r, color.g, color.b)
 				button.filter = frame.dfilter
 				button:Show()
-				cd = _G[button:GetName().."Cooldown"]
-				
-				if duration and duration > 0 then
-					CooldownFrame_SetTimer(_G[button:GetName().."Cooldown"], GetTime()-(duration-left), duration, 1)
-				else
-					_G[button:GetName().."Cooldown"]:Hide()
-				end
 
-				--local class = select(2, UnitClass("player"))
-				if UnitIsFriend("player", unit) and dtype and cure[dtype] and cure[dtype][playerClass] then
+				cd = _G[button:GetName().."Cooldown"]
+				if duration and duration > 0 then
+					CooldownFrame_SetTimer(cd, left - duration, duration, 1)
+				else
+					cd:Hide()
+				end
+				if isFriend and dtype and cure[dtype] and cure[dtype][playerClass] then
 					if not button:GetScript("OnUpdate") then
 						button.flashtime = GetTime()
 						button.update = 0
@@ -2063,20 +2075,19 @@ local events = {
 	["UNIT_PET"] = function(self) updateframe(self) end,
 	["UNIT_HEALTH"] = function(self) updateinfo(self, "Health") end,
 	["UNIT_MAXHEALTH"] = function(self) updateinfo(self, "Health") end,
-	--["UNIT_MANA"] = function(self) updateinfo(self, "Mana") end,
-	--["UNIT_ENERGY"] = function(self) updateinfo(self, "Mana") end,
-	--["UNIT_RAGE"] = function(self) updateinfo(self, "Mana") end,
-	--["UNIT_FOCUS"] = function(self) updateinfo(self, "Mana") end,
-	--["UNIT_MAXMANA"] = function(self) updateinfo(self, "Mana") end,
-	--["UNIT_MAXENERGY"] = function(self) updateinfo(self, "Mana") end,
-	--["UNIT_MAXRAGE"] = function(self) updateinfo(self, "Mana") end,
-	--["UNIT_MAXFOCUS"] = function(self) updateinfo(self, "Mana") end,
-	--["UNIT_COMBAT"] = function(self, ...) updatedamage(self, ...) end,
+	["UNIT_MANA"] = function(self) updateinfo(self, "Mana") end,
+	["UNIT_ENERGY"] = function(self) updateinfo(self, "Mana") end,
+	["UNIT_RAGE"] = function(self) updateinfo(self, "Mana") end,
+	["UNIT_FOCUS"] = function(self) updateinfo(self, "Mana") end,
+	["UNIT_MAXMANA"] = function(self) updateinfo(self, "Mana") end,
+	["UNIT_MAXENERGY"] = function(self) updateinfo(self, "Mana") end,
+	["UNIT_MAXRAGE"] = function(self) updateinfo(self, "Mana") end,
+	["UNIT_MAXFOCUS"] = function(self) updateinfo(self, "Mana") end,
+	["UNIT_COMBAT"] = function(self, ...) updatedamage(self, ...) end,
 	["UNIT_AURA"] = function(self) updateauras(self) end,
 	["UNIT_DISPLAYPOWER"] = function(self) manacolor(self) end,
 	["UNIT_PORTRAIT_UPDATE"] = function(self)
-		local unit = SecureButton_GetUnit(self)
-		SetPortraitTexture(self.portrait, unit)
+		SetPortraitTexture(self.portrait, SecureButton_GetUnit(self))
 	end,
 	["UNIT_FACTION"] = function(self) updatepvp(self) end,
 	["UNIT_LEVEL"] = function(self)
@@ -2096,7 +2107,7 @@ local function onevent(event, ...)
 	for _, frame in ipairs(units[event]) do
 		local unit = SecureButton_GetUnit(frame)
 		if UnitExists(unit) then
-			this = frame
+			--this = frame
 			if event == "UNIT_PET" then
 				if (arg1 == "player" and unit == "pet") or (arg1 == unit:gsub("pet", "")) then
 					events[event](frame, ...)
@@ -2122,7 +2133,7 @@ local function totupdate()
 				frame.lastname = UnitName(unit)
 				notext = nil
 			end
-			this = frame
+			--this = frame
 			updateframe(frame, notext)
 		else
 			frame.lastname = nil
@@ -2132,7 +2143,8 @@ end
 
 function Nurfed:unitimbue(frame)
 	local dropdown, menufunc
-	local id, found = string.gsub(frame.unit, "party([1-4])", "%1")
+	--local id, found = string.gsub(frame.unit, "party([1-4])", "%1")
+	local id, found = frame.unit:gsub("party([1-4])", "%1")
 	if found == 1 and string.len(frame.unit) > 6 then
 		id = nil
 		found = nil
@@ -2175,7 +2187,7 @@ function Nurfed:unitimbue(frame)
 		table.insert(events, "UNIT_DYNAMIC_FLAGS")
 		table.insert(events, "UNIT_CLASSIFICATION_CHANGED")
 		frame:SetScript("OnHide", TargetFrame_OnHide)
-		frame:SetScript("OnShow", TargetFrame_OnShow)
+		--frame:SetScript("OnShow", TargetFrame_OnShow)
 		
 	elseif frame.unit == "focus" then
 		table.insert(events, "PLAYER_FOCUS_CHANGED")
@@ -2188,25 +2200,22 @@ function Nurfed:unitimbue(frame)
 	elseif frame.unit == "player" then
 		table.insert(events, "UNIT_COMBAT")
 	end
---[[
+
 	if found == 1 then
 		dropdown = _G["PartyMemberFrame"..id.."DropDown"]
 		
-	--elseif string.find(frame.unit, "^raid") then
 	elseif frame.unit:find("^raid") then
 		frame.isRaid = true
-		--FriendsDropDown.initialize = UnitPopup_ShowMenu(_G[UIDROPDOWNMENU_OPEN_MENU], "RAID", this.unit, UnitName(this.unit), this:GetID())
 		FriendsDropDown.initialize = UnitPopup_ShowMenu(_G[UIDROPDOWNMENU_OPEN_MENU], "RAID", frame.unit, UnitName(frame.unit), frame:GetID())
 		FriendsDropDown.displayMode = "MENU"
 		dropdown = FriendsDropDown
 	else
-		dropdown = _G[string.gsub(frame.unit, "^%l", string.upper).."FrameDropDown"]
+		dropdown = _G[frame.unit:gsub("^%l", string.upper).."FrameDropDown"]
 	end
 	
 	if dropdown then
-		--menufunc = function() ToggleDropDownMenu(1, nil, dropdown, "cursor") end
+		menufunc = function() ToggleDropDownMenu(1, nil, dropdown, "cursor") end
 	end
-	]]
 	SecureUnitButton_OnLoad(frame, frame.unit, menufunc)
 	if found == 1 then
 		table.insert(partyframes, frame)
@@ -2236,6 +2245,7 @@ function Nurfed:unitimbue(frame)
 				table.insert(events, "UNIT_FOCUS")
 				table.insert(events, "UNIT_MAXFOCUS")
 				table.insert(events, "UNIT_DISPLAYPOWER")
+				
 			elseif pre == "XP" then
 				if frame.unit == "player" then
 					table.insert(events, "PLAYER_XP_UPDATE")
@@ -2249,21 +2259,27 @@ function Nurfed:unitimbue(frame)
 				table.insert(events, "PLAYER_COMBO_POINTS")
 			elseif pre == "feedback" then
 				table.insert(events, "UNIT_COMBAT")
-			--elseif pre == "buff" or pre == "debuff" and not string.find(frame.unit, "target", 2, true) then
-			elseif pre == "buff" or pre == "debuff" and not frame.unit:find("target", 2, true) then
+				
+			--elseif (pre == "buff" or pre == "debuff") and not frame.unit:find("target", 2, true) then
+			elseif pre == "buff" or pre == "debuff" and not string.find(frame.unit, "target", 2, true) then
 				table.insert(events, "UNIT_AURA")
 			end
 		end
 		table.insert(frame[pre], child)
+		table.sort(frame[pre], function(a,b) 
+			local ma, mb = a:GetName():match("%d"), b:GetName():match("%d")
+			if ma and mb then
+				return ma < mb
+			end
+		end)
+		debug(frame[pre])
 	end
 
 	local update = function(child)
 		local objtype = child:GetObjectType()
-		--local childname = string.gsub(child:GetName(), name, "")
 		local childname = child:GetName():gsub(name, "")
-		--if not string.find(childname, "^target") and not string.find(childname, "^pet") then
 		if not childname:find("^target") and not childname:find("^pet") then
-			--local pre = string.sub(childname, 1, 2)
+			
 			local pre = childname:sub(1, 2)
 			if pre == "hp" or pre == "mp" or pre == "xp" then
 				if pre == "hp" then
@@ -2279,7 +2295,6 @@ function Nurfed:unitimbue(frame)
 						child.endvalue = 1
 						child.fade = 1
 						child.startvalue = 0
-						-- testing reasons for lag, disabling gliding
 						child:SetScript("OnUpdate", glide)
 						
 					elseif child.ani == "fade" then
@@ -2287,21 +2302,19 @@ function Nurfed:unitimbue(frame)
 					end
 				end
 				
-			--elseif string.find(childname, "^combo") then
 			elseif childname:find("^combo") then
 				regstatus("combo", child)
 				
-			--elseif string.find(childname, "^pvp") then
 			elseif childname:find("^pvp") then
 				table.insert(events, "UNIT_FACTION")
 				frame.pvp = child
 				
-			--elseif string.find(childname, "^status") then
 			elseif childname:find("^status") then
 				table.insert(events, "PLAYER_REGEN_DISABLED")
 				table.insert(events, "PLAYER_REGEN_ENABLED")
 				table.insert(events, "PLAYER_UPDATE_RESTING")
 				frame.status = child
+				
 			elseif objtype == "FontString" then
 				if child.format then
 					string.gsub(child.format, "%$%a+",
@@ -2336,6 +2349,7 @@ function Nurfed:unitimbue(frame)
 					table.insert(events, "PARTY_MEMBERS_CHANGED")
 					frame.group = child
 				end
+				
 			elseif objtype == "Texture" then
 				local texture = child:GetTexture()
 				if texture then
@@ -2361,15 +2375,14 @@ function Nurfed:unitimbue(frame)
 					elseif texture == "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Races" then
 						frame.race = child
 					end
-				--elseif string.find(childname, "^portrait") or child.isportrait then
 				elseif childname:find("^portrait") or child.isportrait then
 					table.insert(events, "UNIT_PORTRAIT_UPDATE")
 					frame.portrait = child
 					
-				--elseif string.find(childname, "^rank") then
 				elseif childname:find("^rank") then
 					frame.rank = child
 				end
+				
 			elseif objtype == "PlayerModel" then
 				child:RegisterEvent("PLAYER_ENTERING_WORLD")
 				child:RegisterEvent("DISPLAY_SIZE_CHANGED")
@@ -2389,11 +2402,12 @@ function Nurfed:unitimbue(frame)
 					child:SetScript("OnUpdate", function(self) self:SetCamera(0) end)
 				end
 				
+				
 			elseif objtype == "MessageFrame" then
 				regstatus("feedback", child)
 				
 			elseif objtype == "Button" then
-				--if string.find(childname, "^buff") or string.find(childname, "^debuff") then
+				
 				if childname:find("^buff") or childname:find("^debuff") then
 					local cd = _G[child:GetName().."Cooldown"]
 					if not cd then
@@ -2402,25 +2416,32 @@ function Nurfed:unitimbue(frame)
 					end
 					cd.text = cd:CreateFontString(nil, "OVERLAY")
 					cd.text:SetPoint("CENTER")
+					
 					local width = floor(child:GetWidth() * .65)
 					cd.text:SetFont("Fonts\\FRIZQT__.TTF", width, "OUTLINE")
+					
 					local border = _G[child:GetName().."Border"]
 					local count = _G[child:GetName().."Count"]
 					local icon = _G[child:GetName().."Icon"]
-					--if string.find(childname, "^debuff") then
+					-- THE PROBLEM IS HERE!! ! ! ! ! ! OMFG
+					-- remove these lines and it goes away?  woot?  maybe
 					if childname:find("^debuff") then
-						local id, found = gsub(childname, "debuff([0-9]+)", "%1")
+						local id, found = childname:gsub("debuff([0-9]+)", "%1")
 						border:ClearAllPoints()
 						border:SetAllPoints(child)
 						child:SetID(id)
+						--child.id = id
 						child.isdebuff = true
 						regstatus("debuff", child)
-					else
-						local id, found = gsub(childname, "buff([0-9]+)", "%1")
+					elseif childname:find("^buff") then
+						local id, found = childname:gsub("buff([0-9]+)", "%1")
 						child:SetID(id)
+						--child.id = id
 						border:Hide()
+						-- THE PROBLEM IS BEING CAUSED BY THE BUFF ICONS...IT IS NOT BECAUSE OF THE DEBUFF TEMPLATE!
 						regstatus("buff", child)
 					end
+					--// PROBLEM ENDS!
 					count:SetFontObject(Nurfed_UnitFontOutline)
 					count:ClearAllPoints()
 					count:SetPoint("BOTTOMRIGHT", child, "BOTTOMRIGHT", 0, 0)
@@ -2438,7 +2459,6 @@ function Nurfed:unitimbue(frame)
 				end
 				
 			elseif objtype == "StatusBar" then
-				--if string.find(childname, "^casting") then
 				if childname:find("^casting") then
 					if child:GetParent() ~= frame then
 						child.parent = child:GetParent()
@@ -2456,24 +2476,21 @@ function Nurfed:unitimbue(frame)
 					child:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
 					child:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
 					child:RegisterEvent("PLAYER_ENTERING_WORLD")
-					if frame.unit == "target" then
-						child:RegisterEvent("PLAYER_TARGET_CHANGED")
-					elseif frame.unit == "focus" then
-						child:RegisterEvent("PLAYER_FOCUS_CHANGED")
-					elseif found == 1 then
-						child:RegisterEvent("PARTY_MEMBERS_CHANGED")
+					
+					if frame.unit == "target" then child:RegisterEvent("PLAYER_TARGET_CHANGED")
+					elseif frame.unit == "focus" then child:RegisterEvent("PLAYER_FOCUS_CHANGED")
+					elseif found == 1 then child:RegisterEvent("PARTY_MEMBERS_CHANGED")
 					end
 					child:SetScript("OnEvent", castevent)
 					child:SetScript("OnUpdate", castupdate)
 				end
 			end
+			
 		elseif objtype == "Button" then
-			--if string.find(childname, "^target") then
 			if childname:find("^target") then
 				child.unit = frame.unit..childname
 				self:unitimbue(child)
 				
-			--elseif string.find(childname, "^pet") then
 			elseif childname:find("^pet") then
 				child.punit = frame.unit
 				child.unit = gsub(frame.unit.."pet", "^([^%d]+)([%d]+)[pP][eE][tT]$", "%1pet%2")

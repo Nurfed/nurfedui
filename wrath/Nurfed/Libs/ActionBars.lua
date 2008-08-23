@@ -229,7 +229,7 @@ local function seticon(btn)
 	local value = btn:GetParent():GetAttribute("state")
 	if value then
 		value = convert(btn, value)
-		local texture, spell
+		local texture, spell, attrib
 		local text = _G[btn:GetName().."Name"]
 		local new = SecureButton_GetModifiedAttribute(btn, "type", value)
 		btn.type = new
@@ -241,7 +241,7 @@ local function seticon(btn)
 				if new == "spell" then
 					texture = GetSpellTexture(spell)
 					if not texture then
-						local attrib = btn:GetAttribute("*companionID")
+						attrib = btn:GetAttribute("*companionID")
 						if attrib then
 							local attribType = btn:GetAttribute("*companionType")
 							local attribSlot = btn:GetAttribute("*companionSlot")
@@ -277,6 +277,9 @@ local function seticon(btn)
 				end
 			end
 			btn.spell = spell
+			if not attrib then-- clear the spell id for non-companions
+				btn.spellid = nil
+			end
 		end
 
 		local icon = _G[btn:GetName().."Icon"]
@@ -366,6 +369,10 @@ local function btndragstart(self)
 						nrfCompanionType = self:GetAttribute("*companionType")
 						nrfCompanionSlot = self:GetAttribute("*companionSlot")
 						PickupCompanion(nrfCompanionType, nrfCompanionSlot)
+						self:SetAttribute("*companionID", nil)
+						self:SetAttribute("*companionType", nil)
+						self:SetAttribute("*companionSlot", nil)
+						self.spellid = nil
 					else
 						PickupSpell(Nurfed:getspell(spell), BOOKTYPE_SPELL)
 					end
@@ -373,6 +380,7 @@ local function btndragstart(self)
 					PickupItem(spell)
 				elseif new == "macro" then
 					PickupMacro(spell)
+					self:SetAttribute("*macroID", nil)
 				end
 			end
 
@@ -406,6 +414,7 @@ local function btnreceivedrag(self)
 	if GetCursorInfo() and not InCombatLockdown() then
 		local oldtype = self.type
 		local oldspell = self.spell
+		local oldCompanionID, oldCompanionType, oldCompanionSlot = self:GetAttribute("*companionID"), self:GetAttribute("*companionType"), self:GetAttribute("*companionSlot")
 		local cursor, arg1, arg2 = GetCursorInfo()
 		local value = self:GetParent():GetAttribute("state")
 		if value == "0" then
@@ -417,7 +426,6 @@ local function btnreceivedrag(self)
 		else
 			value = "*"
 		end
-
 		local useunit = self:GetParent():GetAttribute("useunit")
 		if useunit and unit and unit ~= "none" and UnitExists(unit) then
 			if UnitCanAttack("player", unit) then
@@ -483,14 +491,21 @@ local function btnreceivedrag(self)
 					break
 				end
 			end
-		end
+		end 
 		ClearCursor()
 
 		if oldtype and oldspell then
 			if oldtype == "spell" then
-				local id = Nurfed:getspell(oldspell)
-				if id then
-					PickupSpell(id, BOOKTYPE_SPELL)
+				if oldCompanionID and oldCompanionType and oldCompanionSlot then
+					PickupCompanion(oldCompanionType, oldCompanionSlot)
+					nrfCompanionType = oldCompanionType
+					nrfCompanionSlot = oldCompanionSlot
+					nrfCompanionID = oldCompanionID
+				else
+					local id = Nurfed:getspell(oldspell)
+					if id then
+						PickupSpell(id, BOOKTYPE_SPELL)
+					end
 				end
 			elseif oldtype == "item" then
 				-- do nothing?
