@@ -808,6 +808,9 @@ local cure = {
 		["SHAMAN"] = true,
 		["PALADIN"] = true,
 	},
+	["Enrage"] = {
+		["HUNTER"] = true,
+	},
 }
 
 local damage = {
@@ -1725,9 +1728,9 @@ local function updatepvp(frame)
 	end
 end
 
-local function cooldowntext(frame)
+local function cooldowntext(self)
 	if not Nurfed:getopt("cdaura") then return end
-	local cd = _G[frame:GetName().."Cooldown"]
+	local cd = _G[self:GetName().."Cooldown"]
 	if cd.text and cd.cool then
 		local cdscale = cd:GetScale()
 		local r, g, b = 1, 0, 0
@@ -1747,9 +1750,8 @@ local function cooldowntext(frame)
 	end
 end
 
-local function aurafade(self, ...)
-	local e = select(2, ...)
-	self.update = self.update + e
+local function aurafade(self, time)
+	self.update = self.update + time
 	if self.update > 0.04 then
 		local now = GetTime()
 		local frame, texture, p
@@ -1766,13 +1768,25 @@ local function aurafade(self, ...)
 		self:SetAlpha(p)
 		self.update = 0
 	end
-	cooldowntext(...)
+	cooldowntext(self)
 end
 
+local removeLst = {
+	["Frenzy"] = {
+		["HUNTER"] = true,
+	},
+	["Enrage"] = {
+		["HUNTER"] = true,
+	},
+	[""] = {	-- Frenzy, Enrage show up as "" instead of nil for some reason, probably bugged
+		["HUNTER"] = true,
+	},
+}
 local function updateauras(frame)
 	local unit = SecureButton_GetUnit(frame)
 	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd
 	local isFriend, filterList, check
+	isFriend = UnitIsFriend("player", unit)
 	if frame.buff then
 		filterList = Nurfed:getopt("bufffilterlist")
 		for name in pairs(filterList) do check = true; break; end
@@ -1800,14 +1814,28 @@ local function updateauras(frame)
 				end
 				button.filter = frame.bfilter
 				button:Show()
-				button:SetScript("OnUpdate", cooldowntext)
+				--button:SetScript("OnUpdate", cooldowntext)
 				cd = _G[button:GetName().."Cooldown"]
 				if duration and duration > 0 then
 					CooldownFrame_SetTimer(cd, left - duration, duration, 1)
 				else
 					cd:Hide()
 				end
+				if not isFriend and dtype and removeLst[dtype] and removeLst[dtype][playerClass] then
+					if not button:GetScript("OnUpdate") then
+						button.flashtime = GetTime()
+						button.update = 0
+						button.flashdct = 1
+						button:SetScript("OnUpdate", aurafade)
+						--frame.cure = cure[dtype][playerClass] -- this will always return true?  durr
+						frame.cure = true
+					end
+				else
+					button:SetScript("OnUpdate", cooldowntext)
+					button:SetAlpha(1)
+				end
 			else
+				button:SetScript("OnUpdate", nil)
 				button:Hide()
 			end
 		end
@@ -1830,7 +1858,6 @@ local function updateauras(frame)
 		
 		frame.cure = nil
 		total = 0
-		isFriend = UnitIsFriend("player", unit)
 		for i = 1, #frame.debuff do
 			button = _G[frame:GetName().."debuff"..i]
 			local filter = frame.dfilter
@@ -1869,13 +1896,15 @@ local function updateauras(frame)
 						button.update = 0
 						button.flashdct = 1
 						button:SetScript("OnUpdate", aurafade)
+						--frame.cure = cure[dtype][playerClass] -- this will always return true?  durr
+						frame.cure = true
 					end
-					frame.cure = cure[dtype][playerClass]
 				else
 					button:SetScript("OnUpdate", cooldowntext)
 					button:SetAlpha(1)
 				end
 			else
+				button:SetScript("OnUpdate", nil)
 				button:Hide()
 			end
 		end
@@ -2272,7 +2301,6 @@ function Nurfed:unitimbue(frame)
 				return ma < mb
 			end
 		end)
-		debug(frame[pre])
 	end
 
 	local update = function(child)
@@ -2423,25 +2451,19 @@ function Nurfed:unitimbue(frame)
 					local border = _G[child:GetName().."Border"]
 					local count = _G[child:GetName().."Count"]
 					local icon = _G[child:GetName().."Icon"]
-					-- THE PROBLEM IS HERE!! ! ! ! ! ! OMFG
-					-- remove these lines and it goes away?  woot?  maybe
 					if childname:find("^debuff") then
 						local id, found = childname:gsub("debuff([0-9]+)", "%1")
 						border:ClearAllPoints()
 						border:SetAllPoints(child)
 						child:SetID(id)
-						--child.id = id
 						child.isdebuff = true
 						regstatus("debuff", child)
 					elseif childname:find("^buff") then
 						local id, found = childname:gsub("buff([0-9]+)", "%1")
 						child:SetID(id)
-						--child.id = id
 						border:Hide()
-						-- THE PROBLEM IS BEING CAUSED BY THE BUFF ICONS...IT IS NOT BECAUSE OF THE DEBUFF TEMPLATE!
 						regstatus("buff", child)
 					end
-					--// PROBLEM ENDS!
 					count:SetFontObject(Nurfed_UnitFontOutline)
 					count:ClearAllPoints()
 					count:SetPoint("BOTTOMRIGHT", child, "BOTTOMRIGHT", 0, 0)
