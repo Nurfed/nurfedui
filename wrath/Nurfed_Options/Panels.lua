@@ -364,13 +364,20 @@ local onkeydown = function(self, arg1)
 end
 
 local setmana = function()
-	for i = 0, 4 do
+	--[[for i = 0, 4 do
 		local color = Nurfed:getopt(ManaBarColor[i].prefix)
 		ManaBarColor[i].r = color[1]
 		ManaBarColor[i].g = color[2]
 		ManaBarColor[i].b = color[3]
+	end]]
+	for i = 0, 6 do
+		local color = Nurfed:getopt(i == 0 and "mana" or i == 1 and "rage" or i == 2 and "focus" or i == 3 and "energy" or i == 4 and "happiness" or i == 5 and "runes" or i == 6 and "runic_power")
+		if color then
+			PowerBarColor[i].r = color[1]
+			PowerBarColor[i].g = color[2]
+			PowerBarColor[i].b = color[3]
+		end
 	end
-
 	Nurfed_UnitColors()
 end
 

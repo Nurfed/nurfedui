@@ -511,7 +511,7 @@ local templates = {
 			},
 		},
 		OnShow = function(self) onshow(self) end,
-		OnClick = function() Nurfed_Options_swatchOpenColorPicker() end,
+		OnClick = function(self) Nurfed_Options_swatchOpenColorPicker(self) end,
 	},
 	nrf_scroll = {
 		type = "ScrollFrame",
