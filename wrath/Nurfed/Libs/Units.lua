@@ -845,6 +845,7 @@ local replace = {
 		if UnitIsPlayer(self.unit) then
 			local eclass = select(2, UnitClass(self.unit))
 			if eclass then
+				eclass = eclass == "Death Knight" and "DeathKnight" or eclass
 				color = RAID_CLASS_COLORS[eclass].hex
 			end
 			
@@ -1563,14 +1564,18 @@ local function subtext(frame, text)
 	string.gsub(text, "%$%a+",
 		function (s)
 			if replace[s] then
-				text = string.gsub(text, s, replace[s](frame:GetParent(), s))
+				--text = string.gsub(text, s, replace[s](frame:GetParent(), s))
+				--text = string.gsub(text, s, replace[s])
+				text = text:gsub(s, replace[s](frame:GetParent()))
 			end
 		end
 	)
 	if pre == 1 then
-		local post = string.find(text, "[%a^%|cff]")
+		--local post = string.find(text, "[%a^%|cff]")
+		local post = text:find("[%a^%|cff]")
 		if post and post > pre then
-			text = string.gsub(text, "[^%a]", "", 1)
+			--text = string.gsub(text, "[^%a]", "", 1)
+			text = text:gsub("[^%a]", "", 1)
 		end
 	end
 	return text

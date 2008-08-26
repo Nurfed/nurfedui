@@ -8,6 +8,7 @@ hooksecurefunc("QuestLog_UpdateQuestDetails", function()
 	text = text:gsub("south", "|cff3333ff%1|r")
 	text = text:gsub("east", "|cff3333ff%1|r")
 	text = text:gsub("west", "|cff3333ff%1|r")
+	text = text:gsub("beast", "|cff000000%1|r")
 	QuestLogQuestDescription:SetText(text)
 end)
 
@@ -58,9 +59,12 @@ end
 
 ----------------------------------------------------------------
 -- Utility functions
-function util:print(msg, out, r, g, b)
-	out = _G["ChatFrame"..(out or 1)]
-	out:AddMessage(tostring(msg), (r or 1), (g or 1), (b or 1))
+function util:print(msg, out, r, g, b, ...)
+	if type(out) == "string" then
+		msg = msg:format(out, r, g, b, ...)
+	end
+	out	= _G["ChatFrame"..(type(out) == "number" and out or 1)]
+	out:AddMessage(msg, (type(r) == "number" and r or 1), (type(g) == "number" and g or 1), (type(b) == "number" and b or 1))
 end
 
 function util:rgbhex(r, g, b)
@@ -100,6 +104,78 @@ function util:mergetable(target, source)
 	return target
 end
 
+local classLst = {}
+function util:GetClassByName(name)
+	if not name then return end
+	if classLst[name] then
+		return classLst[name]
+	else
+		local numfriends = GetNumFriends()
+		if numfriends > 0 then
+			local fname, level, class, area, connected, status, note
+			for i=1, numfriends, 1 do
+				fname, level, class, area, connected, status, note = GetFriendInfo(i)
+				if connected and name == fname then
+					class = class == "Death Knight" and "DeathKnight" or class
+					classLst[name] = string.upper(class)
+					return classLst[name]
+				end
+			end
+		end
+		
+		local numGuildMembers = GetNumGuildMembers()
+		if numGuildMembers > 0 then
+			local fname, rank, rankIndex, level, class, zone, note, officernote, online, status
+			for i=1, numGuildMembers, 1 do
+				fname, rank, rankIndex, level, class, zone, note, officernote, online = GetGuildRosterInfo(i)
+				if fname and class and fname == name then
+					class = class == "Death Knight" and "DeathKnight" or class
+					classLst[name] = string.upper(class)
+					return classLst[name]
+				end
+			end
+		end
+		if GetNumPartyMembers() > 0 then
+			for i=1,5 do
+				local fname, class = UnitName("party"..i), UnitClass("party"..i)
+				if fname and class and fname == name then
+					class = class == "Death Knight" and "DeathKnight" or class
+					classLst[name] = string.upper(class)
+					return classLst[name]
+				end
+			end
+		end
+		if UnitInRaid("player") then
+			local numraid = GetNumRaidMembers()
+			local i=1
+			while i <= numraid do
+				local fname, class = UnitName("raid"..i), UnitClass("raid"..i)
+				if fname and class and fname == name then
+					class = class == "Death Knight" and "DeathKnight" or class
+					classLst[name] = string.upper(class)
+					return classLst[name]
+				end
+				i=i+1
+			end
+		end
+	end
+end
+	
+function util:GetHexClassColorByName(name)
+	if not name then return end
+	local class = self:GetClassByName(name)
+	if class then
+		return RAID_CLASS_COLORS[class].hex
+	end
+end
+
+function util:GetRGBClassColorByName(name)
+	if not name then return end
+	local class = self:GetClassByName(name)
+	if class then
+		return RAID_CLASS_COLORS[class].r, RAID_CLASS_COLORS[class].g, RAID_CLASS_COLORS[class].b
+	end
+end
 local basicSerialize = function(o)
 	if type(o) == "number" or type(o) == "boolean" then
 		return tostring(o)
@@ -196,16 +272,16 @@ local race = {
 }
 
 local class = {
-	["WARRIOR"]	= { 0, 0.25, 0, 0.25 },
-	["MAGE"]	= { 0.25, 0.49609375, 0, 0.25 },
-	["ROGUE"]	= { 0.49609375, 0.7421875, 0, 0.25 },
-	["DRUID"]	= { 0.7421875, 0.98828125, 0, 0.25 },
-	["HUNTER"]	= { 0, 0.25, 0.25, 0.5 },
-	["SHAMAN"]	= { 0.25, 0.49609375, 0.25, 0.5 },
-	["PRIEST"]	= { 0.49609375, 0.7421875, 0.25, 0.5 },
-	["WARLOCK"]	= { 0.7421875, 0.98828125, 0.25, 0.5 },
-	["PALADIN"]	= { 0, 0.25, 0.5, 0.75 },
-	["DEATHKNIGHT"] = { 0.77, 0.12, 0.23, 0.25 },
+	["WARRIOR"]		= {0, 0.25, 0, 0.25},
+	["MAGE"]		= {0.25, 0.49609375, 0, 0.25},
+	["ROGUE"]		= {0.49609375, 0.7421875, 0, 0.25},
+	["DRUID"]		= {0.7421875, 0.98828125, 0, 0.25},
+	["HUNTER"]		= {0, 0.25, 0.25, 0.5},
+	["SHAMAN"]	 	= {0.25, 0.49609375, 0.25, 0.5},
+	["PRIEST"]		= {0.49609375, 0.7421875, 0.25, 0.5},
+	["WARLOCK"]		= {0.7421875, 0.98828125, 0.25, 0.5},
+	["PALADIN"]		= {0, 0.25, 0.5, 0.75},
+	["DEATHKNIGHT"]	= {0.25, .5, 0.5, .75},
 	["PETS"]	= { 0, 1, 0, 1 },
 }
 -- these are seperate from the above lists, used for Pitbull settings
@@ -399,6 +475,7 @@ function util:getunitstat(unit, stat)
 		elseif color == "class" then
 			local eclass = select(2, UnitClass(unit))
 			if eclass then
+				eclass = eclass == "Death Knight" and "DeathKnight" or eclass
 				r = RAID_CLASS_COLORS[eclass].r
 				g = RAID_CLASS_COLORS[eclass].g
 				b = RAID_CLASS_COLORS[eclass].b
@@ -442,6 +519,7 @@ function util:getclassicon(unit, isclass)
 	else
 		if UnitIsPlayer(unit) or UnitCreatureType(unit) == "Humanoid" then
 			local eclass = select(2, UnitClass(unit))
+			eclass = eclass == "Death Knight" and "DeathKnight" or eclass
 			coords = class[eclass]
 		else
 			coords = class["PETS"]
@@ -831,9 +909,6 @@ function util:getspell(spell, rank)
 	if rank then
 		spell = spell.."("..RANK.." "..rank..")"
 	end
-	if not spell then
-		--debug(spell)
-	end
 	spell = spell:gsub("%(%)", "")
 	return spells[spell]
 end
@@ -925,8 +1000,8 @@ end
 -- Addon versioning system 
 -- TODO: Find a better way to track this, ie: fix the svn to update the toc file anytime a commit is made
 do
-	local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver
-	-- no opt = Core, 1 = Options, 2 = Arena
+local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver, nrfcl_ver, nrfcl_rev
+	-- no opt = Core, 1 = Options, 2 = Arena, 3 = Combat Log
 	function util:setver(ver, opt)
 		ver = ver:gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1")
 		ver = ver:match("-%d%d"):gsub("-", "").."."..ver:match("-%d%d", 6):gsub("-", "").."."..ver:match("%d%d%d%d")
@@ -938,6 +1013,11 @@ do
 			elseif opt == 2 then
 				if not nrfa_ver or ver > nrfa_ver then
 					nrfa_ver = ver
+				end
+			
+			elseif opt == 3 then
+				if not nrfcl_ver or ver > nrfcl_ver then
+					nrfcl_ver = ver
 				end
 			end
 		else
@@ -953,6 +1033,8 @@ do
 				return nrfo_ver or "Not Installed"
 			elseif opt == 2 then
 				return nrfa_ver or "Not Installed"
+			elseif opt == 3 then
+				return nrfcl_ver or "Not Installed"
 			end
 		end
 		return nrf_ver or "Unknown"
@@ -970,6 +1052,10 @@ do
 				if not nrfa_rev or rev > nrfa_rev then
 					nrfa_rev = rev
 				end
+			elseif opt == 3 then
+				if not nrfcl_rev or rev > nrfcl_rev then
+					nrfcl_rev = rev
+				end
 			end
 		else
 			if not nrf_rev or rev > nrf_rev then
@@ -984,6 +1070,8 @@ do
 				return nrfo_rev or 0
 			elseif opt == 2 then
 				return nrfa_rev or 0
+			elseif opt == 3 then
+				return nrfcl_rev or 0
 			end
 		end
 		return nrf_rev or 0

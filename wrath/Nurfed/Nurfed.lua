@@ -10,6 +10,10 @@ local afkstring = Nurfed:formatgs(RAID_MEMBERS_AFK, true)
 local ingroup = Nurfed:formatgs(ERR_ALREADY_IN_GROUP_S, true)
 local L = Nurfed:GetTranslations()
 local dnsLst = {
+	[20558] = true,
+	[20559] = true,
+	[20560] = true,
+	[29024] = true,
 	[32823] = true,
 }
 -- Default Options
@@ -104,6 +108,46 @@ local function onupdate(self)
 		self:SetPoint("TOPLEFT", "Minimap", "TOPLEFT", 52-xpos, ypos-52)
 	end
 end
+local function updateFriendsColors()
+	-- if not Nurfed:getopt("ColorFriendsList") then return end
+	local numfriends = GetNumFriends()
+	if numfriends > 0 then
+		local friendOffset = FauxScrollFrame_GetOffset(FriendsFrameFriendsScrollFrame)
+		local name, level, class, area, connected, status, note
+		for i=1, numfriends, 1 do
+			name, level, class, area, connected, status, note = GetFriendInfo(i)
+			if connected then
+				class = class == "Death Knight" and "DeathKnight" or class
+				local nameString = getglobal("FriendsFrameFriendButton"..(i-friendOffset).."ButtonTextName");
+				if nameString then
+					nameString:SetTextColor(RAID_CLASS_COLORS[string.upper(class)].r, RAID_CLASS_COLORS[string.upper(class)].g, RAID_CLASS_COLORS[string.upper(class)].b)
+				end
+			end
+		end
+	end
+end
+
+local function updateGuildColors()
+	--if not Nurfed:getopt("ColorGuildList") or false then return end
+	local numGuildMembers = GetNumGuildMembers()
+	if numGuildMembers > 0 then
+		local name, rank, rankIndex, level, class, zone, note, officernote, online, status
+		for i=1, numGuildMembers, 1 do
+			name, rank, rankIndex, level, class, zone, note, officernote, online = GetGuildRosterInfo(i)
+			if name and class then
+				class = class == "Death Knight" and "DeathKnight" or class
+				local nameString = _G["GuildFrameGuildStatusButton"..i.."Name"]
+				if nameString then
+					nameString:SetTextColor(RAID_CLASS_COLORS[string.upper(class)].r, RAID_CLASS_COLORS[string.upper(class)].g, RAID_CLASS_COLORS[string.upper(class)].b)
+				end
+				nameString = _G["GuildFrameButton"..i.."Name"]
+				if nameString then
+					nameString:SetTextColor(RAID_CLASS_COLORS[string.upper(class)].r, RAID_CLASS_COLORS[string.upper(class)].g, RAID_CLASS_COLORS[string.upper(class)].b)
+				end
+			end
+		end
+	end
+end
 
 local function onevent(self, ...)
 	if event == "CHAT_MSG_WHISPER" and Nurfed:getopt("autoinvite") then
@@ -145,16 +189,15 @@ local function onevent(self, ...)
 		end
 		
 	elseif event == "PARTY_INVITE_REQUEST" and Nurfed:getopt("autojoingroup") then
-		GuildRoster()
-		local i, num = 0, GetNumGuildMembers()
-		while i <= num do
+		local i = 1
+		while i do
 			local name = GetGuildRosterInfo(i)
 			if name == arg1 then
 				AcceptGroup()
 				StaticPopup_Hide("PARTY_INVITE")
-				break
+				return
 			end
-			i = i + 1
+			i = name and i+1 or nil
 		end
 
 	elseif event == "MERCHANT_SHOW" then
@@ -199,13 +242,24 @@ local function onevent(self, ...)
 			end
 			
 			local soldNum, soldItems, sold, startMoney = 0, "", nil, GetMoney()
+		local soldLst = {}
 			for bag=0,4,1 do
 				for slot=1, GetContainerNumSlots(bag), 1 do
 					if GetContainerItemLink(bag, slot) then
 						local name, link, rarity = GetItemInfo(GetContainerItemLink(bag, slot))
-							if name and rarity == 0 and (not dnsLst[link:find("Hitem:(%d+)")]) then
-							soldNum = soldNum + GetItemCount(link)
-							soldItems = soldItems == "" and link or soldItems..", "..link
+						if name and not dnsLst[link:find("Hitem:(%d+)")] and rarity == 0 then
+							if not soldLst[name] then
+								if GetItemCount(link) ~= 1 then
+									soldNum = soldNum + GetItemCount(link)
+									soldItems = soldItems == "" and link or soldItems..", "..link.."x"..GetItemCount(link)
+								else
+									soldNum = soldNum + 1
+									soldItems = soldItems == "" and link or soldItems..", "..link
+								end
+								soldLst[name] = true
+							else
+								soldItems = soldItems:gsub(link, link.."x"..GetItemCount(link))
+							end
 							UseContainerItem(bag, slot)
 							sold = true
 						end
@@ -272,7 +326,9 @@ local function onevent(self, ...)
 			NURFED_SAVED["happiness"] = NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS]
 			NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS] = nil
 		end
-
+		hooksecurefunc("FriendsList_Update", updateFriendsColors)
+		hooksecurefunc("GuildStatus_Update", updateGuildColors)
+		
 	elseif event == "VARIABLES_LOADED" then
 		if self:IsUserPlaced() then
 			self:SetUserPlaced(nil)
@@ -330,6 +386,7 @@ Nurfed:create("Nurfed_LockButton", {
 		"CHAT_MSG_SYSTEM",
 		"PLAYER_ENTERING_WORLD",
 		"VARIABLES_LOADED",
+    "PARTY_INVITE_REQUEST",
 	},
 	children = {
 		dropdown = { type = "Frame" },
@@ -395,10 +452,8 @@ local function OnMouseWheel(self, arg1)
 end
 
 local messageText = {}
---local function message(this, msg, r, g, b, id)
 local function message(self, msg, r, g, b, id)
--- having the string check in breaks it completly in wrath for some reason, no idea why.
-  --if (msg and type(msg) == "string") then
+  if (msg and type(msg) == "string") then
 	messageText[1] = nil; messageText[2] = nil -- there should not be anything more than 2, no need to do pairs
     if Nurfed:getopt("timestamps") then
       table.insert(messageText, date(Nurfed:getopt("timestampsformat")))
@@ -415,9 +470,17 @@ local function message(self, msg, r, g, b, id)
 			end
 		end
     end
+    if true then
+		for internal, displayed in msg:gmatch("|Hplayer:(.-)|h%[(.-)%]|h") do
+			local color = Nurfed:GetHexClassColorByName(displayed)
+			if color then
+				msg = msg:gsub("|Hplayer:"..internal.."|h%["..displayed.."%]|h", "|Hplayer:"..internal.."|h%["..color..displayed.."|r%]|h")
+			end
+		end
+	end
     table.insert(messageText, msg)
     self:O_AddMessage(table.concat(messageText, " "), r, g, b, id)
-  --end
+  end
 end
 
 CastingBarFrame.O_onevent = CastingBarFrame:GetScript("OnEvent")
@@ -672,7 +735,7 @@ Nurfed:createtemp("uipanel", {
 local panel = Nurfed:create("NurfedHeader", "uipanel")
 panel:SetScript("OnShow", function(self)
     LoadAddOn("Nurfed_Options")
-    NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")")
+    NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")\r|cffddeeffCombatLog Version:|r "..Nurfed:getver(3).."("..Nurfed:getrev(3)..")")
     self:SetScript("OnShow", nil)
 end)
 panel.name = "Nurfed"

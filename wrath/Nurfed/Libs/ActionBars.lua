@@ -147,9 +147,10 @@ local function updateitem(btn)
 end
 
 local function updatecooldown(btn)
+	if btn.companionID then return end
 	local start, duration, enable = 0, 0, 0
 	--local cooldown = _G[btn:GetName().."Cooldown"]
-	if btn.spell and not btn.spellid then
+	if btn.spell then
 		if btn.type == "spell" then
 			start, duration, enable = GetSpellCooldown(btn.spell)
 		elseif btn.type == "item" then
@@ -250,7 +251,7 @@ local function seticon(btn)
 							else
 								texture = select(3, GetSpellInfo(attrib))
 							end
-							btn.spellid = attrib
+							btn.companionID = attrib
 						end
 					end
 					if IsAttackSpell(spell) or IsAutoRepeatSpell(spell) then
@@ -278,7 +279,7 @@ local function seticon(btn)
 			end
 			btn.spell = spell
 			if not attrib then-- clear the spell id for non-companions
-				btn.spellid = nil
+				btn.companionID = nil
 			end
 		end
 
@@ -372,7 +373,7 @@ local function btndragstart(self)
 						self:SetAttribute("*companionID", nil)
 						self:SetAttribute("*companionType", nil)
 						self:SetAttribute("*companionSlot", nil)
-						self.spellid = nil
+						self.companionID = nil
 					else
 						PickupSpell(Nurfed:getspell(spell), BOOKTYPE_SPELL)
 					end
@@ -711,19 +712,30 @@ local function btnupdate()
 	for _, btn in ipairs(live) do
 		local r, g, b = 1, 1, 1
 		local unit = SecureButton_GetUnit(btn)
-		if btn.type == "spell" and not btn.spellid then
-			if IsCurrentSpell(btn.spell) then
-				btn:SetChecked(true)
+		if btn.type == "spell" then
+			if btn.companionID then
+				if UnitCastingInfo("player") == btn.spell then
+					btn:SetChecked(true)
+				else
+					btn:SetChecked(nil)
+				end
+				if UnitAffectingCombat("player") then
+					r, g, b =  0.4, 0.4, 0.4
+				end
 			else
-				btn:SetChecked(nil)
-			end
-			local usable, nomana = IsUsableSpell(btn.spell)
-			if nomana then
-				r, g, b = 0.5, 0.5, 1
-			elseif not usable then
-				r, g, b = 0.4, 0.4, 0.4
-			elseif SpellHasRange(btn.spell) and IsSpellInRange(btn.spell, unit) == 0 then
-				r, g, b = 1, 0, 0
+				if IsCurrentSpell(btn.spell) then
+					btn:SetChecked(true)
+				else
+					btn:SetChecked(nil)
+				end
+				local usable, nomana = IsUsableSpell(btn.spell)
+				if nomana then
+					r, g, b = 0.5, 0.5, 1
+				elseif not usable then
+					r, g, b = 0.4, 0.4, 0.4
+				elseif SpellHasRange(btn.spell) and IsSpellInRange(btn.spell, unit) == 0 then
+					r, g, b = 1, 0, 0
+				end
 			end
 	
 		elseif btn.type == "item" then
@@ -1389,7 +1401,7 @@ end
 hooksecurefunc("CompanionButton_OnDrag", function(self)
 	local check1, check2, check3 = GetCursorInfo()
 	if check1 == "spell" and check2 == 0 and check3 == "spell" then
-		nrfCompanionID = self.spellID
+		nrfCompanionID = self.companionID
 		nrfCompanionType = PetPaperDollFrameCompanionFrame.mode
 		nrfCompanionSlot = dragged
 	end
