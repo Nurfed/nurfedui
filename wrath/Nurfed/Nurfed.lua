@@ -226,6 +226,7 @@ local function onevent(self, ...)
 		if Nurfed:getopt("autosell") then
 			if isRepairing then
 				local timer = 1
+				sellFrame:Show()
 				sellFrame:SetScript("OnUpdate", function()
 					timer = timer + 1
 					if timer >= 45 then
@@ -235,6 +236,7 @@ local function onevent(self, ...)
 						else
 							sellFrame:SetScript("OnUpdate", nil)
 							Nurfed_LockButton:GetScript("OnEvent")(Nurfed_LockButton, "MERCHANT_SHOW")
+							sellFrame:Hide()
 						end
 					end
 				end)
