@@ -106,59 +106,60 @@ end
 
 local classLst = {}
 function util:GetClassByName(name)
-	if not name then return end
-	if classLst[name] then
-		return classLst[name]
-	else
+	if name and not classLst[name] then
+		local i, fname, class
 		local numfriends = GetNumFriends()
 		if numfriends > 0 then
-			local fname, level, class, area, connected, status, note
-			for i=1, numfriends, 1 do
-				fname, level, class, area, connected, status, note = GetFriendInfo(i)
-				if connected and name == fname then
+			i=1
+			while i <= numfriends do
+				fname, _, class, _, connected = GetFriendInfo(i)
+				if fname and connected  then
 					class = class == "Death Knight" and "DeathKnight" or class
-					classLst[name] = string.upper(class)
-					return classLst[name]
+					classLst[fname] = string.upper(class)
 				end
+				i=i+1
 			end
 		end
 		
-		local numGuildMembers = GetNumGuildMembers()
+		local numGuildMembers = GetNumGuildMembers(true)
 		if numGuildMembers > 0 then
-			local fname, rank, rankIndex, level, class, zone, note, officernote, online, status
-			for i=1, numGuildMembers, 1 do
-				fname, rank, rankIndex, level, class, zone, note, officernote, online = GetGuildRosterInfo(i)
-				if fname and class and fname == name then
+			i=1
+			while i <= numGuildMembers do
+				fname, _, _, _, class = GetGuildRosterInfo(i)
+				if fname and class then
 					class = class == "Death Knight" and "DeathKnight" or class
-					classLst[name] = string.upper(class)
-					return classLst[name]
+					classLst[fname] = string.upper(class)
 				end
+				i=i+1
 			end
 		end
+		
 		if GetNumPartyMembers() > 0 then
-			for i=1,5 do
+			i=1
+			while i <= 5 do
 				local fname, class = UnitName("party"..i), UnitClass("party"..i)
-				if fname and class and fname == name then
+				if fname and class then
 					class = class == "Death Knight" and "DeathKnight" or class
-					classLst[name] = string.upper(class)
-					return classLst[name]
+					classLst[fname] = string.upper(class)
 				end
+				i=i+1
 			end
 		end
+		
 		if UnitInRaid("player") then
+			i=1
 			local numraid = GetNumRaidMembers()
-			local i=1
 			while i <= numraid do
 				local fname, class = UnitName("raid"..i), UnitClass("raid"..i)
-				if fname and class and fname == name then
+				if fname and class then
 					class = class == "Death Knight" and "DeathKnight" or class
-					classLst[name] = string.upper(class)
-					return classLst[name]
+					classLst[fname] = string.upper(class)
 				end
 				i=i+1
 			end
 		end
 	end
+	return name and classLst[name] or nil
 end
 	
 function util:GetHexClassColorByName(name)

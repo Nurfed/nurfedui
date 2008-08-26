@@ -326,9 +326,9 @@ local function onevent(self, ...)
 			NURFED_SAVED["happiness"] = NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS]
 			NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS] = nil
 		end
+		GuildRoster()	-- fire the guild roster to get the list!
 		hooksecurefunc("FriendsList_Update", updateFriendsColors)
 		hooksecurefunc("GuildStatus_Update", updateGuildColors)
-		
 	elseif event == "VARIABLES_LOADED" then
 		if self:IsUserPlaced() then
 			self:SetUserPlaced(nil)
@@ -455,6 +455,10 @@ local messageText = {}
 local function message(self, msg, r, g, b, id)
   if (msg and type(msg) == "string") then
 	messageText[1] = nil; messageText[2] = nil -- there should not be anything more than 2, no need to do pairs
+	if msg:find("has earned the achievement") then
+		Nurfed:print("BLOCKED ACHIEVEMENT!")
+		return
+	end
     if Nurfed:getopt("timestamps") then
       table.insert(messageText, date(Nurfed:getopt("timestampsformat")))
     end
