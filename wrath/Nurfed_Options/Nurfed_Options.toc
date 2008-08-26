@@ -10,6 +10,8 @@ Locales\Locales.xml
 Menus\AddOns.lua
 Menus\Bindings.lua
 
+
 Localization.lua
 Templates.lua
 Panels.lua
+Menus\Frames.lua

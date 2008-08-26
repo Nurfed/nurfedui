@@ -57,6 +57,12 @@ do	-- keep local dropmenu local...rofl?
 	end
 end
 -- Scroll menu
+function Nurfed_Options_sliderOnValueChanged(self)
+	local value = math.round(self:GetValue(), self.deci)
+	local text = getglobal(self:GetName().."value")
+	text:SetText(value)
+end
+
 function Nurfed_Options_ScrollMenu(self, val)
 	if self then
 		FauxScrollFrame_Update(self, self.pages, 1, 100)

@@ -1,309 +1,42 @@
-local layout, received, sendname, acceptname
-
-local import = function()
-	local templates = Nurfed_UnitsLayout.templates
-	local frames = Nurfed_UnitsLayout.Layout or Nurfed_UnitsLayout.frames
-
-	if templates then
-		for k, v in pairs(templates) do
-			NURFED_FRAMES.templates[k] = v
-		end
-	end
-
-	if frames then
-		for k, v in pairs(frames) do
-			local name = k
-			if not string.find(k, "^Nurfed") then
-				name = "Nurfed_"..k
-			end
-			NURFED_FRAMES.frames[name] = v
-		end
-	end
-
-	local out = "Nurfed Layout: |cffff0000Imported|r"
-
-	if Nurfed_UnitsLayout.Name then
-		out = out.." "..Nurfed_UnitsLayout.Name
-	end
-
-	if Nurfed_UnitsLayout.Author then
-		out = out.." designed by "..Nurfed_UnitsLayout.Author
-	end
-
-	Nurfed:print(out, 1, 0, 0.75, 1)
-	StaticPopup_Show("NRF_RELOADUI")
-end
-
-local checkonline = function()
-	for i = 1, GetNumFriends() do
-		local name, level, class, area, connected, status = GetFriendInfo(i)
-		if name == sendname then
-			return connected
-		end
-	end
-
-	for i = 1, GetNumGuildMembers() do
-		local name, rank, rankIndex, level, class, zone, note, officernote, online, status = GetGuildRosterInfo(i)
-		if name == sendname then
-			return online
-		end
-	end
-end
-
-local accept = function()
-	received = {}
-	SendAddonMessage("Nurfed:Lyt", "receive", "WHISPER", acceptname)
-	Nurfed_MenuFramessend:Disable()
-	Nurfed_MenuFramesaccept:Disable()
-	Nurfed_MenuFramescancel:Enable()
-end
-
-local cancel = function(nosend)
-	if not nosend then
-		SendAddonMessage("Nurfed:Lyt", "cancel", "WHISPER", (sendname or acceptname))
-	end
-	if sendname then
-		Nurfed:unschedule(Nurfed_SendLayout, true)
-	end
-	Nurfed_MenuFramesprogress:Hide()
-	Nurfed_MenuFramescancel:Disable()
-	Nurfed_MenuFramessend:Enable()
-	layout = nil
-	sendname = nil
-	received = nil
-	acceptname = nil
-end
-
-local addonmsg = function(name, cmd)
-	if cmd == "send" then
-		Nurfed_MenuFramesaccept:Enable()
-		acceptname = name
-	elseif cmd == "receive" then
-		layout = Nurfed:serialize("Nurfed_UnitsLayout", NURFED_FRAMES)
-		Nurfed_MenuFramesprogress:SetMinMaxValues(0, #layout)
-		Nurfed_MenuFramesprogress:SetValue(#layout)
-		Nurfed_MenuFramesprogress:Show()
-		Nurfed_MenuFramesprogressname:SetText(sendname)
-		Nurfed_MenuFramesprogresscount:SetText(#layout)
-		Nurfed_MenuFramesprogresstotal:SetText(#layout)
-		Nurfed_MenuFramescancel:Enable()
-		Nurfed_MenuFramessend:Disable()
-		SendAddonMessage("Nurfed:Lyt", "count:"..#layout, "WHISPER", sendname)
-		Nurfed:schedule(0.03, Nurfed_SendLayout, true)
-	elseif cmd == "complete" then
-		Nurfed_MenuFramessend:Enable()
-		received = table.concat(received)
-		Nurfed_UnitsLayout = loadstring(received)
-		Nurfed_UnitsLayout()
-		if Nurfed_UnitsLayout then
-			Nurfed_MenuFramesimport:Enable()
-		end
-		Nurfed_MenuFramesprogress:Hide()
-		received = nil
-		acceptname = nil
-	elseif cmd == "cancel" then
-		cancel(true)
-	elseif string.find(cmd, "^count") then
-		local _, count = string.split(":", cmd)
-		Nurfed_MenuFramesprogress:SetMinMaxValues(0, tonumber(count))
-		Nurfed_MenuFramesprogress:SetValue(0)
-		Nurfed_MenuFramesprogress:Show()
-		Nurfed_MenuFramesprogressname:SetText(acceptname)
-		Nurfed_MenuFramesprogresscount:SetText(0)
-		Nurfed_MenuFramesprogresstotal:SetText(count)
-	elseif name == acceptname then
-		table.insert(received, cmd)
-		Nurfed_MenuFramesprogress:SetValue(#received)
-		Nurfed_MenuFramesprogresscount:SetText(#received)
-	end
-end
-
-Nurfed:addmsg("Lyt", addonmsg)
-
-function Nurfed_SendLayout()
-	if #layout > 0 then
-		local text = table.remove(layout, 1)
-		text = string.trim(text)
-		local size = string.len(text)
-		if size > 240 then
-			local count = ceil(size / 240)
-			for i = 1, count do
-				local snip = string.sub(text, 1, 240)
-				SendAddonMessage("Nurfed:Lyt", snip, "WHISPER", sendname)
-				text = string.sub(text, 241)
-			end
-		else
-			SendAddonMessage("Nurfed:Lyt", text, "WHISPER", sendname)
-		end
-		Nurfed_MenuFramesprogress:SetValue(#layout)
-		Nurfed_MenuFramesprogresscount:SetText(#layout)
-	else
-		SendAddonMessage("Nurfed:Lyt", "complete", "WHISPER", sendname)
-		Nurfed:unschedule(Nurfed_SendLayout, true)
-		Nurfed_MenuFramesprogress:Hide()
-		Nurfed_MenuFramescancel:Disable()
-		Nurfed_MenuFramessend:Enable()
-		layout = nil
-		sendname = nil
-	end
-end
-
-NURFED_MENUS["Frames"] = {
+--[[Nurfed_OptionsMenus["Frames"] = {
 	template = "nrf_options",
 	children = {
-		import = {
-			template = "nrf_button",
-			Text = "Import",
-			Point = { "BOTTOMRIGHT", -3, 3 },
-			OnClick = function() import() end,
-		},
-		export = {
-			template = "nrf_button",
-			Text = "Export Layout",
-			Point = { "RIGHT", "$parentimport", "LEFT", -3, 0 },
-			OnClick = function()
-				NURFED_LAYOUT = Nurfed:copytable(NURFED_FRAMES)
-				NURFED_LAYOUT.Author = UnitName("player")
-				Nurfed:print("Nurfed Layout: |cffff0000Exported|r", 1, 0, 0.75, 1)
-			end,
-		},
-		accept = {
-			template = "nrf_button",
-			Text = ACCEPT,
-			Point = { "RIGHT", "$parentexport", "LEFT", -3, 0 },
-			OnClick = function() accept() end,
-		},
-		send = {
-			template = "nrf_button",
-			Text = "Send Layout",
-			Point = { "RIGHT", "$parentaccept", "LEFT", -3, 0 },
-			OnClick = function(self)
-				Nurfed_MenuFramessendname:ClearFocus()
-				sendname = string.trim(Nurfed_MenuFramessendname:GetText())
-				sendname = string.lower(sendname)
-				sendname = string.capital(sendname)
-				if sendname ~= UnitName("player") and checkonline() then
-					Nurfed:print("Nurfed Layout: |cffff0000Send|r "..sendname, 1, 0, 0.75, 1)
-					SendAddonMessage("Nurfed:Lyt", "send", "WHISPER", sendname)
-				end
-			end,
-		},
-		sendname = {
-			template = "nrf_editbox",
-			size = { 100, 18 },
-			Point = { "RIGHT", "$parentsend", "LEFT", -1, 0 },
-		},
-		cancel = {
-			template = "nrf_button",
-			Text = CANCEL,
-			Point = { "RIGHT", "$parentsendname", "LEFT", -3, 0 },
-			OnClick = function() cancel() end,
-		},
-		progress = {
-			type = "StatusBar",
-			size = { 405, 12 },
-			Hide = true,
-			Point = { "BOTTOMLEFT", 3, 22 },
-			StatusBarTexture = NRF_IMG.."statusbar5",
-			StatusBarColor = { 0, 0.5, 1 },
-			children = {
-				name = {
-					type = "FontString",
-					layer = "ARTWORK",
-					FontObject = "GameFontNormalSmall",
-					JustifyH = "LEFT",
-					ShadowColor = { 0, 0, 0, 0.75},
-					ShadowOffset = { -1, -1 },
-					Anchor = "all",
-				},
-				count = {
-					type = "FontString",
-					layer = "ARTWORK",
-					FontObject = "GameFontNormalSmall",
-					JustifyH = "CENTER",
-					ShadowColor = { 0, 0, 0, 0.75},
-					ShadowOffset = { -1, -1 },
-					Anchor = "all",
-				},
-				total = {
-					type = "FontString",
-					layer = "ARTWORK",
-					FontObject = "GameFontNormalSmall",
-					JustifyH = "RIGHT",
-					ShadowColor = { 0, 0, 0, 0.75},
-					ShadowOffset = { -1, -1 },
-					Anchor = "all",
-				},
-			},
+		scroll = {
+			type = "ScrollFrame",
+			size = { 388, 270 },
+			Anchor = { "LEFT", "$parent", "LEFT" },
+			uitemp = "FauxScrollFrameTemplate",
+			OnVerticalScroll = function(self) FauxScrollFrame_OnVerticalScroll(14, Nurfed_ScrollFrames) end,
+			OnShow = function(self) Nurfed_ScrollFrames() end,
 		},
 	},
-	OnLoad = function(self)
-		local import = getglobal(self:GetName().."import")
-		local accept = getglobal(self:GetName().."accept")
-		local cancel = getglobal(self:GetName().."cancel")
-		if not Nurfed_UnitsLayout then
-			import:Disable()
-		end
-		cancel:Disable()
-		accept:Disable()
-	end,
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+]]
 --[[
 Nurfed:createtemp("nrf_frames_row", {
-	type = "Button",
-	size = { 400, 14 },
+	type = "Frame",
+	size = { 411, 271 },
+	Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 1, 0 },
+	Backdrop = { bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = true, tileSize = 16, edgeSize = 8, insets = { left = 2, right = 2, top = 2, bottom = 2 }, },
+	BackdropColor = { 0, 0, 0, 0.95 },
+	Alpha = 0,
+	Hide = true,
 	children = {
-		icon = {
-			type = "Button",
-			layer = "ARTWORK",
-			size = { 14, 14 },
-			Anchor = { "LEFT", "$parent", "LEFT", 5, 0 },
-			NormalTexture = "Interface\\Buttons\\UI-PlusButton-Up",
-			PushedTexture = "Interface\\Buttons\\UI-PlusButton-Down",
-			HighlightTexture = "Interface\\Buttons\\UI-PlusButton-Hilight",
-			OnClick = function() Nurfed_ExpandFrame() end,
-		},
-		name = {
-			type = "FontString",
-			layer = "ARTWORK",
-			size = { 250, 14 },
-			Anchor = { "LEFT", "$parenticon", "RIGHT", 5, 0 },
-			FontObject = "GameFontNormal",
-			JustifyH = "LEFT",
-			TextColor = { 1, 1, 1 },
-		},
-		HighlightTexture = {
-			type = "Texture",
-			layer = "BACKGROUND",
-			Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
-			BlendMode = "ADD",
-			Anchor = "all",
+		scroll = {
+			type = "ScrollFrame",
+			size = { 388, 270 },
+			Anchor = { "LEFT", "$parent", "LEFT" },
+			uitemp = "FauxScrollFrameTemplate",
+			OnVerticalScroll = function(self, val) 
+				--FauxScrollFrame_OnVerticalScroll(14, Nurfed_ScrollFrames) 
+				FauxScrollFrame_OnVerticalScroll(self, val, 14, Nurfed_ScrollFrames) 
+			end,
+			OnShow = function(self) Nurfed_ScrollFrames() end,
 		},
 	},
-	OnClick = function() Nurfed_Frame_OnClick(arg1) end,
 })
-
+]]
+--local nrf = nurfed_util:new()
 local framelist
 local methods = {}
 local framedelete = CreateFrame("Frame")
@@ -438,10 +171,10 @@ local dropdowns = {
 	},
 }
 
-local popframes = function()
+local popframes = function(self)
 	framelist = {}
 	local function populate(n, f, l)
-		if Nurfed_MenuFrames[f] then
+		if NurfedFramesPanelFrames[f] then
 			local kids = {}
 			Nurfed:getframes(getglobal(f), kids)
 			table.sort(kids, function(a, b) return a > b end)
@@ -458,55 +191,55 @@ local popframes = function()
 	for k, v in ipairs(framelist) do populate(k + 1, v[1], v[2] + 1) end
 end
 
-local configmain = function()
-	UIDropDownMenu_SetWidth(150, this)
-	UIDropDownMenu_JustifyText("LEFT", this)
-	this.displayMode = "MENU"
-	this:SetScript("OnShow", nil)
-	this:SetScale(0.85)
+local configmain = function(self)
+	UIDropDownMenu_SetWidth(self, 150)
+	UIDropDownMenu_JustifyText(self, "LEFT")
+	self.displayMode = "MENU"
+	self:SetScript("OnShow", nil)
+	self:SetScale(0.85)
 
-	UIDropDownMenu_SetWidth(150, Nurfed_MenuEditordrop)
-	UIDropDownMenu_JustifyText("LEFT", Nurfed_MenuEditordrop)
-	Nurfed_MenuEditordrop.displayMode = "MENU"
-	Nurfed_MenuEditordrop:SetScale(0.85)
-	Nurfed_MenuEditorbackdroptileText:SetText("Tile")
+	UIDropDownMenu_SetWidth(NurfedFramesPanelEditordrop, 150)
+	UIDropDownMenu_JustifyText(NurfedFramesPanelEditordrop, "LEFT")
+	NurfedFramesPanelEditordrop.displayMode = "MENU"
+	NurfedFramesPanelEditordrop:SetScale(0.85)
+	NurfedFramesPanelEditorbackdroptileText:SetText("Tile")
 end
 
-local hidemethods = function()
-	Nurfed_MenuEditorcolor:Hide()
-	Nurfed_MenuEditorenable:Hide()
-	Nurfed_MenuEditorslider:Hide()
-	Nurfed_MenuEditoredit:Hide()
-	Nurfed_MenuEditordrop:Hide()
-	Nurfed_MenuEditorbackdrop:Hide()
-	Nurfed_MenuEditorfont:Hide()
-	Nurfed_MenuEditorpoint:Hide()
-	Nurfed_MenuEditorpushedtextoffset:Hide()
-	Nurfed_MenuEditorshadowoffset:Hide()
-	Nurfed_MenuEditortexcoord:Hide()
-	Nurfed_MenuEditoreditdrop:Hide()
+local hidemethods = function(self)
+	NurfedFramesPanelEditorcolor:Hide()
+	NurfedFramesPanelEditorenable:Hide()
+	NurfedFramesPanelEditorslider:Hide()
+	NurfedFramesPanelEditoredit:Hide()
+	NurfedFramesPanelEditordrop:Hide()
+	NurfedFramesPanelEditorbackdrop:Hide()
+	NurfedFramesPanelEditorfont:Hide()
+	NurfedFramesPanelEditorpoint:Hide()
+	NurfedFramesPanelEditorpushedtextoffset:Hide()
+	NurfedFramesPanelEditorshadowoffset:Hide()
+	NurfedFramesPanelEditortexcoord:Hide()
+	NurfedFramesPanelEditoreditdrop:Hide()
 end
 
-local updatemethods = function()
+local updatemethods = function(self)
 	local info
 	for k, v in ipairs(methods) do
 		info = {}
 		info.text = v
-		info.func = Nurfed_Method_OnClick
+		info.func = function(self, ...) Nurfed_Method_OnClick(self, ...) end
 		info.checked = nil
 		UIDropDownMenu_AddButton(info)
 	end
 end
 
-local updateeditor = function()
-	local name = Nurfed_MenuFrames.select
+local updateeditor = function(self)
+	local name = NurfedFramesPanelFrames.select
 	local frame = getglobal(name)
-	Nurfed_MenuEditorframe:SetText(name)
-	Nurfed_MenuEditordelete:Hide()
-	Nurfed_MenuEditorcreate:Hide()
+	NurfedFramesPanelEditorframe:SetText(name)
+	NurfedFramesPanelEditordelete:Hide()
+	NurfedFramesPanelEditorcreate:Hide()
 
 	if frame then
-		Nurfed_MenuEditordelete:Show()
+		NurfedFramesPanelEditordelete:Show()
 		local tbl = getmetatable(frame, 0)
 		methods = {}
 		for k, v in pairs(tbl.__index) do
@@ -516,26 +249,26 @@ local updateeditor = function()
 				table.insert(methods, set)
 			end
 			if string.find(k, "^Create") then
-				Nurfed_MenuEditorcreate:Show()
+				NurfedFramesPanelEditorcreate:Show()
 			end
 		end
 		table.sort(methods, function(a, b) return a < b end)
-		UIDropDownMenu_Initialize(Nurfed_MenuEditormethods, updatemethods)
-		Nurfed_Method_OnClick(1)
---
+		UIDropDownMenu_Initialize(NurfedFramesPanelEditormethods, updatemethods)
+		Nurfed_Method_OnClick(self, 1)
+		--[[
 		local text = {}
 		for k, v in pairs(frame) do
 			if type(v) == "string" or type(v) == "number" then
 				table.insert(text, k.." = "..v)
 			end
 		end
-		Nurfed_MenuEditorvars:SetText(table.concat(text, "\n"))
---
+		NurfedFramesPanelEditorvars:SetText(table.concat(text, "\n"))
+		]]
 	else
 		hidemethods()
-		Nurfed_MenuEditorcreate:Show()
-		--Nurfed_MenuEditorvars:SetText("")
-		UIDropDownMenu_ClearAll(Nurfed_MenuEditormethods)
+		NurfedFramesPanelEditorcreate:Show()
+		--NurfedFramesPanelEditorvars:SetText("")
+		UIDropDownMenu_ClearAll(NurfedFramesPanelEditormethods)
 	end
 end
 
@@ -595,7 +328,7 @@ end
 
 local saveframe = function(frame)
 	if not frame then
-		frame = getglobal(Nurfed_MenuFrames.select)
+		frame = getglobal(NurfedFramesPanelFrames.select)
 	end
 	while frame:GetParent() ~= UIParent do
 		frame = frame:GetParent()
@@ -604,59 +337,60 @@ local saveframe = function(frame)
 	getframetable(frame, NURFED_FRAMES.frames[name])
 end
 
-local frameupdate = function(edit, nosave)
-	local frame = getglobal(Nurfed_MenuFrames.select)
-	if edit then this = edit end
+local frameupdate = function(self, edit, nosave)
+	local frame = getglobal(NurfedFramesPanelFrames.select)
+	if edit then self = edit end
 	if frame then
 		local val, color, bgcolor
-		local id = UIDropDownMenu_GetSelectedID(Nurfed_MenuEditormethods)
+		local id = UIDropDownMenu_GetSelectedID(NurfedFramesPanelEditormethods)
 		local m = methods[id]
+		debug(methods)
 		local method = frame["Set"..m] or frame["EnableMouse"]
-		local objtype = this:GetObjectType()
+		local objtype = self:GetObjectType()
 		if string.find(m, "Color") then
-			val = { Nurfed_MenuEditorcolor:GetColorRGB() }
-			val[4] = Nurfed_MenuEditorcoloralpha:GetNumber()/100
+			val = { NurfedFramesPanelEditorcolor:GetColorRGB() }
+			val[4] = NurfedFramesPanelEditorcoloralpha:GetNumber()/100
 		elseif m == "Backdrop" then
 			color = { frame:GetBackdropColor() }
 			bgcolor = { frame:GetBackdropBorderColor() }
 			val = {
-				bgFile = Nurfed_MenuEditorbackdropbgFile:GetText(),
-				edgeFile = Nurfed_MenuEditorbackdropedgeFile:GetText(),
-				tile = Nurfed_MenuEditorbackdroptile:GetChecked(),
-				tileSize = Nurfed_MenuEditorbackdroptileSize:GetNumber(),
-				edgeSize = Nurfed_MenuEditorbackdropedgeSize:GetNumber(),
+				bgFile = NurfedFramesPanelEditorbackdropbgFile:GetText(),
+				edgeFile = NurfedFramesPanelEditorbackdropedgeFile:GetText(),
+				tile = NurfedFramesPanelEditorbackdroptile:GetChecked(),
+				tileSize = NurfedFramesPanelEditorbackdroptileSize:GetNumber(),
+				edgeSize = NurfedFramesPanelEditorbackdropedgeSize:GetNumber(),
 				insets = {
-					left = Nurfed_MenuEditorbackdropleft:GetNumber(),
-					right = Nurfed_MenuEditorbackdropright:GetNumber(),
-					top = Nurfed_MenuEditorbackdroptop:GetNumber(),
-					bottom = Nurfed_MenuEditorbackdropbottom:GetNumber(),
+					left = NurfedFramesPanelEditorbackdropleft:GetNumber(),
+					right = NurfedFramesPanelEditorbackdropright:GetNumber(),
+					top = NurfedFramesPanelEditorbackdroptop:GetNumber(),
+					bottom = NurfedFramesPanelEditorbackdropbottom:GetNumber(),
 				}
 			}
 		elseif m == "Font" then
 			val = {
-				Nurfed_MenuEditorfont1:GetText(),
-				Nurfed_MenuEditorfont2:GetNumber(),
-				Nurfed_MenuEditorfont3:GetText(),
+				NurfedFramesPanelEditorfont1:GetText(),
+				NurfedFramesPanelEditorfont2:GetNumber(),
+				NurfedFramesPanelEditorfont3:GetText(),
 			}
 		elseif m == "Point" then
-			local text4 = Nurfed_MenuEditorpoint4:GetText()
-			local text5 = Nurfed_MenuEditorpoint5:GetText()
+			local text4 = NurfedFramesPanelEditorpoint4:GetText()
+			local text5 = NurfedFramesPanelEditorpoint5:GetText()
 			if not string.find(text4, "[0-9]+") or not string.find(text5, "[0-9]+") then return end
 			val = {
-				string.upper(Nurfed_MenuEditorpoint1:GetText()),
-				Nurfed_MenuEditorpoint2:GetText(),
-				string.upper(Nurfed_MenuEditorpoint3:GetText()),
+				string.upper(NurfedFramesPanelEditorpoint1:GetText()),
+				NurfedFramesPanelEditorpoint2:GetText(),
+				string.upper(NurfedFramesPanelEditorpoint3:GetText()),
 				tonumber(text4),
 				tonumber(text5),
 			}
 		elseif m == "PushedTextOffset" then
 			val = {
-				Nurfed_MenuEditorpushedtextoffset1:GetNumber(),
-				Nurfed_MenuEditorpushedtextoffset2:GetNumber(),
+				NurfedFramesPanelEditorpushedtextoffset1:GetNumber(),
+				NurfedFramesPanelEditorpushedtextoffset2:GetNumber(),
 			}
 		elseif m == "ShadowOffset" then
-			local text1 = Nurfed_MenuEditorshadowoffset1:GetText()
-			local text2 = Nurfed_MenuEditorshadowoffset2:GetText()
+			local text1 = NurfedFramesPanelEditorshadowoffset1:GetText()
+			local text2 = NurfedFramesPanelEditorshadowoffset2:GetText()
 			if not string.find(text1, "[0-9]+") or not string.find(text2, "[0-9]+") then return end
 			val = {
 				tonumber(text1),
@@ -664,41 +398,39 @@ local frameupdate = function(edit, nosave)
 			}
 		elseif m == "TexCoord" then
 			val = {
-				tonumber(Nurfed_MenuEditortexcoord1:GetText()) or 0,
-				tonumber(Nurfed_MenuEditortexcoord2:GetText()) or 0,
-				tonumber(Nurfed_MenuEditortexcoord3:GetText()) or 0,
-				tonumber(Nurfed_MenuEditortexcoord4:GetText()) or 0,
-				tonumber(Nurfed_MenuEditortexcoord5:GetText()) or 0,
-				tonumber(Nurfed_MenuEditortexcoord6:GetText()) or 0,
-				tonumber(Nurfed_MenuEditortexcoord7:GetText()) or 0,
-				tonumber(Nurfed_MenuEditortexcoord8:GetText()) or 0,
+				tonumber(NurfedFramesPanelEditortexcoord1:GetText()) or 0,
+				tonumber(NurfedFramesPanelEditortexcoord2:GetText()) or 0,
+				tonumber(NurfedFramesPanelEditortexcoord3:GetText()) or 0,
+				tonumber(NurfedFramesPanelEditortexcoord4:GetText()) or 0,
+				tonumber(NurfedFramesPanelEditortexcoord5:GetText()) or 0,
+				tonumber(NurfedFramesPanelEditortexcoord6:GetText()) or 0,
+				tonumber(NurfedFramesPanelEditortexcoord7:GetText()) or 0,
+				tonumber(NurfedFramesPanelEditortexcoord8:GetText()) or 0,
 			}
 		elseif objtype == "CheckButton" then
-			val = Nurfed_MenuEditorenable:GetChecked()
+			val = NurfedFramesPanelEditorenable:GetChecked()
 		elseif objtype == "Slider" then
-			val = Nurfed_MenuEditorslider:GetValue()
+			val = NurfedFramesPanelEditorslider:GetValue()
 		elseif objtype == "EditBox" then
-			if Nurfed_MenuEditoredit:IsNumeric() then
-				val = Nurfed_MenuEditoredit:GetNumber()
-			elseif Nurfed_MenuEditoredit.deci then
-				val = Nurfed_MenuEditoredit:GetText()
+			if NurfedFramesPanelEditoredit:IsNumeric() then
+				val = NurfedFramesPanelEditoredit:GetNumber()
+			elseif NurfedFramesPanelEditoredit.deci then
+				val = NurfedFramesPanelEditoredit:GetText()
 				val = tonumber(val) or 0
-				val = math.round(val, Nurfed_MenuEditoredit.deci)
+				val = math.round(val, NurfedFramesPanelEditoredit.deci)
 			else
-				val = Nurfed_MenuEditoredit:GetText()
+				val = NurfedFramesPanelEditoredit:GetText()
 			end
 			if val == "" then val = nil end
 		elseif objtype == "Button" then
-			local id = this:GetID()
-			UIDropDownMenu_SetSelectedID(Nurfed_MenuEditordrop, id)
-			val = this:GetText()
+			local id = self:GetID()
+			UIDropDownMenu_SetSelectedID(NurfedFramesPanelEditordrop, id)
+			val = self:GetText()
 		end
 		if string.find(m, "Object") and not getglobal(val) then return end
 		if m == "Point" then
-]]
-			--if not points[val[1]] then return end
-			--if not points[val[3]] then return end
---[[
+			if not points[val[1]] then return end
+			if not points[val[3]] then return end
 			string.gsub(val[2], "$parent", frame:GetParent():GetName())
 			if val[2] == "" then
 				val[2] = nil
@@ -722,20 +454,20 @@ local frameupdate = function(edit, nosave)
 	end
 end
 
-local colorupdate = function()
-	local r = Nurfed_MenuEditorcolorred:GetNumber()/255
-	local g = Nurfed_MenuEditorcolorgreen:GetNumber()/255
-	local b = Nurfed_MenuEditorcolorblue:GetNumber()/255
-	local a = Nurfed_MenuEditorcoloralpha:GetNumber()/100
-	if r > 1 then r = 1 Nurfed_MenuEditorcolorred:SetText(255) end
-	if g > 1 then g = 1 Nurfed_MenuEditorcolorgreen:SetText(255) end
-	if b > 1 then b = 1 Nurfed_MenuEditorcolorblue:SetText(255) end
-	if a > 1 then a = 1 Nurfed_MenuEditorcoloralpha:SetText(100) end
-	Nurfed_MenuEditorcolor:SetColorRGB(r, g, b)
-	frameupdate()
+local colorupdate = function(self)
+	local r = NurfedFramesPanelEditorcolorred:GetNumber()/255
+	local g = NurfedFramesPanelEditorcolorgreen:GetNumber()/255
+	local b = NurfedFramesPanelEditorcolorblue:GetNumber()/255
+	local a = NurfedFramesPanelEditorcoloralpha:GetNumber()/100
+	if r > 1 then r = 1 NurfedFramesPanelEditorcolorred:SetText(255) end
+	if g > 1 then g = 1 NurfedFramesPanelEditorcolorgreen:SetText(255) end
+	if b > 1 then b = 1 NurfedFramesPanelEditorcolorblue:SetText(255) end
+	if a > 1 then a = 1 NurfedFramesPanelEditorcoloralpha:SetText(100) end
+	NurfedFramesPanelEditorcolor:SetColorRGB(r, g, b)
+	frameupdate(self)
 end
 
-local import = function()
+local import = function(self)
 	for k, v in pairs(Nurfed_UnitsLayout.templates) do
 		NURFED_FRAMES.templates[k] = v
 	end
@@ -750,8 +482,8 @@ local import = function()
 	StaticPopup_Show("NRF_RELOADUI")
 end
 
-local delete = function()
-	local name = Nurfed_MenuFrames.select
+local delete = function(self)
+	local name = NurfedFramesPanelFrames.select
 	local frame = getglobal(name)
 	if frame then
 		local parent = frame:GetParent()
@@ -763,26 +495,26 @@ local delete = function()
 		else
 			saveframe(parent)
 		end
-		Nurfed_MenuFrames.select = nil
-		Nurfed_MenuFrames[name] = nil
+		NurfedFramesPanelFrames.select = nil
+		NurfedFramesPanelFrames[name] = nil
 		popframes()
 		Nurfed_ScrollFrames()
 		updateeditor()
 	end
 end
 
-local framedrop = function()
-	local drop = Nurfed_MenuEditordropdown
+local framedrop = function(self)
+	local drop = NurfedFramesPanelEditordropdown
 	local info = {}
-	local id = this:GetID()
-	local parent = this:GetParent()
+	local id = self:GetID()
+	local parent = self:GetParent()
 	drop.displayMode = "MENU"
-	drop.initialize = function()
+	drop.initialize = function(self)
 		for _, v in ipairs(dropdowns[id]) do
 			info = {}
 			info.text = v[1]
 			info.value = v[2]
-			info.func = function() parent:SetText(this.value) end
+			info.func = function(self) parent:SetText(self.value) end
 			info.isTitle = nil
 			info.notCheckable = 1
 			UIDropDownMenu_AddButton(info)
@@ -791,22 +523,22 @@ local framedrop = function()
 	ToggleDropDownMenu(1, nil, drop, "cursor")
 end
 
-local createnew = function()
-	local parent = this.value
-	local method = this:GetText()
+local createnew = function(self)
+	local parent = self.value
+	local method = self:GetText()
 	local name = parent:GetName()
 	if parent == UIParent then
 		name = "Nurfed_"
 	end
-	Nurfed_MenuFrames.data = { parent, method, name }
+	NurfedFramesPanelFrames.data = { parent, method, name }
 	StaticPopupDialogs["NRF_CREATE"].text = "Create new "..method.."\n|cffff0000"..name.."|r"
 	StaticPopup_Show("NRF_CREATE")
 end
 
-local framecreate = function()
+local framecreate = function(self)
 	local creates = {}
-	if Nurfed_MenuFrames.select then
-		local frame = getglobal(Nurfed_MenuFrames.select)
+	if NurfedFramesPanelFrames.select then
+		local frame = getglobal(NurfedFramesPanelFrames.select)
 		if frame.CreateTexture then table.insert(creates, { frame, "Texture" }) end
 		if frame.CreateFontString then table.insert(creates, { frame, "FontString" }) end
 		if frame.GetChildren then
@@ -820,10 +552,10 @@ local framecreate = function()
 		table.insert(creates, { UIParent, "Frame" })
 	end
 
-	local drop = Nurfed_MenuEditordropdown
+	local drop = NurfedFramesPanelEditordropdown
 	local info = {}
 	drop.displayMode = "MENU"
-	drop.initialize = function()
+	drop.initialize = function(self)
 		for _, v in ipairs(creates) do
 			info = {}
 			info.text = v[2]
@@ -837,10 +569,10 @@ local framecreate = function()
 	ToggleDropDownMenu(1, nil, drop, "cursor")
 end
 
-function Nurfed_ScrollFrames()
+function Nurfed_ScrollFrames(self)
 	if not framelist then popframes() end
 	if Nurfed_UnitsLayout then
-		Nurfed_MenuEditorimport:Show()
+		NurfedFramesPanelEditorimport:Show()
 	end
 
 	local format_row = function(row, num)
@@ -854,7 +586,7 @@ function Nurfed_ScrollFrames()
 		icon:SetPoint("LEFT", row, "LEFT", 5 + (10 * level), 0)
 		if getglobal(frame).GetChildren then
 			icon:Show()
-			if Nurfed_MenuFrames[frame] then
+			if NurfedFramesPanelFrames[frame] then
 				icon:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
 				icon:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-Down")
 			else
@@ -864,18 +596,18 @@ function Nurfed_ScrollFrames()
 		end
 
 		row.frame = frame
-		if Nurfed_MenuFrames.select == frame then
+		if NurfedFramesPanelFrames.select == frame then
 			row:LockHighlight()
 		else
 			row:UnlockHighlight()
 		end
 	end
 
-	local frame = Nurfed_MenuFramesscroll
-	FauxScrollFrame_Update(frame, #framelist, 19, 14)
-	for line = 1, 19 do
+	local frame = NurfedFramesPanelFramesscroll
+	FauxScrollFrame_Update(frame, #framelist, 22, 14)
+	for line = 1, 22 do
 		local offset = line + FauxScrollFrame_GetOffset(frame)
-		local row = getglobal("Nurfed_FramesRow"..line)
+		local row = getglobal("NurfedFramesPanelFramesRow"..line)
 		if offset <= #framelist then
 			format_row(row, offset)
 			row:Show()
@@ -885,21 +617,21 @@ function Nurfed_ScrollFrames()
 	end
 end
 
-function Nurfed_Frame_OnClick(button)
-	local frame = this.frame
-	if Nurfed_MenuFrames.select == frame then
-		Nurfed_MenuFrames.select = nil
+function Nurfed_Frame_OnClick(self, button)
+	local frame = self.frame
+	if NurfedFramesPanelFrames.select == frame then
+		NurfedFramesPanelFrames.select = nil
 	else
-		Nurfed_MenuFrames.select = frame
+		NurfedFramesPanelFrames.select = frame
 	end
 	updateeditor()
 	Nurfed_ScrollFrames()
 end
 
-function Nurfed_Method_OnClick(id)
-	if not id then id = this:GetID() end
-	UIDropDownMenu_SetSelectedID(Nurfed_MenuEditormethods, id)
-	local name = Nurfed_MenuFrames.select
+function Nurfed_Method_OnClick(self, id)
+	if not id then id = self:GetID() end
+	UIDropDownMenu_SetSelectedID(NurfedFramesPanelEditormethods, id)
+	local name = NurfedFramesPanelFrames.select
 	local frame = getglobal(name)
 	hidemethods()
 	if frame then
@@ -924,20 +656,20 @@ function Nurfed_Method_OnClick(id)
 		end
 		if string.find(m, "Color") then
 			if not val then val = { 1, 1, 1, 1 } end
-			Nurfed_MenuEditorcolor:Show()
-			Nurfed_MenuEditorcolor:SetColorRGB(val[1], val[2], val[3])
-			Nurfed_MenuEditorcolorred:SetText(math.round(255 * val[1]))
-			Nurfed_MenuEditorcolorgreen:SetText(math.round(255 * val[2]))
-			Nurfed_MenuEditorcolorblue:SetText(math.round(255 * val[3]))
-			Nurfed_MenuEditorcoloralpha:SetText(math.round(100 * val[4]))
-			Nurfed_MenuEditorcolor.previousValues = val
+			NurfedFramesPanelEditorcolor:Show()
+			NurfedFramesPanelEditorcolor:SetColorRGB(val[1], val[2], val[3])
+			NurfedFramesPanelEditorcolorred:SetText(math.round(255 * val[1]))
+			NurfedFramesPanelEditorcolorgreen:SetText(math.round(255 * val[2]))
+			NurfedFramesPanelEditorcolorblue:SetText(math.round(255 * val[3]))
+			NurfedFramesPanelEditorcoloralpha:SetText(math.round(100 * val[4]))
+			NurfedFramesPanelEditorcolor.previousValues = val
 		elseif tables[m] then
 			m = string.lower(m)
-			getglobal("Nurfed_MenuEditor"..m):Show()
+			getglobal("NurfedFramesPanelEditor"..m):Show()
 			if val then
 				for k, v in pairs(val) do
 					if type(v) == "string" then
-						local opt = getglobal("Nurfed_MenuEditor"..m..k)
+						local opt = getglobal("NurfedFramesPanelEditor"..m..k)
 						local objtype = opt:GetObjectType()
 						if objtype == "EditBox" then
 							opt:SetText(v)
@@ -945,7 +677,7 @@ function Nurfed_Method_OnClick(id)
 							UIDropDownMenu_SetSelectedValue(opt, v)
 						end
 					elseif type(v) == "number" then
-						local opt = getglobal("Nurfed_MenuEditor"..m..k)
+						local opt = getglobal("NurfedFramesPanelEditor"..m..k)
 						local objtype = opt:GetObjectType()
 						if objtype == "EditBox" then
 							if opt:IsNumeric() or opt.deci then v = math.round(v, opt.deci) end
@@ -955,42 +687,42 @@ function Nurfed_Method_OnClick(id)
 						end
 					elseif type(v) == "table" then
 						if v.GetName then
-							local opt = getglobal("Nurfed_MenuEditor"..m..k)
+							local opt = getglobal("NurfedFramesPanelEditor"..m..k)
 							opt:SetText(v:GetName())
 						else
 							for i, j in pairs(v) do
-								getglobal("Nurfed_MenuEditor"..m..i):SetText(math.round(j))
+								getglobal("NurfedFramesPanelEditor"..m..i):SetText(math.round(j))
 							end
 						end
 					end
 				end
 			end
 		elseif checks[m] then
-			Nurfed_MenuEditorenable:Show()
-			Nurfed_MenuEditorenableText:SetText(m)
-			Nurfed_MenuEditorenable:SetChecked(val)
+			NurfedFramesPanelEditorenable:Show()
+			NurfedFramesPanelEditorenableText:SetText(m)
+			NurfedFramesPanelEditorenable:SetChecked(val)
 		elseif sliders[m] then
 			if not val then val = 0 end
-			Nurfed_MenuEditorslider:Show()
-			Nurfed_MenuEditorslider.deci = sliders[m][1]
-			Nurfed_MenuEditorsliderLow:SetText(sliders[m][2])
-			Nurfed_MenuEditorsliderHigh:SetText(sliders[m][3])
-			Nurfed_MenuEditorslider:SetMinMaxValues(sliders[m][4], sliders[m][5])
-			Nurfed_MenuEditorslider:SetValueStep(sliders[m][6])
-			Nurfed_MenuEditorslider:SetValue(val)
+			NurfedFramesPanelEditorslider:Show()
+			NurfedFramesPanelEditorslider.deci = sliders[m][1]
+			NurfedFramesPanelEditorsliderLow:SetText(sliders[m][2])
+			NurfedFramesPanelEditorsliderHigh:SetText(sliders[m][3])
+			NurfedFramesPanelEditorslider:SetMinMaxValues(sliders[m][4], sliders[m][5])
+			NurfedFramesPanelEditorslider:SetValueStep(sliders[m][6])
+			NurfedFramesPanelEditorslider:SetValue(val)
 		elseif edits[m] then
-			Nurfed_MenuEditoredit:Show()
-			Nurfed_MenuEditoredit:SetWidth(edits[m][1])
-			Nurfed_MenuEditoredit:SetNumeric(edits[m][2])
-			Nurfed_MenuEditoredit.deci = edits[m][4]
+			NurfedFramesPanelEditoredit:Show()
+			NurfedFramesPanelEditoredit:SetWidth(edits[m][1])
+			NurfedFramesPanelEditoredit:SetNumeric(edits[m][2])
+			NurfedFramesPanelEditoredit.deci = edits[m][4]
 			if edits[m][2] or edits[m][4] then val = math.round(val, edits[m][4]) end
-			Nurfed_MenuEditoredit:SetJustifyH(edits[m][3])
-			Nurfed_MenuEditoredit:SetText(val or "")
-			if m == "StatusBarTexture" then Nurfed_MenuEditoreditdrop:Show() end
+			NurfedFramesPanelEditoredit:SetJustifyH(edits[m][3])
+			NurfedFramesPanelEditoredit:SetText(val or "")
+			if m == "StatusBarTexture" then NurfedFramesPanelEditoreditdrop:Show() end
 		elseif drops[m] then
-			Nurfed_MenuEditordrop:Show()
+			NurfedFramesPanelEditordrop:Show()
 			local selected
-			UIDropDownMenu_Initialize(Nurfed_MenuEditordrop, function()
+			UIDropDownMenu_Initialize(NurfedFramesPanelEditordrop, function(self)
 					local info
 					for k, v in ipairs(drops[m]) do
 						info = {}
@@ -1001,18 +733,18 @@ function Nurfed_Method_OnClick(id)
 						if v == val then selected = k end
 					end
 				end)
-			UIDropDownMenu_SetSelectedID(Nurfed_MenuEditordrop, selected)
+			UIDropDownMenu_SetSelectedID(NurfedFramesPanelEditordrop, selected)
 		end
 	end
 end
 
 
--- Frame Editor
+--[[ Frame Editor ]]--
 local layout = {
 	type = "Frame",
 	size = { 250, 300 },
 	FrameStrata = "LOW",
-	Anchor = { "LEFT", "Nurfed_Menu", "RIGHT", 0, 0 },
+	Anchor = { "LEFT", "NurfedFramesPanel", "RIGHT", 0, 0 },
 	Backdrop = { bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = true, tileSize = 16, edgeSize = 16, insets = { left = 5, right = 4, top = 5, bottom = 4 }, },
 	BackdropColor = { 0, 0, 0, 0.75 },
 	children = {
@@ -1059,7 +791,9 @@ local layout = {
 			type = "Frame",
 			uitemp = "UIDropDownMenuTemplate",
 			Anchor = { "TOPLEFT", "$parentheader", "BOTTOMLEFT", -15, -23 },
-			OnShow = function() configmain() end,
+			OnShow = function(self)
+				configmain(self) 
+			end,
 		},
 		color = {
 			type = "ColorSelect",
@@ -1097,10 +831,10 @@ local layout = {
 					TextColor = { 1, 0, 0 },
 					Numeric = true,
 					MaxLetters = 3,
-					OnTabPressed = function() Nurfed_MenuEditorcolorgreen:SetFocus() end,
-					OnTextChanged = function() if this.focus then colorupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorcolorgreen:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then colorupdate() end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 				green = {
 					template = "nrf_editbox",
@@ -1111,10 +845,10 @@ local layout = {
 					TextColor = { 0, 1, 0 },
 					Numeric = true,
 					MaxLetters = 3,
-					OnTabPressed = function() Nurfed_MenuEditorcolorblue:SetFocus() end,
-					OnTextChanged = function() if this.focus then colorupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorcolorblue:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then colorupdate() end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 				blue = {
 					template = "nrf_editbox",
@@ -1125,10 +859,10 @@ local layout = {
 					TextColor = { 0, 1, 1 },
 					Numeric = true,
 					MaxLetters = 3,
-					OnTabPressed = function() Nurfed_MenuEditorcoloralpha:SetFocus() end,
-					OnTextChanged = function() if this.focus then colorupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorcoloralpha:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then colorupdate() end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 				alpha = {
 					template = "nrf_editbox",
@@ -1138,19 +872,19 @@ local layout = {
 					BackdropColor = { 1, 1, 1, 0.25 },
 					Numeric = true,
 					MaxLetters = 3,
-					OnTabPressed = function() Nurfed_MenuEditorcolorred:SetFocus() end,
-					OnTextChanged = function() if this.focus then colorupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorcolorred:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then colorupdate() end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 			},
-			OnColorSelect = function()
-						Nurfed_MenuEditorcolorred:SetText(math.round(255 * arg1))
-						Nurfed_MenuEditorcolorgreen:SetText(math.round(255 * arg2))
-						Nurfed_MenuEditorcolorblue:SetText(math.round(255 * arg3))
-						frameupdate(nil, true)
+			OnColorSelect = function(self)
+						NurfedFramesPanelEditorcolorred:SetText(math.round(255 * arg1))
+						NurfedFramesPanelEditorcolorgreen:SetText(math.round(255 * arg2))
+						NurfedFramesPanelEditorcolorblue:SetText(math.round(255 * arg3))
+						frameupdate(self, nil, true)
 					end,
-			OnMouseUp = function() frameupdate() end,
+			OnMouseUp = function(self) frameupdate(self) end,
 			Hide = true,
 		},
 		backdrop = {
@@ -1167,12 +901,12 @@ local layout = {
 							Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
 							Text = "...",
 							ID = 2,
-							OnClick = function() framedrop() end,
+							OnClick = function(self) framedrop() end,
 						},
 					},
 					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, 0 },
-					OnTabPressed = function() Nurfed_MenuEditorbackdropedgeFile:SetFocus() end,
-					OnTextChanged = function() frameupdate() end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorbackdropedgeFile:SetFocus() end,
+					OnTextChanged = function(self) frameupdate(self) end,
 				},
 				edgeFile = {
 					template = "nrf_editbox",
@@ -1183,19 +917,19 @@ local layout = {
 							Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
 							Text = "...",
 							ID = 3,
-							OnClick = function() framedrop() end,
+							OnClick = function(self) framedrop() end,
 						},
 					},
 					Anchor = { "TOP", "$parentbgFile", "BOTTOM", 0, -9 },
-					OnTabPressed = function() Nurfed_MenuEditorbackdroptileSize:SetFocus() end,
-					OnTextChanged = function() frameupdate() end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorbackdroptileSize:SetFocus() end,
+					OnTextChanged = function(self) frameupdate(self) end,
 				},
 				tile = {
 					type = "CheckButton",
 					size = { 20, 20 },
 					uitemp = "UICheckButtonTemplate",
 					Anchor = { "TOPLEFT", "$parentedgeFile", "BOTTOMLEFT", 0, -9 },
-					OnClick = function() frameupdate() end,
+					OnClick = function(self) frameupdate(self) end,
 				},
 				tileSize = {
 					template = "nrf_editbox",
@@ -1204,10 +938,10 @@ local layout = {
 					JustifyH = "CENTER",
 					Numeric = true,
 					MaxLetters = 2,
-					OnTabPressed = function() Nurfed_MenuEditorbackdropedgeSize:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorbackdropedgeSize:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 				edgeSize = {
 					template = "nrf_editbox",
@@ -1216,10 +950,10 @@ local layout = {
 					JustifyH = "CENTER",
 					Numeric = true,
 					MaxLetters = 2,
-					OnTabPressed = function() Nurfed_MenuEditorbackdropleft:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorbackdropleft:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 				left = {
 					template = "nrf_editbox",
@@ -1228,10 +962,10 @@ local layout = {
 					JustifyH = "CENTER",
 					Numeric = true,
 					MaxLetters = 2,
-					OnTabPressed = function() Nurfed_MenuEditorbackdropright:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorbackdropright:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 				right = {
 					template = "nrf_editbox",
@@ -1240,10 +974,10 @@ local layout = {
 					JustifyH = "CENTER",
 					Numeric = true,
 					MaxLetters = 2,
-					OnTabPressed = function() Nurfed_MenuEditorbackdroptop:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorbackdroptop:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 				top = {
 					template = "nrf_editbox",
@@ -1252,10 +986,10 @@ local layout = {
 					JustifyH = "CENTER",
 					Numeric = true,
 					MaxLetters = 2,
-					OnTabPressed = function() Nurfed_MenuEditorbackdropbottom:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorbackdropbottom:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 				bottom = {
 					template = "nrf_editbox",
@@ -1264,10 +998,10 @@ local layout = {
 					JustifyH = "CENTER",
 					Numeric = true,
 					MaxLetters = 2,
-					OnTabPressed = function() Nurfed_MenuEditorbackdropbgFile:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorbackdropbgFile:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 			},
 			Hide = true,
@@ -1281,8 +1015,8 @@ local layout = {
 					template = "nrf_editbox",
 					size = { 175, 18 },
 					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, 0 },
-					OnTabPressed = function() Nurfed_MenuEditorfont2:SetFocus() end,
-					OnTextChanged = function() frameupdate() end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorfont2:SetFocus() end,
+					OnTextChanged = function(self) frameupdate(self) end,
 				},
 				["2"] = {
 					template = "nrf_editbox",
@@ -1291,19 +1025,19 @@ local layout = {
 					JustifyH = "CENTER",
 					Numeric = true,
 					MaxLetters = 2,
-					OnTabPressed = function() Nurfed_MenuEditorfont3:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorfont3:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 				["3"] = {
 					template = "nrf_editbox",
 					size = { 175, 18 },
 					Anchor = { "TOPLEFT", "$parent2", "BOTTOMLEFT", 0, -9 },
-					OnTabPressed = function() Nurfed_MenuEditorfont1:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorfont1:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 			},
 			Hide = true,
@@ -1322,21 +1056,21 @@ local layout = {
 							Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
 							Text = "...",
 							ID = 1,
-							OnClick = function() framedrop() end,
+							OnClick = function(self) framedrop() end,
 						},
 					},
 					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, 0 },
-					OnTabPressed = function() Nurfed_MenuEditorpoint2:SetFocus() end,
-					OnTextChanged = function() frameupdate() end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorpoint2:SetFocus() end,
+					OnTextChanged = function(self) frameupdate(self) end,
 				},
 				["2"] = {
 					template = "nrf_editbox",
 					size = { 175, 18 },
 					Anchor = { "TOPLEFT", "$parent1", "BOTTOMLEFT", 0, -9 },
-					OnTabPressed = function() Nurfed_MenuEditorpoint3:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorpoint3:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 				["3"] = {
 					template = "nrf_editbox",
@@ -1347,12 +1081,12 @@ local layout = {
 							Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
 							Text = "...",
 							ID = 1,
-							OnClick = function() framedrop() end,
+							OnClick = function(self) framedrop() end,
 						},
 					},
 					Anchor = { "TOPLEFT", "$parent2", "BOTTOMLEFT", 0, -9 },
-					OnTabPressed = function() Nurfed_MenuEditorpoint4:SetFocus() end,
-					OnTextChanged = function() frameupdate() end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorpoint4:SetFocus() end,
+					OnTextChanged = function(self) frameupdate(self) end,
 				},
 				["4"] = {
 					template = "nrf_editbox",
@@ -1360,10 +1094,10 @@ local layout = {
 					Anchor = { "TOPLEFT", "$parent3", "BOTTOMLEFT", 0, -9 },
 					JustifyH = "CENTER",
 					MaxLetters = 5,
-					OnTabPressed = function() Nurfed_MenuEditorpoint5:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorpoint5:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 					vars = { deci = 0 },
 				},
 				["5"] = {
@@ -1372,10 +1106,10 @@ local layout = {
 					Anchor = { "LEFT", "$parent4", "RIGHT", 15, 0 },
 					JustifyH = "CENTER",
 					MaxLetters = 5,
-					OnTabPressed = function() Nurfed_MenuEditorpoint1:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorpoint1:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 					vars = { deci = 0 },
 				},
 			},
@@ -1393,10 +1127,10 @@ local layout = {
 					JustifyH = "CENTER",
 					Numeric = true,
 					MaxLetters = 2,
-					OnTabPressed = function() Nurfed_MenuEditorpushedtextoffset2:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorpushedtextoffset2:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 				["2"] = {
 					template = "nrf_editbox",
@@ -1405,10 +1139,10 @@ local layout = {
 					JustifyH = "CENTER",
 					Numeric = true,
 					MaxLetters = 2,
-					OnTabPressed = function() Nurfed_MenuEditorpushedtextoffset1:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorpushedtextoffset1:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 			},
 			Hide = true,
@@ -1424,10 +1158,10 @@ local layout = {
 					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, 0 },
 					JustifyH = "CENTER",
 					MaxLetters = 3,
-					OnTabPressed = function() Nurfed_MenuEditorshadowoffset2:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorshadowoffset2:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 					vars = { deci = 0 },
 				},
 				["2"] = {
@@ -1436,10 +1170,10 @@ local layout = {
 					Anchor = { "LEFT", "$parent1", "RIGHT", 15, 0 },
 					JustifyH = "CENTER",
 					MaxLetters = 3,
-					OnTabPressed = function() Nurfed_MenuEditorshadowoffset1:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditorshadowoffset1:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 					vars = { deci = 0 },
 				},
 			},
@@ -1456,10 +1190,10 @@ local layout = {
 					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, 0 },
 					JustifyH = "CENTER",
 					MaxLetters = 5,
-					OnTabPressed = function() Nurfed_MenuEditortexcoord2:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditortexcoord2:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 					vars = { deci = 3 },
 				},
 				["2"] = {
@@ -1468,10 +1202,10 @@ local layout = {
 					Anchor = { "LEFT", "$parent1", "RIGHT", 9, 0 },
 					JustifyH = "CENTER",
 					MaxLetters = 5,
-					OnTabPressed = function() Nurfed_MenuEditortexcoord3:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditortexcoord3:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 					vars = { deci = 3 },
 				},
 				["3"] = {
@@ -1480,10 +1214,10 @@ local layout = {
 					Anchor = { "LEFT", "$parent2", "RIGHT", 9, 0 },
 					JustifyH = "CENTER",
 					MaxLetters = 5,
-					OnTabPressed = function() Nurfed_MenuEditortexcoord4:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditortexcoord4:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 					vars = { deci = 3 },
 				},
 				["4"] = {
@@ -1492,10 +1226,10 @@ local layout = {
 					Anchor = { "LEFT", "$parent3", "RIGHT", 9, 0 },
 					JustifyH = "CENTER",
 					MaxLetters = 5,
-					OnTabPressed = function() Nurfed_MenuEditortexcoord5:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditortexcoord5:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 					vars = { deci = 3 },
 				},
 				["5"] = {
@@ -1504,10 +1238,10 @@ local layout = {
 					Anchor = { "TOPLEFT", "$parent1", "BOTTOMLEFT", 0, -9 },
 					JustifyH = "CENTER",
 					MaxLetters = 5,
-					OnTabPressed = function() Nurfed_MenuEditortexcoord6:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditortexcoord6:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 					vars = { deci = 3 },
 				},
 				["6"] = {
@@ -1516,10 +1250,10 @@ local layout = {
 					Anchor = { "LEFT", "$parent5", "RIGHT", 9, 0 },
 					JustifyH = "CENTER",
 					MaxLetters = 5,
-					OnTabPressed = function() Nurfed_MenuEditortexcoord7:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditortexcoord7:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 					vars = { deci = 3 },
 				},
 				["7"] = {
@@ -1528,10 +1262,10 @@ local layout = {
 					Anchor = { "LEFT", "$parent6", "RIGHT", 9, 0 },
 					JustifyH = "CENTER",
 					MaxLetters = 5,
-					OnTabPressed = function() Nurfed_MenuEditortexcoord8:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditortexcoord8:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 					vars = { deci = 3 },
 				},
 				["8"] = {
@@ -1540,10 +1274,10 @@ local layout = {
 					Anchor = { "LEFT", "$parent7", "RIGHT", 9, 0 },
 					JustifyH = "CENTER",
 					MaxLetters = 5,
-					OnTabPressed = function() Nurfed_MenuEditortexcoord1:SetFocus() end,
-					OnTextChanged = function() if this.focus then frameupdate() end end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnTabPressed = function(self) NurfedFramesPanelEditortexcoord1:SetFocus() end,
+					OnTextChanged = function(self) if self.focus then frameupdate(self) end end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 					vars = { deci = 3 },
 				},
 			},
@@ -1554,32 +1288,32 @@ local layout = {
 			size = { 20, 20 },
 			uitemp = "UICheckButtonTemplate",
 			Anchor = { "TOPLEFT", "$parentmethods", "BOTTOMLEFT", 20, -8 },
-			OnClick = function() frameupdate() end,
+			OnClick = function(self) frameupdate(self) end,
 			Hide = true,
 		},
 		slider = {
 			type = "Slider",
 			uitemp = "OptionsSliderTemplate",
-			Anchor = { "TOPLEFT", "$parentmethods", "BOTTOMLEFT", 20, -8 },
+			Anchor = { "TOPLEFT", "$parent/s", "BOTTOMLEFT", 20, -8 },
 			children = {
 				value = {
 					template = "nrf_editbox",
 					size = { 35, 18 },
 					Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
-					OnTextChanged = function()
-						local value = tonumber(this:GetText())
-						local min, max = this:GetParent():GetMinMaxValues()
+					OnTextChanged = function(self)
+						local value = tonumber(self:GetText())
+						local min, max = self:GetParent():GetMinMaxValues()
 						if not value or value < min then return end
 						if value > max then value = max end
-						this:GetParent():SetValue(value)
-						if this.focus then frameupdate(this:GetParent()) end
+						self:GetParent():SetValue(value)
+						if self.focus then frameupdate(self:GetParent()) end
 					end,
-					OnEditFocusGained = function() this:HighlightText() this.focus = true end,
-					OnEditFocusLost = function() this:HighlightText(0, 0) this.focus = nil end,
+					OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
+					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 			},
-			OnMouseUp = function() frameupdate() end,
-			OnValueChanged = function() Nurfed_Options_sliderOnValueChanged() end,
+			OnMouseUp = function(self) frameupdate(self) end,
+			OnValueChanged = function(self) Nurfed_Options_sliderOnValueChanged(self) end,
 			Hide = true,
 		},
 		edit = {
@@ -1592,11 +1326,11 @@ local layout = {
 					Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
 					Text = "...",
 					ID = 4,
-					OnClick = function() framedrop() end,
+					OnClick = function(self) framedrop() end,
 				},
 			},
 			Anchor = { "TOPLEFT", "$parentmethods", "BOTTOMLEFT", 20, -8 },
-			OnTextChanged = function() frameupdate() end,
+			OnTextChanged = function(self) frameupdate(self) end,
 			Hide = true,
 		},
 		drop = {
@@ -1609,15 +1343,15 @@ local layout = {
 			template = "nrf_button",
 			Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 5 },
 			Text = "Import Layout",
-			OnClick = function() import() end,
+			OnClick = function(self) import() end,
 			Hide = true,
 		},
 		delete = {
 			template = "nrf_button",
 			Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 5, 5 },
 			Text = DELETE,
-			OnClick = function()
-					StaticPopupDialogs["NRF_DELETE"].text = "Delete "..Nurfed_MenuFrames.select.."?"
+			OnClick = function(self)
+					StaticPopupDialogs["NRF_DELETE"].text = "Delete "..NurfedFramesPanelFrames.select.."?"
 					StaticPopup_Show("NRF_DELETE")
 				end,
 			Hide = true,
@@ -1626,38 +1360,39 @@ local layout = {
 			template = "nrf_button",
 			Anchor = { "LEFT", "$parentdelete", "RIGHT", 10, 0 },
 			Text = CREATE,
-			OnClick = function() framecreate() end,
+			OnClick = function(self) framecreate() end,
 		},
-		--
+		--[[
 		vars = {
 			template = "nrf_editbox",
 			size = { 220, 270 },
 			Anchor = { "BOTTOM", "$parent", "BOTTOM", 0, 5 },
 			MultiLine = true,
 		},
+		]]
 	},
 	Hide = true,
 }
 
-function Nurfed_ExpandFrame()
-	local frame = this:GetParent().frame
-	if Nurfed_MenuFrames[frame] then
-		Nurfed_MenuFrames[frame] = nil
+function Nurfed_ExpandFrame(self)
+	local frame = self:GetParent().frame
+	if NurfedFramesPanelFrames[frame] then
+		NurfedFramesPanelFrames[frame] = nil
 	else
-		Nurfed_MenuFrames[frame] = true
+		NurfedFramesPanelFrames[frame] = true
 	end
 	popframes()
 	Nurfed_ScrollFrames()
 end
 
---frame = Nurfed:create("Nurfed_MenuEditor", layout, Nurfed_Menu)
---Nurfed_MenuEditorheadertitle:SetText("Nurfed Frame Editor")
+frame = Nurfed:create("NurfedFramesPanelEditor", layout, NurfedFramesPanel)
+NurfedFramesPanelEditorheadertitle:SetText("Nurfed Frame Editor")
 layout = nil
 
 StaticPopupDialogs["NRF_DELETE"] = {
 	button1 = TEXT(ACCEPT),
 	button2 = TEXT(CANCEL),
-	OnAccept = function() delete() end,
+	OnAccept = function(self) delete() end,
 	timeout = 10,
 	whileDead = 1,
 	hideOnEscape = 1,
@@ -1667,10 +1402,10 @@ StaticPopupDialogs["NRF_CREATE"] = {
 	button1 = TEXT(ACCEPT),
 	button2 = TEXT(CANCEL),
 	hasEditBox = 1,
-	OnAccept = function()
-		local editBox = getglobal(this:GetParent():GetName().."EditBox")
+	OnAccept = function(self)
+		local editBox = getglobal(self:GetParent():GetName().."EditBox")
 		local text = editBox:GetText()
-		local data = Nurfed_MenuFrames.data
+		local data = NurfedFramesPanelFrames.data
 		local frame
 		text = string.gsub(text, "%s", "")
 		if text ~= "" and not getglobal(data[3]..text) then
@@ -1697,19 +1432,19 @@ StaticPopupDialogs["NRF_CREATE"] = {
 		end
 		editBox:SetText("")
 	end,
-	OnShow = function()
-		getglobal(this:GetName().."EditBox"):SetFocus()
+	OnShow = function(self)
+		getglobal(self:GetName().."EditBox"):SetFocus()
 	end,
-	OnHide = function()
-		Nurfed_MenuFrames.data = nil
+	OnHide = function(self)
+		NurfedFramesPanelFrames.data = nil
 		popframes()
 		Nurfed_ScrollFrames()
 		updateeditor()
 	end,
-	EditBoxOnEnterPressed = function()
-		local editBox = getglobal(this:GetParent():GetName().."EditBox")
+	EditBoxOnEnterPressed = function(self)
+		local editBox = getglobal(self:GetParent():GetName().."EditBox")
 		local text = editBox:GetText()
-		local data = Nurfed_MenuFrames.data
+		local data = NurfedFramesPanelFrames.data
 		text = string.gsub(text, "%s", "")
 		if text ~= "" and not getglobal(data[3]..text) then
 			if data[2] == "Button" or data[2] == "Frame" or data[2] == "StatusBar" or data[2] == "PlayerModel" then
@@ -1734,13 +1469,12 @@ StaticPopupDialogs["NRF_CREATE"] = {
 			saveframe(frame)
 		end
 		editBox:SetText("")
-		this:GetParent():Hide()
+		self:GetParent():Hide()
 	end,
-	EditBoxOnEscapePressed = function()
-		this:GetParent():Hide()
+	EditBoxOnEscapePressed = function(self)
+		self:GetParent():Hide()
 	end,
 	timeout = 10,
 	whileDead = 1,
 	hideOnEscape = 1,
 }
-]]
