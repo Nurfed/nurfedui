@@ -105,6 +105,7 @@ function util:mergetable(target, source)
 end
 
 local classLst = {}
+--## TODO: Convert to Metatable usage!
 function util:GetClassByName(name)
 	if name and not classLst[name] then
 		local i, fname, class
@@ -160,6 +161,22 @@ function util:GetClassByName(name)
 		end
 	end
 	return name and classLst[name] or nil
+end
+
+function util:AddUnitClassByUnit(unit)
+	if unit and UnitExists(unit) and UnitIsPlayer(unit) then
+		local name = UnitName(unit)
+		if not classLst[name] then
+			local class = UnitClass(unit)
+			class = class == "Death Knight" and "DeathKnight" or class
+			classLst[UnitName(unit)] = class
+			debug("added", UnitName(unit), class)
+		end
+	end
+end
+
+function util:GetUnitClassByUnit(unit)
+	return unit and UnitExists(unit) and classLst[UnitName(unit)] or nil
 end
 	
 function util:GetHexClassColorByName(name)
@@ -1082,6 +1099,10 @@ end
 util:regevent("CHAT_MSG_ADDON", addonmsg)
 Nurfed:setver("$Date$")
 Nurfed:setrev("$Rev$")
+
+util:regevent("UPDATE_MOUSEOVER_UNIT", function(unit)
+	Nurfed:AddUnitClassByUnit("mouseover")
+end)
 
 -- debug function I jacked from my RBM mod.  <3
 -- used by apoco for beta, remove before final push
