@@ -902,6 +902,7 @@ util:addslash(Nurfed_ToggleOptions, "/nurfed")
 local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver, nrfcl_ver, nrfcl_rev
 -- no opt = Core, 1 = Options, 2 = Arena, 3 = Combat Log
 function util:setver(ver, opt)
+	if not ver or type(ver) ~= "string" or type(ver) ~= "number" then return end
 	ver = ver:gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1")
 	ver = ver:match("-%d%d"):gsub("-", "").."."..ver:match("-%d%d", 6):gsub("-", "").."."..ver:match("%d%d%d%d")
 	if opt then
@@ -939,6 +940,7 @@ function util:getver(opt)
 end
 
 function util:setrev(rev, opt)
+	if not rev or type(rev) ~= "string" or type(rev) ~= "number" then return end
 	rev = rev:gsub("%$", ""):gsub("%s$", "", 1)
 	if opt then
 		if opt == 1 then
