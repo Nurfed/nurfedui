@@ -248,7 +248,9 @@ saveopt = function(self)
 			NURFED_SAVED[opt] = value
 		end
 	end
-
+	if self.nrfevent then
+		Nurfed:sendevent(self.nrfevent)
+	end
 	if self.func then
 		self.func(value)
 	end

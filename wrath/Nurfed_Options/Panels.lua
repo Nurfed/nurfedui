@@ -973,6 +973,17 @@ local panels = {
 				end,
 				Text = L["Save Pos"],
 			},
+			buttontext = {
+				template = "nrf_button",
+				Anchor = { "TOPLEFT", "$parentsavepos", "TOPRIGHT", 2, 0 },
+				OnMouseDown = function()
+					Nurfed:sendevent("NRF_TOGGLE_NUMBER_TEXT", true)
+				end,
+				OnMouseUp = function()
+					Nurfed:sendevent("NRF_TOGGLE_NUMBER_TEXT")
+				end,
+				Text = L["Button Numbers"],
+			},
 					
 			add = {
 				template = "nrf_editbox",
@@ -1055,6 +1066,32 @@ local panels = {
 						OnClick = function()
 							Nurfed_CreateDefaultActionBar("warriorStance")
 						end,
+					},
+					
+					petbarconfig = {
+						template = "nrf_editbox",
+						size = { 125, 18 },
+						Point = { "TOPLEFT", "$parentwarriorstancebar", "BOTTOMLEFT", 0, -30 },
+						OnTextChanged = function(self) 
+							local opt = self.option
+							local value = tonumber(self:GetText())
+							if value == NURFED_DEFAULT[opt] then
+								NURFED_SAVED[opt] = nil
+							else
+								NURFED_SAVED[opt] = value
+							end
+						end,
+						OnEnterPressed = function(self) 
+							local opt = self.option
+							local value = tonumber(self:GetText())
+							if value == NURFED_DEFAULT[opt] then
+								NURFED_SAVED[opt] = nil
+							else
+								NURFED_SAVED[opt] = value
+							end
+							self:ClearFocus()
+						end,
+						vars = { val = "petbarstartbutton", option = "petbarstartbutton", text = "Pet Bar Start Button" },
 					},
 				},
 			},
