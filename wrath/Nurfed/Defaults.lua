@@ -68,6 +68,7 @@ NURFED_DEFAULT["hotkeys"] = 1
 NURFED_DEFAULT["macrotext"] = 1
 NURFED_DEFAULT["unusedbtn"] = 1
 NURFED_DEFAULT["fadein"] = 1
+NURFED_DEFAULT["petbarstartbutton"] = 1
 NURFED_DEFAULT["bagsshow"] = false
 NURFED_DEFAULT["bagsscale"] = 1
 NURFED_DEFAULT["bagsvert"] = false

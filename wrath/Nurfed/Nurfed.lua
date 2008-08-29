@@ -458,7 +458,6 @@ local function message(self, msg, r, g, b, id)
   if (msg and type(msg) == "string") then
 	messageText[1] = nil; messageText[2] = nil -- there should not be anything more than 2, no need to do pairs
 	if msg:find("has earned the achievement") then
-		Nurfed:print("BLOCKED ACHIEVEMENT!")
 		return
 	end
     if Nurfed:getopt("timestamps") then

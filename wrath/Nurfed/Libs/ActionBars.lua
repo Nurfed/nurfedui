@@ -152,7 +152,11 @@ local function updatecooldown(btn)
 	--local cooldown = _G[btn:GetName().."Cooldown"]
 	if btn.spell then
 		if btn.type == "spell" then
-			start, duration, enable = GetSpellCooldown(btn.spell)
+			if btn.IsPetAction then
+				start, duration, enable = GetPetActionCooldown(btn.IsPetAction)
+			else
+				start, duration, enable = GetSpellCooldown(btn.spell)
+			end
 		elseif btn.type == "item" then
 			start, duration, enable = GetItemCooldown(btn.spell)
 		elseif btn.type == "macro" then
@@ -240,22 +244,26 @@ local function seticon(btn)
 			spell = SecureButton_GetModifiedAttribute(btn, new, value)
 			if spell then
 				if new == "spell" then
-					texture = GetSpellTexture(spell)
-					if not texture then
-						attrib = btn:GetAttribute("*companionID")
-						if attrib then
-							local attribType = btn:GetAttribute("*companionType")
-							local attribSlot = btn:GetAttribute("*companionSlot")
-							if attribType and attribSlot then
-								texture = select(4, GetCompanionInfo(attribType, attribSlot))
-							else
-								texture = select(3, GetSpellInfo(attrib))
+					if btn.IsPetAction then
+						texture = select(3, GetPetActionInfo(btn.IsPetAction))
+					else
+						texture = GetSpellTexture(spell)
+						if not texture then
+							attrib = btn:GetAttribute("*companionID")
+							if attrib then
+								local attribType = btn:GetAttribute("*companionType")
+								local attribSlot = btn:GetAttribute("*companionSlot")
+								if attribType and attribSlot then
+									texture = select(4, GetCompanionInfo(attribType, attribSlot))
+								else
+									texture = select(3, GetSpellInfo(attrib))
+								end
+								btn.companionID = attrib
 							end
-							btn.companionID = attrib
 						end
-					end
-					if IsAttackSpell(spell) or IsAutoRepeatSpell(spell) then
-						btn.attack = true
+						if IsAttackSpell(spell) or IsAutoRepeatSpell(spell) then
+							btn.attack = true
+						end
 					end
 					
 				elseif new == "item" then
@@ -308,20 +316,24 @@ local function btnenter(self)
 	if tooltip and self.type then
 		GameTooltip_SetDefaultAnchor(GameTooltip, self)
 		if self.type == "spell" then
-			local id = Nurfed:getspell(self.spell)
-			if id then
-				
-				local rank = select(2, GetSpellName(id, BOOKTYPE_SPELL))
-				GameTooltip:SetHyperlink(GetSpellLink(id, BOOKTYPE_SPELL))
-				if rank then
-					GameTooltipTextRight1:SetText(rank)
-					GameTooltipTextRight1:SetTextColor(0.5, 0.5, 0.5)
-					GameTooltipTextRight1:Show()
-				end
+			if self.IsPetAction then
+				GameTooltip:SetPetAction(self.IsPetAction)
 			else
-				local attrib = self:GetAttribute("*companionID")
-				if attrib then
-					GameTooltip:SetHyperlink("spell:"..attrib)
+				local id = Nurfed:getspell(self.spell)
+				if id then
+					
+					local rank = select(2, GetSpellName(id, BOOKTYPE_SPELL))
+					GameTooltip:SetHyperlink(GetSpellLink(id, BOOKTYPE_SPELL))
+					if rank then
+						GameTooltipTextRight1:SetText(rank)
+						GameTooltipTextRight1:SetTextColor(0.5, 0.5, 0.5)
+						GameTooltipTextRight1:Show()
+					end
+				else
+					local attrib = self:GetAttribute("*companionID")
+					if attrib then
+						GameTooltip:SetHyperlink("spell:"..attrib)
+					end
 				end
 			end
 		
@@ -442,7 +454,7 @@ local function btnreceivedrag(self)
 		--TODO: Rewrite this so it clears values cleaner
 		if cursor == "spell" then
 			local spell, rank
-			if arg1 == 0 and arg2 == "spell" and nrfCompanionType and nrfCompanionSlot and nrfCompanionSlot then
+			if arg1 == 0 and arg2 == "spell" and nrfCompanionID and nrfCompanionType and nrfCompanionSlot and nrfCompanionSlot then
 				spell = GetSpellInfo(nrfCompanionID)
 				self:SetAttribute("*companionID", nrfCompanionID)
 				self:SetAttribute("*companionType", nrfCompanionType)
@@ -666,6 +678,20 @@ local btnevents = {
 			end
 		end
 	end,
+	["NRF_TOGGLE_NUMBER_TEXT"] = function(btn, toggle)
+		if not _G[btn:GetName().."NumberText"] then
+			btn:CreateFontString(btn:GetName().."NumberText", "OVERLAY")
+			_G[btn:GetName().."NumberText"]:SetFont("Fonts\\FRIZQT__.TTF", 24 * btn:GetScale(), "OUTLINE")
+			_G[btn:GetName().."NumberText"]:SetPoint("CENTER", btn, "CENTER", 0, 0)
+		end
+		_G[btn:GetName().."NumberText"]:SetText(btn:GetName():gsub("Nurfed_Button", ""))
+		if toggle then
+			_G[btn:GetName().."NumberText"]:Show()
+		else
+			_G[btn:GetName().."NumberText"]:Hide()
+		end
+	end,
+
 	["UPDATE_MACROS"] = function(btn)
 		if btn.type == "macro" then
 			seticon(btn)
@@ -713,7 +739,9 @@ local function btnupdate()
 		local r, g, b = 1, 1, 1
 		local unit = SecureButton_GetUnit(btn)
 		if btn.type == "spell" then
-			if btn.companionID then
+			if btn.IsPetAction then
+				-- NOTHINH RWAR!
+			elseif btn.companionID then
 				if UnitCastingInfo("player") == btn.spell then
 					btn:SetChecked(true)
 				else
@@ -1112,6 +1140,10 @@ Nurfed:createtemp("actionbar", {
 	}
 })
   
+local oldBarSettings = {
+
+}
+local lastFarsight
 local barevents = {
 	["NURFED_LOCK"] = function(self)
 		if NRF_LOCKED then
@@ -1119,6 +1151,105 @@ local barevents = {
 		else
 			_G[self:GetName().."drag"]:Show()
 		end
+	end,
+	["PLAYER_CONTROL_LOST"] = function(self)	-- pet bar controlling
+	end,
+	["PLAYER_CONTROL_GAINED"] = function(self)	
+	end,
+	["PLAYER_FARSIGHT_FOCUS_CHANGED"] = function(self)
+		if lastFarsight then return end
+		local count = 0
+		for i in pairs(oldBarSettings) do
+			count = count + 1
+		end
+		if count == 10 then
+			for i,v in pairs(oldBarSettings) do
+				local btn = _G["Nurfed_Button"..i]
+				if btn.IsPetAction then
+					local value, unit, useunit, count
+					value = btn:GetParent():GetAttribute("state")
+					value = value ~= "0" and value or nil
+					unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
+					value = value and "-"..value or "*"
+					useunit = self:GetParent():GetAttribute("useunit")
+					if useunit and unit and unit ~= "none" and UnitExists(unit) then
+						if UnitCanAttack("player", unit) then
+							value = "-nuke"..value
+						elseif UnitCanAssist("player", unit) then
+							value = "-heal"..value
+						end
+					end
+
+					btn:SetAttribute("*type"..value, nil)
+					btn:SetAttribute("*spell"..value, nil)
+					btn:SetAttribute("*companionID", nil)
+					btn:SetAttribute("*companionType", nil)
+					btn:SetAttribute("*companionSlot", nil)
+					btn:SetAttribute("*item"..value, nil)
+					btn:SetAttribute("*itemid"..value, nil)
+					btn:SetAttribute("*macro"..value, nil)
+					btn:SetAttribute("*macroID", nil)
+					btn.IsPetAction = nil
+					for n, o in pairs(v) do
+						btn:SetAttribute(n, o ~= "nil" and o or nil)
+					end
+				end
+				oldBarSettings[i] = nil
+				seticon(btn)
+			end
+			lastFarsight = true
+			Nurfed:schedule(1, function() lastFarsight = nil end)
+			return
+		end
+					
+		for i=1, NUM_PET_ACTION_SLOTS, 1 do
+			local name = GetPetActionInfo(i)
+			local k = i == 1 and Nurfed:getopt("petbarstartbutton") or Nurfed:getopt("petbarstartbutton") + (i-1)
+			if not oldBarSettings[k] then
+				oldBarSettings[k] = {}
+			end
+			if name then
+				local btn = _G["Nurfed_Button"..k]
+				local value, unit, useunit, count
+				value = btn:GetParent():GetAttribute("state")
+				value = value ~= "0" and value or nil
+				unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
+				value = value and "-"..value or "*"
+				useunit = self:GetParent():GetAttribute("useunit")
+				if useunit and unit and unit ~= "none" and UnitExists(unit) then
+					if UnitCanAttack("player", unit) then
+						value = "-nuke"..value
+					elseif UnitCanAssist("player", unit) then
+						value = "-heal"..value
+					end
+				end
+
+				oldBarSettings[k]["*harmbutton"..value] = "nuke"..value or "nil"
+				oldBarSettings[k]["*helpbutton"..value] = "heal"..value or "nil"
+				oldBarSettings[k]["*type"..value] = btn:GetAttribute("*type"..value) or "nil"
+				oldBarSettings[k]["*companionID"] = btn:GetAttribute("*companionID") or "nil"
+				oldBarSettings[k]["*companionType"] = btn:GetAttribute("*companionType") or "nil"
+				oldBarSettings[k]["*companionSlot"] = btn:GetAttribute("*companionSlot") or "nil"
+				oldBarSettings[k]["*spell"..value] = btn:GetAttribute("*spell"..value) or "nil"
+				oldBarSettings[k]["*item"..value] = btn:GetAttribute("*item"..value) or "nil"
+				oldBarSettings[k]["*itemid"..value] = btn:GetAttribute("*itemid"..value) or "nil"
+				oldBarSettings[k]["*macro"..value] = btn:GetAttribute("*macro"..value) or "nil"
+				oldBarSettings[k]["*macroID"] = btn:GetAttribute("*macroID") or "nil"
+				btn.IsPetAction = i
+				btn:SetAttribute("*type"..value, "spell")
+				btn:SetAttribute("*spell"..value, name)
+				btn:SetAttribute("*companionID", nil)
+				btn:SetAttribute("*companionType", nil)
+				btn:SetAttribute("*companionSlot", nil)
+				btn:SetAttribute("*item"..value, nil)
+				btn:SetAttribute("*itemid"..value, nil)
+				btn:SetAttribute("*macro"..value, nil)
+				btn:SetAttribute("*macroID", nil)
+				seticon(btn)
+			end
+		end
+		lastFarsight = true
+		Nurfed:schedule(1, function() lastFarsight = nil end)
 	end,
 }
 
@@ -1401,12 +1532,27 @@ end
 hooksecurefunc("CompanionButton_OnDrag", function(self)
 	local check1, check2, check3 = GetCursorInfo()
 	if check1 == "spell" and check2 == 0 and check3 == "spell" then
-		nrfCompanionID = self.companionID
+		local _, _, spellid = GetCompanionInfo(PetPaperDollFrameCompanionFrame.mode, dragged)
+		nrfCompanionID = spellid
 		nrfCompanionType = PetPaperDollFrameCompanionFrame.mode
 		nrfCompanionSlot = dragged
 	end
 end)
-
+--[[
+local testevent = function(...)
+	debug(...)
+end
+Nurfed:regevent("PLAYER_CONTROL_LOST", testevent)
+	Nurfed:regevent("PLAYER_CONTROL_GAINED", testevent);
+	Nurfed:regevent("PLAYER_FARSIGHT_FOCUS_CHANGED", testevent);
+	Nurfed:regevent("UNIT_PET", testevent);
+	Nurfed:regevent("UNIT_FLAGS", testevent);
+	Nurfed:regevent("PET_BAR_UPDATE", testevent);
+	Nurfed:regevent("PET_BAR_UPDATE_COOLDOWN", testevent);
+	Nurfed:regevent("PET_BAR_SHOWGRID", testevent);
+	Nurfed:regevent("PET_BAR_HIDEGRID", testevent);
+	Nurfed:regevent("PET_BAR_HIDE", testevent);
+]]
 ------------------------- default settings shit....kthxdie?
 function Nurfed_CreateDefaultActionBar(type)
 	assert(type, "NO TYPE TO CREATE A DEFAULT FOR DUMBASS!")
