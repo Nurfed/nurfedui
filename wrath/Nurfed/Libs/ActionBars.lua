@@ -246,6 +246,9 @@ local function seticon(btn)
 				if new == "spell" then
 					if btn.IsPetAction then
 						texture = select(3, GetPetActionInfo(btn.IsPetAction))
+						if texture == "PET_PASSIVE_TEXTURE" or texture == "PET_FOLLOW_TEXTURE" or texture == "PET_ATTACK_TEXTURE" or texture == "PET_WAIT_TEXTURE" or texture == "PET_AGGRESSIVE_TEXTURE" or texture == "PET_DEFENSIVE_TEXTURE" then
+							texture = _G[texture]
+						end
 					else
 						texture = GetSpellTexture(spell)
 						if not texture then
@@ -739,23 +742,26 @@ local function btnupdate()
 		local r, g, b = 1, 1, 1
 		local unit = SecureButton_GetUnit(btn)
 		if btn.type == "spell" then
-			if btn.IsPetAction then
-				-- NOTHINH RWAR!
+			if IsCurrentSpell(btn.spell) or UnitCastingInfo("player") == btn.spell then
+				btn:SetChecked(true)
+			else
+				btn:SetChecked(nil)
+			end
+			if btn.IsPetAction then 
+				-- do nothing yet, maybe never?
 			elseif btn.companionID then
-				if UnitCastingInfo("player") == btn.spell then
+				if not btn:GetChecked() and select(5, GetCompanionInfo(btn:GetAttribute("*companionType"), btn:GetAttribute("*companionSlot"))) then
 					btn:SetChecked(true)
-				else
-					btn:SetChecked(nil)
 				end
 				if UnitAffectingCombat("player") then
 					r, g, b =  0.4, 0.4, 0.4
-				end
+				end	
 			else
-				if IsCurrentSpell(btn.spell) then
+				--[[if IsCurrentSpell(btn.spell) or UnitCastingInfo("player") == btn.spell then
 					btn:SetChecked(true)
 				else
 					btn:SetChecked(nil)
-				end
+				end]]
 				local usable, nomana = IsUsableSpell(btn.spell)
 				if nomana then
 					r, g, b = 0.5, 0.5, 1
@@ -1144,72 +1150,17 @@ local oldBarSettings = {
 
 }
 local lastFarsight
-local barevents = {
-	["NURFED_LOCK"] = function(self)
-		if NRF_LOCKED then
-			_G[self:GetName().."drag"]:Hide()
-		else
-			_G[self:GetName().."drag"]:Show()
-		end
-	end,
-	["PLAYER_CONTROL_LOST"] = function(self)	-- pet bar controlling
-	end,
-	["PLAYER_CONTROL_GAINED"] = function(self)	
-	end,
-	["PLAYER_FARSIGHT_FOCUS_CHANGED"] = function(self)
-		if lastFarsight then return end
-		local count = 0
-		for i in pairs(oldBarSettings) do
-			count = count + 1
-		end
-		if count == 10 then
-			for i,v in pairs(oldBarSettings) do
-				local btn = _G["Nurfed_Button"..i]
-				if btn.IsPetAction then
-					local value, unit, useunit, count
-					value = btn:GetParent():GetAttribute("state")
-					value = value ~= "0" and value or nil
-					unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
-					value = value and "-"..value or "*"
-					useunit = self:GetParent():GetAttribute("useunit")
-					if useunit and unit and unit ~= "none" and UnitExists(unit) then
-						if UnitCanAttack("player", unit) then
-							value = "-nuke"..value
-						elseif UnitCanAssist("player", unit) then
-							value = "-heal"..value
-						end
-					end
-
-					btn:SetAttribute("*type"..value, nil)
-					btn:SetAttribute("*spell"..value, nil)
-					btn:SetAttribute("*companionID", nil)
-					btn:SetAttribute("*companionType", nil)
-					btn:SetAttribute("*companionSlot", nil)
-					btn:SetAttribute("*item"..value, nil)
-					btn:SetAttribute("*itemid"..value, nil)
-					btn:SetAttribute("*macro"..value, nil)
-					btn:SetAttribute("*macroID", nil)
-					btn.IsPetAction = nil
-					for n, o in pairs(v) do
-						btn:SetAttribute(n, o ~= "nil" and o or nil)
-					end
-				end
-				oldBarSettings[i] = nil
-				seticon(btn)
-			end
-			lastFarsight = true
-			Nurfed:schedule(1, function() lastFarsight = nil end)
-			return
-		end
-					
-		for i=1, NUM_PET_ACTION_SLOTS, 1 do
-			local name = GetPetActionInfo(i)
-			local k = i == 1 and Nurfed:getopt("petbarstartbutton") or Nurfed:getopt("petbarstartbutton") + (i-1)
-			if not oldBarSettings[k] then
-				oldBarSettings[k] = {}
-			end
-			if name then
-				local btn = _G["Nurfed_Button"..k]
+function nrf_updatePetBarControl(self)
+	if UnitInVehicleControlSeat("player") then return end
+	if lastFarsight then return end
+	local count = 0
+	for i in pairs(oldBarSettings) do
+		count = count + 1
+	end
+	if count == 10 then
+		for i,v in pairs(oldBarSettings) do
+			local btn = _G["Nurfed_Button"..i]
+			if btn.IsPetAction then
 				local value, unit, useunit, count
 				value = btn:GetParent():GetAttribute("state")
 				value = value ~= "0" and value or nil
@@ -1224,20 +1175,8 @@ local barevents = {
 					end
 				end
 
-				oldBarSettings[k]["*harmbutton"..value] = "nuke"..value or "nil"
-				oldBarSettings[k]["*helpbutton"..value] = "heal"..value or "nil"
-				oldBarSettings[k]["*type"..value] = btn:GetAttribute("*type"..value) or "nil"
-				oldBarSettings[k]["*companionID"] = btn:GetAttribute("*companionID") or "nil"
-				oldBarSettings[k]["*companionType"] = btn:GetAttribute("*companionType") or "nil"
-				oldBarSettings[k]["*companionSlot"] = btn:GetAttribute("*companionSlot") or "nil"
-				oldBarSettings[k]["*spell"..value] = btn:GetAttribute("*spell"..value) or "nil"
-				oldBarSettings[k]["*item"..value] = btn:GetAttribute("*item"..value) or "nil"
-				oldBarSettings[k]["*itemid"..value] = btn:GetAttribute("*itemid"..value) or "nil"
-				oldBarSettings[k]["*macro"..value] = btn:GetAttribute("*macro"..value) or "nil"
-				oldBarSettings[k]["*macroID"] = btn:GetAttribute("*macroID") or "nil"
-				btn.IsPetAction = i
-				btn:SetAttribute("*type"..value, "spell")
-				btn:SetAttribute("*spell"..value, name)
+				btn:SetAttribute("*type"..value, nil)
+				btn:SetAttribute("*spell"..value, nil)
 				btn:SetAttribute("*companionID", nil)
 				btn:SetAttribute("*companionType", nil)
 				btn:SetAttribute("*companionSlot", nil)
@@ -1245,11 +1184,86 @@ local barevents = {
 				btn:SetAttribute("*itemid"..value, nil)
 				btn:SetAttribute("*macro"..value, nil)
 				btn:SetAttribute("*macroID", nil)
-				seticon(btn)
+				btn.IsPetAction = nil
+				for n, o in pairs(v) do
+					btn:SetAttribute(n, o ~= "nil" and o or nil)
+				end
 			end
+			oldBarSettings[i] = nil
+			seticon(btn)
 		end
 		lastFarsight = true
 		Nurfed:schedule(1, function() lastFarsight = nil end)
+		return
+	end
+				
+	for i=1, NUM_PET_ACTION_SLOTS, 1 do
+		local name = GetPetActionInfo(i)
+		local k = i == 1 and Nurfed:getopt("petbarstartbutton") or Nurfed:getopt("petbarstartbutton") + (i-1)
+		if not oldBarSettings[k] then
+			oldBarSettings[k] = {}
+		end
+		if name then
+			local btn = _G["Nurfed_Button"..k]
+			local value, unit, useunit, count
+			value = btn:GetParent():GetAttribute("state")
+			value = value ~= "0" and value or nil
+			unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
+			value = value and "-"..value or "*"
+			useunit = self:GetParent():GetAttribute("useunit")
+			if useunit and unit and unit ~= "none" and UnitExists(unit) then
+				if UnitCanAttack("player", unit) then
+					value = "-nuke"..value
+				elseif UnitCanAssist("player", unit) then
+					value = "-heal"..value
+				end
+			end
+
+			oldBarSettings[k]["*harmbutton"..value] = "nuke"..value or "nil"
+			oldBarSettings[k]["*helpbutton"..value] = "heal"..value or "nil"
+			oldBarSettings[k]["*type"..value] = btn:GetAttribute("*type"..value) or "nil"
+			oldBarSettings[k]["*companionID"] = btn:GetAttribute("*companionID") or "nil"
+			oldBarSettings[k]["*companionType"] = btn:GetAttribute("*companionType") or "nil"
+			oldBarSettings[k]["*companionSlot"] = btn:GetAttribute("*companionSlot") or "nil"
+			oldBarSettings[k]["*spell"..value] = btn:GetAttribute("*spell"..value) or "nil"
+			oldBarSettings[k]["*item"..value] = btn:GetAttribute("*item"..value) or "nil"
+			oldBarSettings[k]["*itemid"..value] = btn:GetAttribute("*itemid"..value) or "nil"
+			oldBarSettings[k]["*macro"..value] = btn:GetAttribute("*macro"..value) or "nil"
+			oldBarSettings[k]["*macroID"] = btn:GetAttribute("*macroID") or "nil"
+			btn.IsPetAction = i
+			btn:SetAttribute("*type"..value, "spell")
+			btn:SetAttribute("*spell"..value, name)
+			btn:SetAttribute("*companionID", nil)
+			btn:SetAttribute("*companionType", nil)
+			btn:SetAttribute("*companionSlot", nil)
+			btn:SetAttribute("*item"..value, nil)
+			btn:SetAttribute("*itemid"..value, nil)
+			btn:SetAttribute("*macro"..value, nil)
+			btn:SetAttribute("*macroID", nil)
+			seticon(btn)
+		end
+	end
+	lastFarsight = true
+	Nurfed:schedule(1, function() lastFarsight = nil end)
+end
+
+local barevents = {
+	["NURFED_LOCK"] = function(self)
+		if NRF_LOCKED then
+			_G[self:GetName().."drag"]:Hide()
+		else
+			_G[self:GetName().."drag"]:Show()
+		end
+	end,
+--[[	["PLAYER_CONTROL_LOST"] = function(self)	-- pet bar controlling
+	end,
+	["PLAYER_CONTROL_GAINED"] = function(self)	
+	end,
+	["PLAYER_FARSIGHT_FOCUS_CHANGED"] = function(self)
+		nrf_updatePetBarControl(self)
+	end,]]
+	["UPDATE_BONUS_ACTIONBAR"] = function(self)
+		nrf_updatePetBarControl(self)
 	end,
 }
 
@@ -1273,6 +1287,7 @@ local blizzbars = {
 	["micro"] = 37,
 	["stance"] = 36,
 	["petbar"] = 30,
+	["possessbar"] = 30,
 }
 
 function nrf_updatemainbar(bar)
@@ -1298,7 +1313,18 @@ function nrf_updatemainbar(bar)
 				btn:SetPoint("LEFT", "PetActionButton"..(i-1), "RIGHT", offset, 0)
 			end
 		end
-    
+		
+	elseif bar == Nurfed_possessbar then
+		for i=2, NUM_POSSESS_SLOTS do
+			local btn = _G["PossessButton"..i]
+			btn:ClearAllPoints()
+			if vert then
+				btn:SetPoint("TOP", "PossessButton"..(i-1), "BOTTOM", 0, offset)
+			else
+				btn:SetPoint("LEFT", "PossessButton"..(i-1), "RIGHT", offset, 0)
+			end
+		end
+		
 	elseif bar == Nurfed_stance then
 		for i = 2, 10 do
 			local btn = _G["ShapeshiftButton"..i]
@@ -1355,6 +1381,9 @@ local function createbars(bars)
 			if k == "petbar" then
 				bar:SetAttribute("unit", "pet")
 			end
+			if k == "possessbar" then
+				bar:SetAttribute("unit", "player")
+			end
 			_G["Nurfed_"..k.."dragtext"]:SetText("Nurfed_"..k)
 		end
 	end
@@ -1392,18 +1421,19 @@ Nurfed:regevent("NURFED_LOCK", function()
 		Nurfed_microdrag:Hide()
 		Nurfed_stancedrag:Hide()
 		Nurfed_petbardrag:Hide()
+		Nurfed_possessbardrag:Hide()
 	else
 		Nurfed_bagsdrag:Show()
 		Nurfed_microdrag:Show()
 		Nurfed_stancedrag:Show()
 		Nurfed_petbardrag:Show()
+		Nurfed_possessbardrag:Show()
 	end
 end)
 
 ----------------------------------------------------------------
 -- Toggle main action bar
 local old_ShapeshiftBar_Update = ShapeshiftBar_Update
-
 function nrf_mainmenu()
 	if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") or IsAddOnLoaded("Bongos3_ActionBar") then
 		return
@@ -1458,6 +1488,17 @@ function nrf_mainmenu()
 				btn:SetPoint("BOTTOMLEFT", 36, 2)
 			else
 				btn:SetPoint("LEFT", "PetActionButton"..(i-1), "RIGHT", 8, 0)
+			end
+			
+			if i <= 2 then
+				btn = _G["PossessButton"..i]
+				btn:SetParent(PossessBarFrame)
+				btn:ClearAllPoints()
+				if i == 1 then
+					btn:SetPoint("BOTTOMLEFT", 36, 2)
+				else
+					btn:SetPoint("LEFT", "PossessButton"..(i-1), "RIGHT", 8, 0)
+				end
 			end
 		end
 		ShapeshiftBar_Update = old_ShapeshiftBar_Update
@@ -1519,10 +1560,35 @@ function nrf_mainmenu()
 				btn:SetPoint("BOTTOMLEFT")
 			end
 		end
+		
+		for i = 1, NUM_POSSESS_SLOTS do
+			local btn = _G["PossessButton"..i]
+			local cooldown = _G["PossessButton"..i.."Cooldown"]
+			if not cooldown.text then
+				cooldown.text = cooldown:CreateFontString(nil, "OVERLAY")
+				cooldown.text:SetPoint("CENTER")
+				cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
+			end
+			btn:SetParent(Nurfed_possessbar)
+			btn:SetScript("OnUpdate", nrfcooldowntext)
+			if i == 1 then
+				btn:ClearAllPoints()
+				btn:SetPoint("BOTTOMLEFT")
+			end
+			_G["PossessButton"..i.."NormalTexture"]:Hide()
+			btn:SetScript("OnMouseUp", function(self)
+				Nurfed:schedule(0, function()
+					for i = 1, NUM_POSSESS_SLOTS do
+						_G["PossessButton"..i.."NormalTexture"]:Hide()
+					end
+				end)
+			end)
+		end
 		nrf_updatemainbar("bags")
 		nrf_updatemainbar("micro")
 		nrf_updatemainbar("stance")
 		nrf_updatemainbar("petbar")
+		nrf_updatemainbar("possessbar")
 
 		ShapeshiftBar_Update = function() end
 		MainMenuBar:Hide()

@@ -1789,7 +1789,7 @@ local removeLst = {
 }
 local function updateauras(frame)
 	local unit = SecureButton_GetUnit(frame)
-	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd
+	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd, isMine, isStealable
 	local isFriend, filterList, check
 	isFriend = UnitIsFriend("player", unit)
 	if frame.buff then
@@ -1801,7 +1801,7 @@ local function updateauras(frame)
 		for i = 1, #frame.buff do
 			button = _G[frame:GetName().."buff"..i]
 			--name, _, texture, app, duration, left = UnitBuff(unit, i, frame.bfilter)
-			name, rank, texture, app, dtype, duration, left = UnitBuff(unit, i, frame.bfilter)
+			name, rank, texture, app, dtype, duration, left, isMine, isStealable = UnitBuff(unit, i, frame.bfilter)
 			--if name then
 			if name and not filterList or filterList and filterList[name] then
 				total = total + 1

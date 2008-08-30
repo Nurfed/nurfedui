@@ -231,12 +231,11 @@ function util:serialize(what, tbl)
 end
 
 function util:getopt(opt)
-	--[[local val = NURFED_SAVED[opt]
+	local val = NURFED_SAVED[opt]
 	if val == nil then
 		val = NURFED_DEFAULT[opt]
 	end
-	return val]]
-	return NURFED_SAVED[opt] or NURFED_DEFAULT[opt]
+	return val
 end
 
 function util:binding(bind)

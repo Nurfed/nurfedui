@@ -454,12 +454,11 @@ local function OnMouseWheel(self, arg1)
 end
 
 local messageText = {}
+local ACHIEVEMENT_BROADCAST_NURFED = ACHIEVEMENT_BROADCAST:gsub("%%s", "%%S+", 1):gsub("%s%%s!", "")
 local function message(self, msg, r, g, b, id)
   if (msg and type(msg) == "string") then
+	if Nurfed:getopt("hideachievements") and msg:match(ACHIEVEMENT_BROADCAST_NURFED) then return end
 	messageText[1] = nil; messageText[2] = nil -- there should not be anything more than 2, no need to do pairs
-	if msg:find("has earned the achievement") then
-		return
-	end
     if Nurfed:getopt("timestamps") then
       table.insert(messageText, date(Nurfed:getopt("timestampsformat")))
     end
@@ -475,7 +474,7 @@ local function message(self, msg, r, g, b, id)
 			end
 		end
     end
-    if true then
+    if Nurfed:getopt("classcolortext") then
 		for internal, displayed in msg:gmatch("|Hplayer:(.-)|h%[(.-)%]|h") do
 			local color = Nurfed:GetHexClassColorByName(displayed)
 			if color then
