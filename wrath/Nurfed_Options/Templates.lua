@@ -242,6 +242,11 @@ saveopt = function(self)
 
 	if self.option then
 		local opt = self.option
+		debug(value)
+		if type(NURFED_DEFAULT[opt]) == "boolean" then
+			value = value == 1 and true or false
+		end
+		debug(value)
 		if value == NURFED_DEFAULT[opt] then
 			NURFED_SAVED[opt] = nil
 		else

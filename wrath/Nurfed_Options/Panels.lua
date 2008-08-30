@@ -608,6 +608,16 @@ local panels = {
 					end
 				end },
 			},
+			check9 = {
+				template = "nrf_check",
+				Anchor = { "TOPLEFT", "$parentcheck7", "BOTTOMLEFT", 0, -8 },
+				vars = { text = L["Hide Achievements"], option = "hideachievements" },
+			},
+			check10 = {
+				template = "nrf_check",
+				Anchor = { "TOPLEFT", "$parentcheck9", "BOTTOMLEFT", 0, -8 },
+				vars = { text = L["Class Color Names"], option = "classcolortext" },
+			}, 
 			slider1 = {
 				template = "nrf_slider",
 				Anchor = { "TOPRIGHT", "$parentcheck8", "BOTTOMRIGHT", 0, -24 },
