@@ -207,7 +207,7 @@ function nrfcooldowntext(btn)
 			end
 			cd.text:SetText(remain)
 			cd.text:SetTextColor(r, g, b)
-			if height ~= fheight then
+			if height ~= fheight and not cd.disableheight then
 				cd.text:SetFont("Fonts\\FRIZQT__.TTF", height, "OUTLINE")
 				cd:SetFrameLevel(30)
 			end
@@ -1264,6 +1264,14 @@ local barevents = {
 	end,]]
 	["UPDATE_BONUS_ACTIONBAR"] = function(self)
 		nrf_updatePetBarControl(self)
+		--nrf_mainmenu()
+	end,
+	["UNIT_ENTERED_VEHICLE"] = function(self)
+		--nrf_mainmenu()
+	end,
+	["UNIT_EXITED_VEHICLE"] = function(self)
+		Nurfed:schedule(1, function() nrf_mainmenu() end)
+		--nrf_mainmenu()
 	end,
 }
 
@@ -1604,6 +1612,8 @@ hooksecurefunc("CompanionButton_OnDrag", function(self)
 		nrfCompanionSlot = dragged
 	end
 end)
+--hooksecurefunc(MainMenuBar, "OnShow", nrf_mainmenu)
+MainMenuBar:SetScript("OnShow", nrf_mainmenu)
 --[[
 local testevent = function(...)
 	debug(...)

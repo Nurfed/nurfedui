@@ -845,7 +845,7 @@ local replace = {
 		if UnitIsPlayer(self.unit) then
 			local eclass = select(2, UnitClass(self.unit))
 			if eclass then
-				eclass = eclass == "Death Knight" and "DeathKnight" or eclass
+				--eclass = eclass == "Death Knight" and "DeathKnight" or eclass
 				color = RAID_CLASS_COLORS[eclass].hex
 			end
 			
@@ -1399,9 +1399,9 @@ local function cuttexture(texture, size, fill, value)
 	end
 end
 
-local function updateinfo(frame, stat)
-	if not stat or not frame[stat] then return end
-	local unit = SecureButton_GetUnit(frame)
+local function updateinfo(self, stat)
+	if not stat or not self[stat] then return end
+	local unit = SecureButton_GetUnit(self)
 	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb = Nurfed:getunitstat(unit, stat)
 	local maxtext, missingtext = max, missing
 	local rest
@@ -1427,7 +1427,7 @@ local function updateinfo(frame, stat)
 		end
 	end
 
-	for _, child in ipairs(frame[stat]) do
+	for _, child in ipairs(self[stat]) do
 		local objtype = child:GetObjectType()
 		if max == 0 then
 			child:Hide()
@@ -1496,11 +1496,11 @@ local function updateinfo(frame, stat)
 	end
 end
 
-local function manacolor(frame)
-	if not frame.Mana then return end
-	local unit = SecureButton_GetUnit(frame)
+local function manacolor(self)
+	if not self.Mana then return end
+	local unit = SecureButton_GetUnit(self)
 	local color = PowerBarColor[UnitPowerType(unit)]
-	for _, child in ipairs(frame.Mana) do
+	for _, child in ipairs(self.Mana) do
 		local objtype = child:GetObjectType()
 		if objtype == "StatusBar" then
 			child:SetStatusBarColor(color.r, color.g, color.b)
@@ -1512,14 +1512,14 @@ local function manacolor(frame)
 			end
 		end
 	end
-	updateinfo(frame, "Mana")
+	updateinfo(self, "Mana")
 end
 
-local function updatestatus(frame)
-	if frame.status then
-		local icon = frame.status
+local function updatestatus(self)
+	if self.status then
+		local icon = self.status
 		local objtype = icon:GetObjectType()
-		local unit = SecureButton_GetUnit(frame)
+		local unit = SecureButton_GetUnit(self)
 		if UnitAffectingCombat(unit) then
 			if objtype == "Texture" then
 				icon:SetTexCoord(0.5, 1.0, 0, 0.5)
@@ -1542,10 +1542,10 @@ local function updatestatus(frame)
 	end
 end
 
-local function updateraid(frame)
-	if frame.raidtarget then
-		local unit = SecureButton_GetUnit(frame)
-		local icon = frame.raidtarget
+local function updateraid(self)
+	if self.raidtarget then
+		local unit = SecureButton_GetUnit(self)
+		local icon = self.raidtarget
 		local index = GetRaidTargetIndex(unit)
 		if index then
 			SetRaidTargetIconTexture(icon, index)
@@ -1558,7 +1558,7 @@ end
 
 ----------------------------------------------------------------
 -- Text replacement
-local function subtext(frame, text)
+local function subtext(self, text)
 	if not text then return end
 	local pre = string.find(text, "%$%a")
 	string.gsub(text, "%$%a+",
@@ -1566,7 +1566,7 @@ local function subtext(frame, text)
 			if replace[s] then
 				--text = string.gsub(text, s, replace[s](frame:GetParent(), s))
 				--text = string.gsub(text, s, replace[s])
-				text = text:gsub(s, replace[s](frame:GetParent()))
+				text = text:gsub(s, replace[s](self:GetParent()))
 			end
 		end
 	)
@@ -1581,28 +1581,28 @@ local function subtext(frame, text)
 	return text
 end
 
-local function formattext(frame)
-	if frame and frame.format then
-		local display = subtext(frame, frame.format)
-		frame:SetText(display)
+local function formattext(self)
+	if self and self.format then
+		local display = subtext(self, self.format)
+		self:SetText(display)
 	end
 end
 
-local function updatetext(frame)
-	if frame.text then
-		for _, v in ipairs(frame.text) do
+local function updatetext(self)
+	if self.text then
+		for _, v in ipairs(self.text) do
 			formattext(v)
 		end
 	end
 end
 
-local function updatehappiness(frame)
+local function updatehappiness(self)
 	local happiness, damagePercentage = GetPetHappiness()
 	local hasPetUI, isHunterPet = HasPetUI()
 	if happiness or isHunterPet then
 		local display
-		local text = frame.name
-		local icon = frame.happiness
+		local text = self.name
+		local icon = self.happiness
 		if text then display = subtext(text.format) end
 		if icon then icon:Show() end
 		if happiness == 1 then
@@ -1621,10 +1621,10 @@ local function updatehappiness(frame)
 	end
 end
 
-local function updatecombo(frame)
-	if frame.combo then
+local function updatecombo(self)
+	if self.combo then
 		local comboPoints = GetComboPoints("player", "target")
-		for _, child in ipairs(frame.combo) do
+		for _, child in ipairs(self.combo) do
 			if comboPoints > 0 then
 				local objtype = child:GetObjectType()
 				if objtype == "FontString" then
@@ -1653,11 +1653,12 @@ local function updatecombo(frame)
 	end
 end
 
-local function updateleader(frame)
-	if frame.leader then
-		local icon = frame.leader
-		local unit = SecureButton_GetUnit(frame)
-		local id, found = gsub(unit, "party([1-4])", "%1")
+local function updateleader(self)
+	if self.leader then
+		local icon = self.leader
+		local unit = SecureButton_GetUnit(self)
+		--local id, found = gsub(unit, "party([1-4])", "%1")
+		local id, found = unit:gsub("party([1-4])", "%1")
 		if unit == "player" then
 			if IsPartyLeader() then
 				icon:Show()
@@ -1674,11 +1675,12 @@ local function updateleader(frame)
 	end
 end
 
-local function updatemaster(frame)
-	if frame.master then
-		local icon = frame.master
-		local unit = SecureButton_GetUnit(frame)
-		local id, found = gsub(unit, "party([1-4])", "%1")
+local function updatemaster(self)
+	if self.master then
+		local icon = self.master
+		local unit = SecureButton_GetUnit(self)
+		--local id, found = gsub(unit, "party([1-4])", "%1")
+		local id, found = unit:gsub("party([1-4])", "%1")
 		local lootMethod, lootMaster = GetLootMethod()
 		if unit == "player" then
 			if lootMaster == 0 and ((GetNumPartyMembers() > 0) or (GetNumRaidMembers() > 0)) then
@@ -1696,10 +1698,10 @@ local function updatemaster(frame)
 	end
 end
 
-local function updatepvp(frame)
-	if frame.pvp then
-		local unit = SecureButton_GetUnit(frame)
-		local icon = frame.pvp
+local function updatepvp(self)
+	if self.pvp then
+		local unit = SecureButton_GetUnit(self)
+		local icon = self.pvp
 		local objtype = icon:GetObjectType()
 		local factionGroup, factionName = UnitFactionGroup(unit)
 		if UnitIsPVPFreeForAll(unit) then
@@ -1708,8 +1710,8 @@ local function updatepvp(frame)
 			else
 				icon:SetText(PVP_ENABLED)
 			end
-			if unit == "player" and not frame.pvpenabled then
-				frame.pvpenabled = true
+			if unit == "player" and not self.pvpenabled then
+				self.pvpenabled = true
 				PlaySound("igPVPUpdate")
 			end
 			icon:Show()
@@ -1719,14 +1721,14 @@ local function updatepvp(frame)
 			else
 				icon:SetText(PVP_ENABLED)
 			end
-			if unit == "player" and not frame.pvpenabled then
-				frame.pvpenabled = true
+			if unit == "player" and not self.pvpenabled then
+				self.pvpenabled = true
 				PlaySound("igPVPUpdate")
 			end
 			icon:Show()
 		else
-			if unit == "player" and frame.pvpenabled then
-				frame.pvpenabled = nil
+			if unit == "player" and self.pvpenabled then
+				self.pvpenabled = nil
 			end
 			icon:Hide()
 		end
@@ -1787,26 +1789,26 @@ local removeLst = {
 		["HUNTER"] = true,
 	},
 }
-local function updateauras(frame)
-	local unit = SecureButton_GetUnit(frame)
+local function updateauras(self)
+	local unit = SecureButton_GetUnit(self)
 	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd, isMine, isStealable
 	local isFriend, filterList, check
 	isFriend = UnitIsFriend("player", unit)
-	if frame.buff then
+	if self.buff then
 		filterList = Nurfed:getopt("bufffilterlist")
 		for name in pairs(filterList) do check = true; break; end
 		filterList = check and filterList or nil
 		
 		total = 0
-		for i = 1, #frame.buff do
-			button = _G[frame:GetName().."buff"..i]
+		for i = 1, #self.buff do
+			button = _G[self:GetName().."buff"..i]
 			--name, _, texture, app, duration, left = UnitBuff(unit, i, frame.bfilter)
-			name, rank, texture, app, dtype, duration, left, isMine, isStealable = UnitBuff(unit, i, frame.bfilter)
+			name, rank, texture, app, dtype, duration, left, isMine, isStealable = UnitBuff(unit, i, self.bfilter)
 			--if name then
 			if name and not filterList or filterList and filterList[name] then
 				total = total + 1
 				-- reset to button position if we are using a filtering list.
-				button = filterList and _G[frame:GetName().."buff"..total] or button
+				button = filterList and _G[self:GetName().."buff"..total] or button
 				
 				_G[button:GetName().."Icon"]:SetTexture(texture)
 				count = _G[button:GetName().."Count"]
@@ -1817,7 +1819,7 @@ local function updateauras(frame)
 				else
 					count:Hide()
 				end
-				button.filter = frame.bfilter
+				button.filter = self.bfilter
 				button:Show()
 				--button:SetScript("OnUpdate", cooldowntext)
 				cd = _G[button:GetName().."Cooldown"]
@@ -1833,7 +1835,7 @@ local function updateauras(frame)
 						button.flashdct = 1
 						button:SetScript("OnUpdate", aurafade)
 						--frame.cure = cure[dtype][playerClass] -- this will always return true?  durr
-						frame.cure = true
+						self.cure = true
 					end
 				else
 					button:SetScript("OnUpdate", cooldowntext)
@@ -1844,35 +1846,35 @@ local function updateauras(frame)
 				button:Hide()
 			end
 		end
-		if frame.buffwidth then
+		if self.buffwidth then
 			width = button:GetWidth()
 			fwidth = total * width
-			scale = frame.buffwidth / fwidth
+			scale = self.buffwidth / fwidth
 			if scale > 1 then scale = 1 end
 			for i = 1, total do
-				_G[frame:GetName().."buff"..i]:SetScale(scale)
+				_G[self:GetName().."buff"..i]:SetScale(scale)
 			end
 		end
 	end
 	
-	if frame.debuff then
+	if self.debuff then
 		check = nil
 		filterList = Nurfed:getopt("debufffilterlist")
 		for name in pairs(filterList) do check = true; break; end
 		filterList = check and filterList or nil
 		
-		frame.cure = nil
+		self.cure = nil
 		total = 0
-		for i = 1, #frame.debuff do
-			button = _G[frame:GetName().."debuff"..i]
-			local filter = frame.dfilter
+		for i = 1, #self.debuff do
+			button = _G[self:GetName().."debuff"..i]
+			local filter = self.dfilter
 			if (unit == "target" or unit == "focus") and not isFriend then filter = nil end
 
 			name, rank, texture, app, dtype, duration, left = UnitDebuff(unit, i, filter)
 			if (name and (isFriend or not filterList)) or name and filterList and filterList[name] then
 				total = total + 1
 				-- reset to button position if we are using a filtering list.
-				button = filterList and _G[frame:GetName().."debuff"..total] or button
+				button = filterList and _G[self:GetName().."debuff"..total] or button
 
 				_G[button:GetName().."Icon"]:SetTexture(texture)
 				count = _G[button:GetName().."Count"]
@@ -1886,7 +1888,7 @@ local function updateauras(frame)
 
 				color = DebuffTypeColor[dtype or "none"]
 				_G[button:GetName().."Border"]:SetVertexColor(color.r, color.g, color.b)
-				button.filter = frame.dfilter
+				button.filter = self.dfilter
 				button:Show()
 
 				cd = _G[button:GetName().."Cooldown"]
@@ -1902,7 +1904,7 @@ local function updateauras(frame)
 						button.flashdct = 1
 						button:SetScript("OnUpdate", aurafade)
 						--frame.cure = cure[dtype][playerClass] -- this will always return true?  durr
-						frame.cure = true
+						self.cure = true
 					end
 				else
 					button:SetScript("OnUpdate", cooldowntext)
@@ -1913,22 +1915,22 @@ local function updateauras(frame)
 				button:Hide()
 			end
 		end
-		if frame.debuffwidth then
+		if self.debuffwidth then
 			width = button:GetWidth()
 			fwidth = total * width
-			scale = frame.debuffwidth / fwidth
+			scale = self.debuffwidth / fwidth
 			if scale > 1 then scale = 1 end
 			for i = 1, total do
-				_G[frame:GetName().."debuff"..i]:SetScale(scale)
+				_G[self:GetName().."debuff"..i]:SetScale(scale)
 			end
 		end
 	end
 end
 
-local function updaterank(frame)
-	if frame.rank then
-		local icon = frame.rank
-		local unit = SecureButton_GetUnit(frame)
+local function updaterank(self)
+	if self.rank then
+		local icon = self.rank
+		local unit = SecureButton_GetUnit(self)
 		local rankname, ranknumber = GetPVPRankInfo(UnitPVPRank(unit))
 		if ranknumber and ranknumber > 0 then
 			local objtype = icon:GetObjectType()
@@ -1948,15 +1950,15 @@ local function updaterank(frame)
 	end
 end
 
-local function updatename(frame)
-	local unit = SecureButton_GetUnit(frame)
-	if frame.name then
-		formattext(frame.name)
+local function updatename(self)
+	local unit = SecureButton_GetUnit(self)
+	if self.name then
+		formattext(self.name)
 	end
 
-	if frame.class then
+	if self.class then
 		local info
-		local icon = frame.class
+		local icon = self.class
 		local texture, coords = Nurfed:getclassicon(unit)
 		if coords then
 			icon:SetTexture(texture)
@@ -1964,8 +1966,8 @@ local function updatename(frame)
 		end
 	end
 
-	if frame.race then
-		local icon = frame.race
+	if self.race then
+		local icon = self.race
 		local coords = Nurfed:getraceicon(unit)
 		if coords then
 			icon:SetTexCoord(unpack(coords))
@@ -1973,19 +1975,19 @@ local function updatename(frame)
 	end
 end
 
-local function updatehighlight(frame)
-	local unit = SecureButton_GetUnit(frame)
+local function updatehighlight(self)
+	local unit = SecureButton_GetUnit(self)
 	if UnitExists("target") and UnitName("target") == UnitName(unit) then
-		frame:LockHighlight()
+		self:LockHighlight()
 	else
-		frame:UnlockHighlight()
+		self:UnlockHighlight()
 	end
 end
 
-local function updategroup(frame)
-	if frame.group then
-		local text = frame.group
-		local unit = SecureButton_GetUnit(frame)
+local function updategroup(self)
+	if self.group then
+		local text = self.group
+		local unit = SecureButton_GetUnit(self)
 		local group = Nurfed:getunit(UnitName(unit))
 		if group then
 			text:SetText(GROUP..": |cffffff00"..group.."|r")
@@ -1995,9 +1997,9 @@ local function updategroup(frame)
 	end
 end
 
-local function updateloot(frame)
-	if frame.loot then
-		formattext(frame.loot)
+local function updateloot(self)
+	if self.loot then
+		formattext(self.loot)
 	end
 end
 
@@ -2047,28 +2049,28 @@ local function showparty(self)
 	end
 end
 
-local function updateframe(frame, notext)
-	local unit = SecureButton_GetUnit(frame)
-	if frame.status then updatestatus(frame) end
-	if frame.Health then updateinfo(frame, "Health") end
-	if frame.XP then updateinfo(frame, "XP") end
-	if frame.combo then updatecombo(frame) end
-	if frame.Mana then manacolor(frame) end
-	if frame.buff or frame.debuff then updateauras(frame) end
-	if frame.portrait then SetPortraitTexture(frame.portrait, unit) end
-	if frame.pvp then updatepvp(frame) end
-	if frame.leader then updateleader(frame) end
-	if frame.master then updatemaster(frame) end
-	if frame.raidtarget then updateraid(frame) end
-	if frame.rank then updaterank(frame) end
+local function updateframe(self, notext)
+	local unit = SecureButton_GetUnit(self)
+	if self.status then updatestatus(self) end
+	if self.Health then updateinfo(self, "Health") end
+	if self.XP then updateinfo(self, "XP") end
+	if self.combo then updatecombo(self) end
+	if self.Mana then manacolor(self) end
+	if self.buff or frame.debuff then updateauras(self) end
+	if self.portrait then SetPortraitTexture(self.portrait, unit) end
+	if self.pvp then updatepvp(self) end
+	if self.leader then updateleader(self) end
+	if self.master then updatemaster(self) end
+	if self.raidtarget then updateraid(self) end
+	if self.rank then updaterank(self) end
 	if not notext then
-		if frame.text then updatetext(frame) end
-		updatename(frame)
+		if self.text then updatetext(self) end
+		updatename(self)
 	end
 
-	if unit == "pet" then updatehappiness(frame) end
-	if frame.GetHighlightTexture and frame:GetHighlightTexture() then
-		updatehighlight(frame)
+	if unit == "pet" then updatehappiness(self) end
+	if self.GetHighlightTexture and self:GetHighlightTexture() then
+		updatehighlight(self)
 	end
 end
 local events = {
@@ -2113,10 +2115,12 @@ local events = {
 	["UNIT_ENERGY"] = function(self) updateinfo(self, "Mana") end,
 	["UNIT_RAGE"] = function(self) updateinfo(self, "Mana") end,
 	["UNIT_FOCUS"] = function(self) updateinfo(self, "Mana") end,
+	["UNIT_RUNIC_POWER"] = function(self) updateinfo(self, "Mana") end,
 	["UNIT_MAXMANA"] = function(self) updateinfo(self, "Mana") end,
 	["UNIT_MAXENERGY"] = function(self) updateinfo(self, "Mana") end,
 	["UNIT_MAXRAGE"] = function(self) updateinfo(self, "Mana") end,
 	["UNIT_MAXFOCUS"] = function(self) updateinfo(self, "Mana") end,
+	["UNIT_MAXRUNIC_POWER"] = function(self) updateinfo(self, "Mana") end,
 	["UNIT_COMBAT"] = function(self, ...) updatedamage(self, ...) end,
 	["UNIT_AURA"] = function(self) updateauras(self) end,
 	["UNIT_DISPLAYPOWER"] = function(self) manacolor(self) end,
@@ -2141,7 +2145,6 @@ local function onevent(event, ...)
 	for _, frame in ipairs(units[event]) do
 		local unit = SecureButton_GetUnit(frame)
 		if UnitExists(unit) then
-			--this = frame
 			if event == "UNIT_PET" then
 				if (arg1 == "player" and unit == "pet") or (arg1 == unit:gsub("pet", "")) then
 					events[event](frame, ...)
@@ -2167,10 +2170,30 @@ local function totupdate()
 				frame.lastname = UnitName(unit)
 				notext = nil
 			end
-			--this = frame
 			updateframe(frame, notext)
 		else
 			frame.lastname = nil
+		end
+	end
+end
+
+local function predictstats(self)
+	if ( not self.disconnected ) then
+		--updateinfo(self, "Mana")
+		local currValue
+		if self.predictedPower then
+			currValue = UnitPower(self.unit, self.manaPowerType)
+			if currValue ~= self.manaCurrValue then
+				self.manaCurrValue = currValue
+				updateinfo(self, "Mana")
+			end
+		end
+		if self.predictedHealth then
+			currValue = UnitHealth(self.unit)
+			if currValue ~= self.healthCurrValue then
+				self.healthCurrValue = currValue
+				updateinfo(self, "Health")
+			end
 		end
 	end
 end
@@ -2233,6 +2256,22 @@ function Nurfed:unitimbue(frame)
 		table.insert(events, "UNIT_PET")
 	elseif frame.unit == "player" then
 		table.insert(events, "UNIT_COMBAT")
+		if playerClass == "DEATHKNIGHT" then
+			_G["RuneFrame"]:ClearAllPoints();
+			--f:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 12, 0)
+			_G["RuneFrame"]:SetPoint("TOP", frame, "BOTTOM", 0, 0)
+			for i=1, 6 do
+				local btn = _G["RuneButtonIndividual"..i]
+				local cooldown = _G["RuneButtonIndividual"..i.."Cooldown"]
+				if not cooldown.text then
+					cooldown.text = cooldown:CreateFontString(nil, "OVERLAY")
+					cooldown.text:SetPoint("CENTER")
+					cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+					cooldown.disableheight = true
+				end
+				hooksecurefunc("RuneButton_OnUpdate", nrfcooldowntext)
+			end
+		end
 	end
 
 	if found == 1 then
@@ -2267,18 +2306,44 @@ function Nurfed:unitimbue(frame)
 		if not frame[pre] then
 			frame[pre] = {}
 			if pre == "Health" then
-				table.insert(events, "UNIT_HEALTH")
+				if GetCVarBool("predictedHealth") then
+					frame:SetScript("OnUpdate", predictstats)
+					frame.predictedHealth = true
+				else
+					table.insert(events, "UNIT_HEALTH")
+				end
 				table.insert(events, "UNIT_MAXHEALTH")
 			elseif pre == "Mana" then
-				table.insert(events, "UNIT_MANA")
-				table.insert(events, "UNIT_MAXMANA")
-				table.insert(events, "UNIT_ENERGY")
-				table.insert(events, "UNIT_MAXENERGY")
-				table.insert(events, "UNIT_RAGE")
-				table.insert(events, "UNIT_MAXRAGE")
-				table.insert(events, "UNIT_FOCUS")
-				table.insert(events, "UNIT_MAXFOCUS")
-				table.insert(events, "UNIT_DISPLAYPOWER")
+				if GetCVarBool("predictedPower") then
+					frame:SetScript("OnUpdate", predictstats)
+					frame.predictedPower = true
+					frame.manaPowerType = UnitPowerType(frame.unit)
+				else
+					--[[
+					table.insert(events, "UNIT_MANA")
+					table.insert(events, "UNIT_MAXMANA")
+					table.insert(events, "UNIT_ENERGY")
+					table.insert(events, "UNIT_MAXENERGY")
+					table.insert(events, "UNIT_RAGE")
+					table.insert(events, "UNIT_MAXRAGE")
+					table.insert(events, "UNIT_FOCUS")
+					table.insert(events, "UNIT_MAXFOCUS")
+					table.insert(events, "UNIT_DISPLAYPOWER")
+					table.insert(events, "UNIT_RUNIC_POWER")]]
+					table.insert(events, "UNIT_MANA")
+					table.insert(events, "UNIT_RAGE")
+					table.insert(events, "UNIT_FOCUS")
+					table.insert(events, "UNIT_ENERGY")
+					table.insert(events, "UNIT_HAPPINESS")
+					table.insert(events, "UNIT_RUNIC_POWER")
+				end
+				table.insert(events, "UNIT_MAXMANA");
+				table.insert(events, "UNIT_MAXRAGE");
+				table.insert(events, "UNIT_MAXFOCUS");
+				table.insert(events, "UNIT_MAXENERGY");
+				table.insert(events, "UNIT_MAXHAPPINESS");
+				table.insert(events, "UNIT_MAXRUNIC_POWER");
+				table.insert(events, "UNIT_DISPLAYPOWER");
 				
 			elseif pre == "XP" then
 				if frame.unit == "player" then

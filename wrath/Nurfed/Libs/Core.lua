@@ -115,7 +115,7 @@ function util:GetClassByName(name)
 			while i <= numfriends do
 				fname, _, class, _, connected = GetFriendInfo(i)
 				if fname and connected  then
-					class = class == "Death Knight" and "DeathKnight" or class
+					--class = class == "Death Knight" and "DeathKnight" or class
 					classLst[fname] = string.upper(class)
 				end
 				i=i+1
@@ -128,7 +128,7 @@ function util:GetClassByName(name)
 			while i <= numGuildMembers do
 				fname, _, _, _, class = GetGuildRosterInfo(i)
 				if fname and class then
-					class = class == "Death Knight" and "DeathKnight" or class
+					--class = class == "Death Knight" and "DeathKnight" or class
 					classLst[fname] = string.upper(class)
 				end
 				i=i+1
@@ -140,7 +140,7 @@ function util:GetClassByName(name)
 			while i <= 5 do
 				local fname, class = UnitName("party"..i), UnitClass("party"..i)
 				if fname and class then
-					class = class == "Death Knight" and "DeathKnight" or class
+					--class = class == "Death Knight" and "DeathKnight" or class
 					classLst[fname] = string.upper(class)
 				end
 				i=i+1
@@ -153,7 +153,7 @@ function util:GetClassByName(name)
 			while i <= numraid do
 				local fname, class = UnitName("raid"..i), UnitClass("raid"..i)
 				if fname and class then
-					class = class == "Death Knight" and "DeathKnight" or class
+					--class = class == "Death Knight" and "DeathKnight" or class
 					classLst[fname] = string.upper(class)
 				end
 				i=i+1
@@ -168,7 +168,7 @@ function util:AddUnitClassByUnit(unit)
 		local name = UnitName(unit)
 		if not classLst[name] then
 			local class = UnitClass(unit)
-			class = class == "Death Knight" and "DeathKnight" or class
+			--class = class == "Death Knight" and "DeathKnight" or class
 			classLst[UnitName(unit)] = class
 			debug("added", UnitName(unit), class)
 		end
@@ -388,8 +388,20 @@ function util:getunitstat(unit, stat)
 			end
 		end
 	else
-		curr = _G["Unit"..stat](unit)
-		max = _G["Unit"..stat.."Max"](unit)
+		--[[
+		--curr = _G["Unit"..stat](unit)
+		curr = _G["UnitPower"](unit, stat)
+		--max = _G["Unit"..stat.."Max"](unit)
+		max = _G["UnitPower"..stat.."Max"](unit)]]
+		if stat == "Mana" then
+			local powertype = UnitPowerType(unit)
+			
+			curr = _G["UnitPower"](unit, powertype)
+			max = _G["UnitPowerMax"](unit, powertype)
+		else
+			curr = _G["Unit"..stat](unit)
+			max = _G["Unit"..stat.."Max"](unit)
+		end  
 	end
 
 	if not UnitIsConnected(unit) then
@@ -491,7 +503,7 @@ function util:getunitstat(unit, stat)
 		elseif color == "class" then
 			local eclass = select(2, UnitClass(unit))
 			if eclass then
-				eclass = eclass == "Death Knight" and "DeathKnight" or eclass
+				--eclass = eclass == "Death Knight" and "DeathKnight" or eclass
 				r = RAID_CLASS_COLORS[eclass].r
 				g = RAID_CLASS_COLORS[eclass].g
 				b = RAID_CLASS_COLORS[eclass].b
@@ -535,7 +547,7 @@ function util:getclassicon(unit, isclass)
 	else
 		if UnitIsPlayer(unit) or UnitCreatureType(unit) == "Humanoid" then
 			local eclass = select(2, UnitClass(unit))
-			eclass = eclass == "Death Knight" and "DeathKnight" or eclass
+			--eclass = eclass == "Death Knight" and "DeathKnight" or eclass
 			coords = class[eclass]
 		else
 			coords = class["PETS"]
