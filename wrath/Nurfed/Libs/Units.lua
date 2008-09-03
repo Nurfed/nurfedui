@@ -944,14 +944,14 @@ local replace = {
 
 local disable = {
 	player = function()
-		PlayerFrame:UnregisterAllEvents()
-		PlayerFrame:Hide()
+		_G["PlayerFrame"]:UnregisterAllEvents()
+		_G["PlayerFrame"]:Hide()
 	end,
 	target = function()
-		TargetFrame:UnregisterAllEvents()
-		TargetFrame:Hide()
-		ComboFrame:UnregisterAllEvents()
-		ComboFrame:Hide()
+		_G["TargetFrame"]:UnregisterAllEvents()
+		_G["TargetFrame"]:Hide()
+		_G["ComboFrame"]:UnregisterAllEvents()
+		_G["ComboFrame"]:Hide()
 	end,
 	party1 = function()
 		for i = 1, 4 do
@@ -959,7 +959,14 @@ local disable = {
 			party:UnregisterAllEvents()
 			party:Hide()
 		end
-		ShowPartyFrame = function() end
+		_G["ShowPartyFrame"] = function() end
+	end,
+	focus = function()
+		_G["FocusFrame"]:UnregisterAllEvents()
+		_G["FocusFrame"]:Hide()
+		if _G["ShowFocusFrame"] then
+			_G["ShowFocusFrame"] = function() end
+		end
 	end,
 }
 
