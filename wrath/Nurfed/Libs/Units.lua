@@ -2087,6 +2087,7 @@ local events = {
 	["PLAYER_REGEN_DISABLED"] = function(self) updatestatus(self) end,
 	["PLAYER_REGEN_ENABLED"] = function(self) updatestatus(self) end,
 	["PLAYER_UPDATE_RESTING"] = function(self) updatestatus(self) end,
+	["PLAYER_FLAGS_CHANGED"] = function(self) updatestatus(self) end,
 	["PLAYER_COMBO_POINTS"] = function(self) updatecombo(self) end,
 	["PLAYER_XP_UPDATE"] = function(self) updateinfo(self, "XP") end,
 	["PLAYER_LEVEL_UP"] = function(self) updateinfo(self, "XP") end,

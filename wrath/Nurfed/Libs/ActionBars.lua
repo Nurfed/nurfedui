@@ -252,6 +252,19 @@ local function seticon(btn)
 					else
 						texture = GetSpellTexture(spell)
 						if not texture then
+							local value, unit, useunit, count
+							value = btn:GetParent():GetAttribute("state")
+							value = value ~= "0" and value or nil
+							unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
+							value = value and "-"..value or "*"
+							useunit = btn:GetParent():GetAttribute("useunit")
+							if useunit and unit and unit ~= "none" and UnitExists(unit) then
+								if UnitCanAttack("player", unit) then
+									value = "-nuke"..value
+								elseif UnitCanAssist("player", unit) then
+									value = "-heal"..value
+								end
+							end
 							attrib = btn:GetAttribute("*companionID"..value)
 							if attrib then
 								local attribType = btn:GetAttribute("*companionType"..value)
@@ -333,6 +346,19 @@ local function btnenter(self)
 						GameTooltipTextRight1:Show()
 					end
 				else
+					local value, unit, useunit, count
+					value = self:GetParent():GetAttribute("state")
+					value = value ~= "0" and value or nil
+					unit = SecureButton_GetModifiedUnit(self, (value or "LeftButton"))
+					value = value and "-"..value or "*"
+					useunit = self:GetParent():GetAttribute("useunit")
+					if useunit and unit and unit ~= "none" and UnitExists(unit) then
+						if UnitCanAttack("player", unit) then
+							self = "-nuke"..value
+						elseif UnitCanAssist("player", unit) then
+							self = "-heal"..value
+						end
+					end
 					local attrib = self:GetAttribute("*companionID"..value)
 					if attrib then
 						GameTooltip:SetHyperlink("spell:"..attrib)
@@ -540,24 +566,17 @@ local function btnreceivedrag(self)
 end
 
 local function saveattrib(self, name, value)
-	--if string.find(name, "^%*") or string.find(name, "^shift") or string.find(name, "^ctrl") or string.find(name, "^alt") then
 	if name:find("^%*") or name:find("^shift") or name:find("^ctrl") or name:find("^alt") or name:find("^spellid") then
 		local parent = self:GetParent():GetName()
-		if parent and parent ~= "UIParent" then
-			for i,v in ipairs(NURFED_ACTIONBARS) do
-				if v.name == parent then
-					v.buttons[self:GetID()][name] = value
-					break
-				end
+		for _,tbl in ipairs(NURFED_ACTIONBARS) do
+			if tbl.name == parent then
+				tbl.buttons[self:GetID()][name] = value
+				name = "state-parent"
+				break
 			end
-			--NURFED_ACTIONBARS[self:GetParent():GetName()].buttons[self:GetID()][name] = value
-			name = "state-parent"
 		end
 	end
-
-	if name and name == "state-parent" then
-		seticon(self)
-	end
+	if name == "state-parent" then seticon(self) end
 end
 
 local live, dead = {}, {}
@@ -568,11 +587,15 @@ local function getbtn(hdr)
 		btn = table.remove(dead)
 	else
 		local new = #live + 1
-		btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate, ActionButtonTemplate")
+		btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate ActionButtonTemplate")
+		--btn = CreateFrame("CheckButton", "Nurfed_Button"..new, UIParent, "SecureActionButtonTemplate ActionButtonTemplate")
 		btn:RegisterForClicks("AnyUp")
 		btn:RegisterForDrag("LeftButton")
 		btn:SetAttribute("checkselfcast", true)
 		btn:SetAttribute("useparent-unit", true)
+		--//
+		--btn:SetAttribute("useparent-state", true)
+		--//
 		btn:SetAttribute("useparent-statebutton", true)
 		btn:SetScript("OnEnter", function(self) btnenter(self) end)
 		btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -657,7 +680,7 @@ local btnevents = {
 		value = value ~= "0" and value or nil
 		unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
 		value = value and "-"..value or "*"
-		useunit = self:GetParent():GetAttribute("useunit")
+		useunit = btn:GetParent():GetAttribute("useunit")
 		if useunit and unit and unit ~= "none" and UnitExists(unit) then
 			if UnitCanAttack("player", unit) then
 				value = "-nuke"..value
@@ -775,7 +798,7 @@ local function btnupdate()
 				value = value ~= "0" and value or nil
 				unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
 				value = value and "-"..value or "*"
-				useunit = self:GetParent():GetAttribute("useunit")
+				useunit = btn:GetParent():GetAttribute("useunit")
 				if useunit and unit and unit ~= "none" and UnitExists(unit) then
 					if UnitCanAttack("player", unit) then
 						value = "-nuke"..value
@@ -899,6 +922,7 @@ end
 
 ----------------------------------------------------------------
 -- Action bar management
+hooksecurefunc("RegisterStateDriver", function(_, ...) debug("register state", ...) end)
 function Nurfed:updatebar(hdr)
 	local state, visible
 	local btns, statelist, driver = {}, {}, {}
@@ -910,13 +934,13 @@ function Nurfed:updatebar(hdr)
 	end
 
 	--local vals = NURFED_ACTIONBARS[hdr:GetName()]
-	local vals = self:GetSettingsTable(hdr:GetName())
-	--[[for i in ipairs(NURFED_ACTIONBARS) do
-		if NURFED_ACTIONBARS[i].name == hdr:GetName() then
-			vals = NURFED_ACTIONBARS[i]
+	local vals
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		if v.name == hdr:GetName() then
+			vals = v
 			break
 		end
-	end]]
+	end
 	if vals.statemaps then
 		for k, v in pairs(vals.statemaps) do
 			if k:find("%-") then
@@ -940,6 +964,8 @@ function Nurfed:updatebar(hdr)
 		end
 	end
 
+	debug("driver", driver)
+	debug("statelist", statelist)
 	driver = table.concat(driver, ";")
 	state = SecureCmdOptionParse(driver)
 	statelist = table.concat(statelist, ";")
@@ -958,18 +984,19 @@ function Nurfed:updatebar(hdr)
 		visible = "["..vals.visible.."]".." show; hide"
 	end
 
-
+	--debug("driver", driver, "state", state, "statelist", statelist)
 	RegisterStateDriver(hdr, "state", driver)
 	RegisterStateDriver(hdr, "visibility", visible)
 	--hdr:SetAttribute("statemap-state", "$input")
 	-- code given by alestane
 	hdr:SetAttribute("_onstate-state", [[ -- (self, stateid, newstate)
 					  state = newstate;
+					  self:SetAttribute("state", newstate)
 					  control:ChildUpdate(stateid, newstate) ]]
 					)
 	hdr:SetAttribute("statebutton", statelist)
 	hdr:SetAttribute("state", state)
-	hdr:SetWidth(vals.cols * (36 + vals.xgap) - vals.xgap)
+  	hdr:SetWidth(vals.cols * (36 + vals.xgap) - vals.xgap)
 	hdr:SetHeight(vals.rows * (36 + vals.ygap) - vals.ygap)
   
 	local last, begin
@@ -1037,18 +1064,14 @@ function Nurfed:deletebar(frame)
 	end
 end
 
-function Nurfed:GetSettingsTable(frame)
-	for i,v in ipairs(NURFED_ACTIONBARS) do
+function Nurfed:createbar(frame)
+	local vals
+	for _,v in ipairs(NURFED_ACTIONBARS) do
 		if v.name == frame then
-			return v
+			vals = v
+			break
 		end
 	end
-	return nil
-end
-
-function Nurfed:createbar(frame)
-	--local vals = NURFED_ACTIONBARS[frame]
-	local vals = self:GetSettingsTable(frame)
 	local hdr = _G[frame] or Nurfed:create(frame, "actionbar")
 	if hdr and type(hdr) == "table" then
 		hdr:SetScale(vals.scale)
@@ -1070,7 +1093,11 @@ end
 
 function Nurfed:updatehks(frame)
 	--local vals = NURFED_ACTIONBARS[frame]
-	local vals = self:GetSettingsTable(frame)
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		if v.name == frame then
+			vals = v
+		end
+	end
 	local hdr = _G[frame] or Nurfed:create(frame, "actionbar")
 	if hdr and type(hdr) == "table" then
 		local count = Nurfed:updatebar(hdr)
@@ -1194,7 +1221,7 @@ local oldBarSettings = {
 }
 local lastFarsight
 function nrf_updatePetBarControl(self)
-	if UnitInVehicleControlSeat("player") then return end
+	if UnitHasVehicleUI("player") then return end
 	if lastFarsight then return end
 	local count = 0
 	for i in pairs(oldBarSettings) do
@@ -1209,7 +1236,7 @@ function nrf_updatePetBarControl(self)
 				value = value ~= "0" and value or nil
 				unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
 				value = value and "-"..value or "*"
-				useunit = self:GetParent():GetAttribute("useunit")
+				useunit = btn:GetParent():GetAttribute("useunit")
 				if useunit and unit and unit ~= "none" and UnitExists(unit) then
 					if UnitCanAttack("player", unit) then
 						value = "-nuke"..value
@@ -1253,7 +1280,7 @@ function nrf_updatePetBarControl(self)
 			value = value ~= "0" and value or nil
 			unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
 			value = value and "-"..value or "*"
-			useunit = self:GetParent():GetAttribute("useunit")
+			useunit = btn:GetParent():GetAttribute("useunit")
 			if useunit and unit and unit ~= "none" and UnitExists(unit) then
 				if UnitCanAttack("player", unit) then
 					value = "-nuke"..value
