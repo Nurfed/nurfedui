@@ -252,10 +252,10 @@ local function seticon(btn)
 					else
 						texture = GetSpellTexture(spell)
 						if not texture then
-							attrib = btn:GetAttribute("*companionID")
+							attrib = btn:GetAttribute("*companionID"..value)
 							if attrib then
-								local attribType = btn:GetAttribute("*companionType")
-								local attribSlot = btn:GetAttribute("*companionSlot")
+								local attribType = btn:GetAttribute("*companionType"..value)
+								local attribSlot = btn:GetAttribute("*companionSlot"..value)
 								if attribType and attribSlot then
 									texture = select(4, GetCompanionInfo(attribType, attribSlot))
 								else
@@ -276,7 +276,7 @@ local function seticon(btn)
 					end
 				
 				elseif new == "macro" then
-					local id = btn:GetAttribute("*macroID")
+					local id = btn:GetAttribute("*macroID"..value)
 					if id then
 						texture = GetActionTexture(id)
 						spell = GetActionText(id)
@@ -333,7 +333,7 @@ local function btnenter(self)
 						GameTooltipTextRight1:Show()
 					end
 				else
-					local attrib = self:GetAttribute("*companionID")
+					local attrib = self:GetAttribute("*companionID"..value)
 					if attrib then
 						GameTooltip:SetHyperlink("spell:"..attrib)
 					end
@@ -374,20 +374,27 @@ local function btndragstart(self)
 		if state == "0" then
 			state = "LeftButton"
 		end
+		
 		local value = convert(self, state)
 		local new = SecureButton_GetModifiedAttribute(self, "type", value)
 		if new then
 			spell = SecureButton_GetModifiedAttribute(self, new, value)
 			if spell then
+				local state, value = state, value
+				if state == "LeftButton" then
+					value = "*"
+				else
+					value = "-"..value
+				end
 				if new == "spell" then
-					if self:GetAttribute("*companionID") then
-						nrfCompanionID = self:GetAttribute("*companionID")
-						nrfCompanionType = self:GetAttribute("*companionType")
-						nrfCompanionSlot = self:GetAttribute("*companionSlot")
+					if self:GetAttribute("*companionID"..value) then
+						nrfCompanionID = self:GetAttribute("*companionID"..value)
+						nrfCompanionType = self:GetAttribute("*companionType"..value)
+						nrfCompanionSlot = self:GetAttribute("*companionSlot"..value)
 						PickupCompanion(nrfCompanionType, nrfCompanionSlot)
-						self:SetAttribute("*companionID", nil)
-						self:SetAttribute("*companionType", nil)
-						self:SetAttribute("*companionSlot", nil)
+						self:SetAttribute("*companionID"..value, nil)
+						self:SetAttribute("*companionType"..value, nil)
+						self:SetAttribute("*companionSlot"..value, nil)
 						self.companionID = nil
 					else
 						PickupSpell(Nurfed:getspell(spell), BOOKTYPE_SPELL)
@@ -396,7 +403,7 @@ local function btndragstart(self)
 					PickupItem(spell)
 				elseif new == "macro" then
 					PickupMacro(spell)
-					self:SetAttribute("*macroID", nil)
+					self:SetAttribute("*macroID"..value, nil)
 				end
 			end
 
@@ -430,7 +437,6 @@ local function btnreceivedrag(self)
 	if GetCursorInfo() and not InCombatLockdown() then
 		local oldtype = self.type
 		local oldspell = self.spell
-		local oldCompanionID, oldCompanionType, oldCompanionSlot = self:GetAttribute("*companionID"), self:GetAttribute("*companionType"), self:GetAttribute("*companionSlot")
 		local cursor, arg1, arg2 = GetCursorInfo()
 		local value = self:GetParent():GetAttribute("state")
 		if value == "0" then
@@ -455,13 +461,14 @@ local function btnreceivedrag(self)
 
 		self:SetAttribute("*type"..value, cursor)
 		--TODO: Rewrite this so it clears values cleaner
+		local oldCompanionID, oldCompanionType, oldCompanionSlot = self:GetAttribute("*companionID"..value), self:GetAttribute("*companionType"..value), self:GetAttribute("*companionSlot"..value)
 		if cursor == "spell" then
 			local spell, rank
 			if arg1 == 0 and arg2 == "spell" and nrfCompanionID and nrfCompanionType and nrfCompanionSlot and nrfCompanionSlot then
 				spell = GetSpellInfo(nrfCompanionID)
-				self:SetAttribute("*companionID", nrfCompanionID)
-				self:SetAttribute("*companionType", nrfCompanionType)
-				self:SetAttribute("*companionSlot", nrfCompanionSlot)
+				self:SetAttribute("*companionID"..value, nrfCompanionID)
+				self:SetAttribute("*companionType"..value, nrfCompanionType)
+				self:SetAttribute("*companionSlot"..value, nrfCompanionSlot)
 				nrfCompanionType = nil
 				nrfCompanionSlot = nil
 				nrfCompanionID = nil
@@ -472,38 +479,38 @@ local function btnreceivedrag(self)
 				elseif spell:find("%(") then
 					spell = spell.."()"
 				end
-				self:SetAttribute("*companionID", nil)
-				self:SetAttribute("*companionType", nil)
-				self:SetAttribute("*companionSlot", nil)
+				self:SetAttribute("*companionID"..value, nil)
+				self:SetAttribute("*companionType"..value, nil)
+				self:SetAttribute("*companionSlot"..value, nil)
 			end
 			self:SetAttribute("*spell"..value, spell)
 			self:SetAttribute("*item"..value, nil)
 			self:SetAttribute("*itemid"..value, nil)
 			self:SetAttribute("*macro"..value, nil)
-			self:SetAttribute("*macroID", nil)
+			self:SetAttribute("*macroID"..value, nil)
 			
 		elseif cursor == "item" then
 			--local item = GetItemInfo(arg1)
 			self:SetAttribute("*spell"..value, nil)
-			self:SetAttribute("*companionID", nil)
-			self:SetAttribute("*companionType", nil)
-			self:SetAttribute("*companionSlot", nil)
+			self:SetAttribute("*companionID"..value, nil)
+			self:SetAttribute("*companionType"..value, nil)
+			self:SetAttribute("*companionSlot"..value, nil)
 			--self:SetAttribute("*item"..value, item)
 			self:SetAttribute("*item"..value, GetItemInfo(arg1))
 			self:SetAttribute("*itemid"..value, arg1)
 			self:SetAttribute("*macro"..value, nil)
-			self:SetAttribute("*macroID", nil)
+			self:SetAttribute("*macroID"..value, nil)
 		elseif cursor == "macro" then
 			self:SetAttribute("*spell"..value, nil)
-			self:SetAttribute("*companionID", nil)
-			self:SetAttribute("*companionType", nil)
-			self:SetAttribute("*companionSlot", nil)
+			self:SetAttribute("*companionID"..value, nil)
+			self:SetAttribute("*companionType"..value, nil)
+			self:SetAttribute("*companionSlot"..value, nil)
 			self:SetAttribute("*item"..value, nil)
 			self:SetAttribute("*itemid"..value, nil)
 			self:SetAttribute("*macro"..value, arg1)
 			for i=1, 72 do
 				if select(2, GetActionInfo(i)) == arg1 then
-					self:SetAttribute("*macroID", i)
+					self:SetAttribute("*macroID"..value, i)
 					break
 				end
 			end
@@ -645,7 +652,20 @@ local btnevents = {
 		end
 	end,
 	["COMPANION_UPDATE"] = function(btn)
-		if btn:GetAttribute("*companionID") then
+		local value, unit, useunit, count
+		value = btn:GetParent():GetAttribute("state")
+		value = value ~= "0" and value or nil
+		unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
+		value = value and "-"..value or "*"
+		useunit = self:GetParent():GetAttribute("useunit")
+		if useunit and unit and unit ~= "none" and UnitExists(unit) then
+			if UnitCanAttack("player", unit) then
+				value = "-nuke"..value
+			elseif UnitCanAssist("player", unit) then
+				value = "-heal"..value
+			end
+		end
+		if btn:GetAttribute("*companionID"..value) then
 			seticon(btn)
 		end
 	end,
@@ -750,7 +770,20 @@ local function btnupdate()
 			if btn.IsPetAction then 
 				-- do nothing yet, maybe never?
 			elseif btn.companionID then
-				if not btn:GetChecked() and select(5, GetCompanionInfo(btn:GetAttribute("*companionType"), btn:GetAttribute("*companionSlot"))) then
+				local value, unit, useunit, count
+				value = btn:GetParent():GetAttribute("state")
+				value = value ~= "0" and value or nil
+				unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
+				value = value and "-"..value or "*"
+				useunit = self:GetParent():GetAttribute("useunit")
+				if useunit and unit and unit ~= "none" and UnitExists(unit) then
+					if UnitCanAttack("player", unit) then
+						value = "-nuke"..value
+					elseif UnitCanAssist("player", unit) then
+						value = "-heal"..value
+					end
+				end	
+				if not btn:GetChecked() and select(5, GetCompanionInfo(btn:GetAttribute("*companionType"..value), btn:GetAttribute("*companionSlot"..value))) then
 					btn:SetChecked(true)
 				end
 				if UnitAffectingCombat("player") then
@@ -837,6 +870,11 @@ hooksecurefunc("UIParent_ManageFramePositions", function()
 			local border = _G["ShapeshiftButton"..i.."NormalTexture"]
 			border:SetWidth(50)
 			border:SetHeight(50)
+			border = _G["PossessButton"..i.."NormalTexture"]
+			if border then
+				border:SetWidth(50)
+				border:SetHeight(50)
+			end
 		end
 	end
 end)
@@ -923,7 +961,12 @@ function Nurfed:updatebar(hdr)
 
 	RegisterStateDriver(hdr, "state", driver)
 	RegisterStateDriver(hdr, "visibility", visible)
-	hdr:SetAttribute("statemap-state", "$input")
+	--hdr:SetAttribute("statemap-state", "$input")
+	-- code given by alestane
+	hdr:SetAttribute("_onstate-state", [[ -- (self, stateid, newstate)
+					  state = newstate;
+					  control:ChildUpdate(stateid, newstate) ]]
+					)
 	hdr:SetAttribute("statebutton", statelist)
 	hdr:SetAttribute("state", state)
 	hdr:SetWidth(vals.cols * (36 + vals.xgap) - vals.xgap)
@@ -1177,13 +1220,13 @@ function nrf_updatePetBarControl(self)
 
 				btn:SetAttribute("*type"..value, nil)
 				btn:SetAttribute("*spell"..value, nil)
-				btn:SetAttribute("*companionID", nil)
-				btn:SetAttribute("*companionType", nil)
-				btn:SetAttribute("*companionSlot", nil)
+				btn:SetAttribute("*companionID"..value, nil)
+				btn:SetAttribute("*companionType"..value, nil)
+				btn:SetAttribute("*companionSlot"..value, nil)
 				btn:SetAttribute("*item"..value, nil)
 				btn:SetAttribute("*itemid"..value, nil)
 				btn:SetAttribute("*macro"..value, nil)
-				btn:SetAttribute("*macroID", nil)
+				btn:SetAttribute("*macroID"..value, nil)
 				btn.IsPetAction = nil
 				for n, o in pairs(v) do
 					btn:SetAttribute(n, o ~= "nil" and o or nil)
@@ -1222,24 +1265,24 @@ function nrf_updatePetBarControl(self)
 			oldBarSettings[k]["*harmbutton"..value] = "nuke"..value or "nil"
 			oldBarSettings[k]["*helpbutton"..value] = "heal"..value or "nil"
 			oldBarSettings[k]["*type"..value] = btn:GetAttribute("*type"..value) or "nil"
-			oldBarSettings[k]["*companionID"] = btn:GetAttribute("*companionID") or "nil"
-			oldBarSettings[k]["*companionType"] = btn:GetAttribute("*companionType") or "nil"
-			oldBarSettings[k]["*companionSlot"] = btn:GetAttribute("*companionSlot") or "nil"
+			oldBarSettings[k]["*companionID"..value] = btn:GetAttribute("*companionID"..value) or "nil"
+			oldBarSettings[k]["*companionType"..value] = btn:GetAttribute("*companionType"..value) or "nil"
+			oldBarSettings[k]["*companionSlot"..value] = btn:GetAttribute("*companionSlot"..value) or "nil"
 			oldBarSettings[k]["*spell"..value] = btn:GetAttribute("*spell"..value) or "nil"
 			oldBarSettings[k]["*item"..value] = btn:GetAttribute("*item"..value) or "nil"
 			oldBarSettings[k]["*itemid"..value] = btn:GetAttribute("*itemid"..value) or "nil"
 			oldBarSettings[k]["*macro"..value] = btn:GetAttribute("*macro"..value) or "nil"
-			oldBarSettings[k]["*macroID"] = btn:GetAttribute("*macroID") or "nil"
+			oldBarSettings[k]["*macroID"..value] = btn:GetAttribute("*macroID"..value) or "nil"
 			btn.IsPetAction = i
 			btn:SetAttribute("*type"..value, "spell")
 			btn:SetAttribute("*spell"..value, name)
-			btn:SetAttribute("*companionID", nil)
-			btn:SetAttribute("*companionType", nil)
-			btn:SetAttribute("*companionSlot", nil)
+			btn:SetAttribute("*companionID"..value, nil)
+			btn:SetAttribute("*companionType"..value, nil)
+			btn:SetAttribute("*companionSlot"..value, nil)
 			btn:SetAttribute("*item"..value, nil)
 			btn:SetAttribute("*itemid"..value, nil)
 			btn:SetAttribute("*macro"..value, nil)
-			btn:SetAttribute("*macroID", nil)
+			btn:SetAttribute("*macroID"..value, nil)
 			seticon(btn)
 		end
 	end
@@ -1584,6 +1627,7 @@ function nrf_mainmenu()
 				btn:SetPoint("BOTTOMLEFT")
 			end
 			_G["PossessButton"..i.."NormalTexture"]:Hide()
+			--[[
 			btn:SetScript("OnMouseUp", function(self)
 				Nurfed:schedule(0, function()
 					for i = 1, NUM_POSSESS_SLOTS do
@@ -1591,6 +1635,7 @@ function nrf_mainmenu()
 					end
 				end)
 			end)
+			]]
 		end
 		nrf_updatemainbar("bags")
 		nrf_updatemainbar("micro")
