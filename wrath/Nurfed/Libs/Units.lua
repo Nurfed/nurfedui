@@ -1963,7 +1963,7 @@ end
 local function updatename(self)
 	local unit = SecureButton_GetUnit(self)
 	if self.name then
-		formattext(self.name)
+		formattext(self.name, self)
 	end
 
 	if self.class then
@@ -2009,7 +2009,7 @@ end
 
 local function updateloot(self)
 	if self.loot then
-		formattext(self.loot)
+		formattext(self.loot, self)
 	end
 end
 
