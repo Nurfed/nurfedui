@@ -864,7 +864,8 @@ local replace = {
 
 
 	["$key"] = function(self, t)
-			local id, found = gsub(self.unit, "party([1-4])", "%1")
+			--local id, found = gsub(self.unit, "party([1-4])", "%1")
+			local id, found = self.unit:gsub("party([1-4])", "%1")
 			if found == 1 then
 				local binding = GetBindingText(GetBindingKey("TARGETPARTYMEMBER"..id), "KEY_")
 				binding = Nurfed:binding(binding)
@@ -1565,7 +1566,7 @@ end
 
 ----------------------------------------------------------------
 -- Text replacement
-local function subtext(self, text)
+local function subtext(self, text, trueself)
 	if not text then return end
 	local pre = string.find(text, "%$%a")
 	string.gsub(text, "%$%a+",
@@ -1573,7 +1574,9 @@ local function subtext(self, text)
 			if replace[s] then
 				--text = string.gsub(text, s, replace[s](frame:GetParent(), s))
 				--text = string.gsub(text, s, replace[s])
-				text = text:gsub(s, replace[s](self:GetParent()))
+				--text = text:gsub(s, replace[s](self:GetParent()))
+				--text = text:gsub(s, replace[s](self:GetParent()))
+				text = text:gsub(s, replace[s](trueself))
 			end
 		end
 	)
@@ -1588,9 +1591,9 @@ local function subtext(self, text)
 	return text
 end
 
-local function formattext(self)
+local function formattext(self, trueself)
 	if self and self.format then
-		local display = subtext(self, self.format)
+		local display = subtext(self, self.format, trueself)
 		self:SetText(display)
 	end
 end
@@ -1598,7 +1601,7 @@ end
 local function updatetext(self)
 	if self.text then
 		for _, v in ipairs(self.text) do
-			formattext(v)
+			formattext(v, self)
 		end
 	end
 end
@@ -2093,7 +2096,7 @@ local events = {
 	["PLAYER_LEVEL_UP"] = function(self) updateinfo(self, "XP") end,
 	["UPDATE_FACTION"] = function(self) updateinfo(self, "XP") end,
 	["UPDATE_EXHAUSTION"] = function(self) updateinfo(self, "XP") end,
-	["PLAYER_GUILD_UPDATE"] = function(self) formattext(self.guild) end,
+	["PLAYER_GUILD_UPDATE"] = function(self) formattext(self.guild, self) end,
 	["RAID_TARGET_UPDATE"] = function(self) updateraid(self) end,
 	["PARTY_MEMBERS_CHANGED"] = function(self)
 		if self.isParty then
@@ -2114,7 +2117,7 @@ local events = {
 		updateloot(self)
 	end,
 	["RAID_ROSTER_UPDATE"] = function(self) updategroup(self) end,
-	["UPDATE_BINDINGS"] = function(self) formattext(self.key) end,
+	["UPDATE_BINDINGS"] = function(self) formattext(self.key, self) end,
 	["UNIT_PET_EXPERIENCE"] = function(self) updateinfo(self, "XP") end,
 	["UNIT_PET"] = function(self) updateframe(self) end,
 	["UNIT_HEALTH"] = function(self) updateinfo(self, "Health") end,
@@ -2138,13 +2141,13 @@ local events = {
 	["UNIT_FACTION"] = function(self) updatepvp(self) end,
 	["UNIT_LEVEL"] = function(self)
 		updateinfo(self, "XP")
-		formattext(self.level)
+		formattext(self.level, self)
 	end,
 	["UNIT_NAME_UPDATE"] = function(self)
 		updatename(self)
 		updatetext(self)
 	end,
-	["UNIT_DYNAMIC_FLAGS"] = function(self) formattext(self.name) end,
+	["UNIT_DYNAMIC_FLAGS"] = function(self) formattext(self.name, self) end,
 	["UNIT_CLASSIFICATION_CHANGED"] = function(self) formattext(self.level) end,
 	["UNIT_HAPPINESS"] = function(self) updatehappiness(self) end,
 }
