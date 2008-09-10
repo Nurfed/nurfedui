@@ -474,6 +474,7 @@ local function btnreceivedrag(self)
 		else
 			value = "*"
 		end
+		
 		local useunit = self:GetParent():GetAttribute("useunit")
 		if useunit and unit and unit ~= "none" and UnitExists(unit) then
 			if UnitCanAttack("player", unit) then
@@ -484,7 +485,8 @@ local function btnreceivedrag(self)
 				value = "-heal"..value
 			end
 		end
-
+		
+		--value = value ~= "*" and value.."*" or value
 		self:SetAttribute("*type"..value, cursor)
 		--TODO: Rewrite this so it clears values cleaner
 		local oldCompanionID, oldCompanionType, oldCompanionSlot = self:GetAttribute("*companionID"..value), self:GetAttribute("*companionType"..value), self:GetAttribute("*companionSlot"..value)
@@ -594,7 +596,7 @@ local function getbtn(hdr)
 		btn:SetAttribute("checkselfcast", true)
 		btn:SetAttribute("useparent-unit", true)
 		--//
-		--btn:SetAttribute("useparent-state", true)
+		btn:SetAttribute("useparent-state", true)
 		--//
 		btn:SetAttribute("useparent-statebutton", true)
 		btn:SetScript("OnEnter", function(self) btnenter(self) end)
@@ -610,10 +612,13 @@ local function getbtn(hdr)
 		btn:SetScript("PostClick", function(self)
 			self:SetChecked(nil)
 			if not self:GetScript("OnClick") then
-			self:GetParent():SetAttribute("addchild", self)
+				self:GetParent():SetAttribute("addchild", self)
 			end
 		end)
-
+		--mybar:WrapScript(btn, "OnClick", [[return true, state]])
+		--btn:WrapScript(hdr, "OnClick", [[ return true, state ]])
+--		hdr:WrapScript(btn, "OnClick", [[ return true, self:GetParent():GetAttribute("state") ]])
+		
 		local cd = _G[btn:GetName().."Cooldown"]
 		cd.text = cd:CreateFontString(nil, "OVERLAY")
 		cd.text:SetPoint("CENTER")
@@ -669,6 +674,7 @@ local btnevents = {
 			seticon(btn)
 		end
 	end,
+	["NURFED_UPDATE_ICONS"] = function(btn) seticon(btn) end,
 	["PLAYER_FOCUS_CHANGED"] = function(btn)
 		if SecureButton_GetUnit(btn) == "focus" then
 			seticon(btn)
@@ -922,7 +928,19 @@ end
 
 ----------------------------------------------------------------
 -- Action bar management
-hooksecurefunc("RegisterStateDriver", function(_, ...) debug("register state", ...) end)
+local function updateattribs(self, ...)
+	local children = self:GetChildren()
+	if children then
+		local dragname = self:GetName().."drag"
+		local i=2
+		local tbl = select(i, self:GetChildren())
+		while tbl do
+			seticon(tbl)
+			i=i+1
+			tbl = select(i, self:GetChildren())
+		end
+	end		
+end
 function Nurfed:updatebar(hdr)
 	local state, visible
 	local btns, statelist, driver = {}, {}, {}
@@ -964,8 +982,6 @@ function Nurfed:updatebar(hdr)
 		end
 	end
 
-	debug("driver", driver)
-	debug("statelist", statelist)
 	driver = table.concat(driver, ";")
 	state = SecureCmdOptionParse(driver)
 	statelist = table.concat(statelist, ";")
@@ -983,22 +999,42 @@ function Nurfed:updatebar(hdr)
 	if vals.visible ~= "hide" and vals.visible ~= "show" then
 		visible = "["..vals.visible.."]".." show; hide"
 	end
-
-	--debug("driver", driver, "state", state, "statelist", statelist)
-	RegisterStateDriver(hdr, "state", driver)
-	RegisterStateDriver(hdr, "visibility", visible)
-	--hdr:SetAttribute("statemap-state", "$input")
+--
+--	RegisterStateDriver(hdr, "state", driver)
+--	RegisterStateDriver(hdr, "visibility", visible)
 	-- code given by alestane
-	hdr:SetAttribute("_onstate-state", [[ -- (self, stateid, newstate)
-					  state = newstate;
-					  self:SetAttribute("state", newstate)
-					  control:ChildUpdate(stateid, newstate) ]]
+--	hdr:SetAttribute("_onstate-state", [[ -- (self, stateid, newstate)
+--					  state = newstate;
+--					  self:SetAttribute("state", newstate)
+--					  control:ChildUpdate(stateid, newstate) ]]
+--					)
+--	hdr:SetAttribute("statebutton", statelist)
+--	hdr:SetAttribute("state", state)
+	RegisterStateDriver(hdr, "actionsettings", driver)
+	RegisterStateDriver(hdr, "visibility", visible)
+	hdr:SetAttribute("_onstate-actionsettings", [[ -- (self, stateid, newstate)
+						state = newstate;
+						self:SetAttribute("state", newstate)
+						print("new state!")
+						local i = 2
+						local children = select(i, self:GetChildren())
+						while children do
+							children:SetAttribute("*spell*", children:GetAttribute("*spell-"..newstate))
+							children:SetAttribute("*type*", children:GetAttribute("*type-"..newstate))
+							if children:GetAttribute("*spell-"..newstate) then
+								print("setting new state", newstate, children:GetAttribute("*spell-"..newstate))
+							end
+							i = i + 1
+							children = select(i, self:GetChildren())
+						end
+						control:ChildUpdate(stateid, newstate) ]]
 					)
 	hdr:SetAttribute("statebutton", statelist)
 	hdr:SetAttribute("state", state)
+	
   	hdr:SetWidth(vals.cols * (36 + vals.xgap) - vals.xgap)
 	hdr:SetHeight(vals.rows * (36 + vals.ygap) - vals.ygap)
-  
+	
 	local last, begin
 	local count = 1
 	for i = 1, vals.rows do
@@ -1079,6 +1115,10 @@ function Nurfed:createbar(frame)
 		hdr:SetPoint(unpack(vals.Point or {"CENTER"}))
 		hdr:SetAttribute("unit", vals.unit)
 		hdr:SetAttribute("useunit", vals.useunit)
+		-- this stops the state from changing?
+		--hdr:SetScript("OnAttributeChanged", updateattribs)
+		--hooksecurefunc(hdr:GetScript("OnAttributeChanged"), updateattribs)
+		hdr:HookScript("OnAttributeChanged", updateattribs)
 
 		_G[frame.."dragtext"]:SetText(frame)
 
@@ -1123,7 +1163,7 @@ end
 
 Nurfed:createtemp("actionbar", {
 	type = "Frame",
-	uitemp = "SecureHandlerStateTemplate",
+	uitemp = "SecureHandlerStateTemplate SecureHandlerClickTemplate",
 	size = { 36, 36 },
 	Movable = true,
 	Hide = true,

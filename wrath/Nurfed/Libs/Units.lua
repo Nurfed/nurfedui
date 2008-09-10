@@ -628,6 +628,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					TextHeight = 22,
 					JustifyH = "RIGHT",
 					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMLEFT", 2, 3 },
+					vars = { unit1 = "player", unit2 = "target" },
 				},
 				raidtarget = {
 					type = "Texture",
@@ -1633,8 +1634,10 @@ end
 
 local function updatecombo(self)
 	if self.combo then
-		local comboPoints = GetComboPoints("player", "target")
+		local comboPoints
 		for _, child in ipairs(self.combo) do
+			if child.unit1 ~= self.unit and child.unit2 ~= self.unit then return end
+			comboPoints = GetComboPoints(child.unit1, child.unit2)
 			if comboPoints > 0 then
 				local objtype = child:GetObjectType()
 				if objtype == "FontString" then
@@ -2091,7 +2094,7 @@ local events = {
 	["PLAYER_REGEN_ENABLED"] = function(self) updatestatus(self) end,
 	["PLAYER_UPDATE_RESTING"] = function(self) updatestatus(self) end,
 	["PLAYER_FLAGS_CHANGED"] = function(self) updatestatus(self) end,
-	["PLAYER_COMBO_POINTS"] = function(self) updatecombo(self) end,
+	["UNIT_COMBO_POINTS"] = function(self) updatecombo(self) end,
 	["PLAYER_XP_UPDATE"] = function(self) updateinfo(self, "XP") end,
 	["PLAYER_LEVEL_UP"] = function(self) updateinfo(self, "XP") end,
 	["UPDATE_FACTION"] = function(self) updateinfo(self, "XP") end,
@@ -2161,7 +2164,7 @@ local function onevent(event, ...)
 					events[event](frame, ...)
 				end
 			elseif event:find("^UNIT_") then
-				if arg1 == unit then
+				if arg1 == unit or event == "UNIT_COMBO_POINTS" then
 					events[event](frame, ...)
 				end
 			else
@@ -2269,7 +2272,6 @@ function Nurfed:unitimbue(frame)
 		table.insert(events, "UNIT_COMBAT")
 		if playerClass == "DEATHKNIGHT" then
 			_G["RuneFrame"]:ClearAllPoints();
-			--f:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 12, 0)
 			_G["RuneFrame"]:SetPoint("TOP", frame, "BOTTOM", 0, 0)
 			for i=1, 6 do
 				local btn = _G["RuneButtonIndividual"..i]
@@ -2330,23 +2332,12 @@ function Nurfed:unitimbue(frame)
 					frame.predictedPower = true
 					frame.manaPowerType = UnitPowerType(frame.unit)
 				else
-					--[[
-					table.insert(events, "UNIT_MANA")
-					table.insert(events, "UNIT_MAXMANA")
-					table.insert(events, "UNIT_ENERGY")
-					table.insert(events, "UNIT_MAXENERGY")
-					table.insert(events, "UNIT_RAGE")
-					table.insert(events, "UNIT_MAXRAGE")
-					table.insert(events, "UNIT_FOCUS")
-					table.insert(events, "UNIT_MAXFOCUS")
-					table.insert(events, "UNIT_DISPLAYPOWER")
-					table.insert(events, "UNIT_RUNIC_POWER")]]
-					table.insert(events, "UNIT_MANA")
-					table.insert(events, "UNIT_RAGE")
-					table.insert(events, "UNIT_FOCUS")
-					table.insert(events, "UNIT_ENERGY")
-					table.insert(events, "UNIT_HAPPINESS")
-					table.insert(events, "UNIT_RUNIC_POWER")
+					table.insert(events, "UNIT_MANA");
+					table.insert(events, "UNIT_RAGE");
+					table.insert(events, "UNIT_FOCUS");
+					table.insert(events, "UNIT_ENERGY");
+					table.insert(events, "UNIT_HAPPINESS");
+					table.insert(events, "UNIT_RUNIC_POWER");
 				end
 				table.insert(events, "UNIT_MAXMANA");
 				table.insert(events, "UNIT_MAXRAGE");
@@ -2358,21 +2349,22 @@ function Nurfed:unitimbue(frame)
 				
 			elseif pre == "XP" then
 				if frame.unit == "player" then
-					table.insert(events, "PLAYER_XP_UPDATE")
-					table.insert(events, "PLAYER_LEVEL_UP")
-					table.insert(events, "UPDATE_EXHAUSTION")
-					table.insert(events, "UPDATE_FACTION")
+					table.insert(events, "PLAYER_XP_UPDATE");
+					table.insert(events, "PLAYER_LEVEL_UP");
+					table.insert(events, "UPDATE_EXHAUSTION");
+					table.insert(events, "UPDATE_FACTION");
 				elseif frame.unit == "pet" then
-					table.insert(events, "UNIT_PET_EXPERIENCE")
+					table.insert(events, "UNIT_PET_EXPERIENCE");
 				end
-			elseif pre == "combo" then
-				table.insert(events, "PLAYER_COMBO_POINTS")
-			elseif pre == "feedback" then
-				table.insert(events, "UNIT_COMBAT")
 				
-			--elseif (pre == "buff" or pre == "debuff") and not frame.unit:find("target", 2, true) then
+			elseif pre == "combo" then
+				table.insert(events, "UNIT_COMBO_POINTS");
+				
+			elseif pre == "feedback" then
+				table.insert(events, "UNIT_COMBAT");
+				
 			elseif pre == "buff" or pre == "debuff" and not string.find(frame.unit, "target", 2, true) then
-				table.insert(events, "UNIT_AURA")
+				table.insert(events, "UNIT_AURA");
 			end
 		end
 		table.insert(frame[pre], child)

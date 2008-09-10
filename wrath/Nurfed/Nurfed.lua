@@ -113,36 +113,42 @@ local function updateFriendsColors()
 	local numfriends = GetNumFriends()
 	if numfriends > 0 then
 		local friendOffset = FauxScrollFrame_GetOffset(FriendsFrameFriendsScrollFrame)
-		local name, level, class, area, connected, status, note
+		local name, level, class, area, connected, status, note, nameString
 		for i=1, numfriends, 1 do
 			name, level, class, area, connected, status, note = GetFriendInfo(i)
 			if connected then
 				class = class == "Death Knight" and "DeathKnight" or class
-				local nameString = getglobal("FriendsFrameFriendButton"..(i-friendOffset).."ButtonTextName");
-				if nameString then
-					nameString:SetTextColor(RAID_CLASS_COLORS[string.upper(class)].r, RAID_CLASS_COLORS[string.upper(class)].g, RAID_CLASS_COLORS[string.upper(class)].b)
+				for i=1, FRIENDS_TO_DISPLAY, 1 do
+					nameString = getglobal("FriendsFrameFriendButton"..(i-friendOffset).."ButtonTextName");
+					if nameString then
+						nameString:SetTextColor(RAID_CLASS_COLORS[string.upper(class)].r, RAID_CLASS_COLORS[string.upper(class)].g, RAID_CLASS_COLORS[string.upper(class)].b)
+						break
+					end
 				end
 			end
 		end
 	end
 end
-
 local function updateGuildColors()
 	--if not Nurfed:getopt("ColorGuildList") or false then return end
 	local numGuildMembers = GetNumGuildMembers()
 	if numGuildMembers > 0 then
-		local name, rank, rankIndex, level, class, zone, note, officernote, online, status
+		local name, rank, rankIndex, level, class, zone, note, officernote, online, status, color, nameString
 		for i=1, numGuildMembers, 1 do
 			name, rank, rankIndex, level, class, zone, note, officernote, online = GetGuildRosterInfo(i)
 			if name and class then
 				class = class == "Death Knight" and "DeathKnight" or class
-				local nameString = _G["GuildFrameGuildStatusButton"..i.."Name"]
-				if nameString then
-					nameString:SetTextColor(RAID_CLASS_COLORS[string.upper(class)].r, RAID_CLASS_COLORS[string.upper(class)].g, RAID_CLASS_COLORS[string.upper(class)].b)
-				end
-				nameString = _G["GuildFrameButton"..i.."Name"]
-				if nameString then
-					nameString:SetTextColor(RAID_CLASS_COLORS[string.upper(class)].r, RAID_CLASS_COLORS[string.upper(class)].g, RAID_CLASS_COLORS[string.upper(class)].b)
+				for i=1, GUILDMEMBERS_TO_DISPLAY, 1 do
+					nameString = _G["GuildFrameGuildStatusButton"..i.."Name"]
+					color = RAID_CLASS_COLORS[string.upper(class)]
+					if nameString and nameString:GetText() == name then
+						nameString:SetTextColor(color.r, color.g, color.b)
+					end
+					nameString = _G["GuildFrameButton"..i.."Name"]
+					if nameString and nameString:GetText() == name then
+						nameString:SetTextColor(color.r, color.g, color.b)
+						break
+					end
 				end
 			end
 		end
@@ -331,6 +337,9 @@ local function onevent(self, ...)
 		GuildRoster()	-- fire the guild roster to get the list!
 		hooksecurefunc("FriendsList_Update", updateFriendsColors)
 		hooksecurefunc("GuildStatus_Update", updateGuildColors)
+		GuildListScrollFrame:HookScript("OnVerticalScroll", updateGuildColors)
+		FriendsFrameFriendsScrollFrame:HookScript("OnVerticalScroll", updateFriendsColors)
+		
 	elseif event == "VARIABLES_LOADED" then
 		if self:IsUserPlaced() then
 			self:SetUserPlaced(nil)
