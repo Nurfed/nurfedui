@@ -634,7 +634,7 @@ local function getbtn(hdr)
 	end
 	table.insert(live, btn)
 	btn:SetScript("OnAttributeChanged", saveattrib)
-	hdr:WrapScript(btn, "OnClick", [[ return state or self:GetParent():GetAttribute("state") ]])
+	hdr:WrapScript(btn, "OnClick", [[ return state ]])
 	return btn
 end
 
@@ -982,16 +982,17 @@ function Nurfed:updatebar(hdr)
 		visible = "["..vals.visible.."]".." show; hide"
 	end
 	
-	RegisterStateDriver(hdr, "actionsettings", driver)
-	RegisterStateDriver(hdr, "visibility", visible)
-	
 	hdr:SetAttribute("_onstate-actionsettings", [[ -- (self, stateid, newstate)
 						state = newstate;
 						self:SetAttribute("state", newstate)
 						control:ChildUpdate(stateid, newstate) ]]
 					)
 			
+	RegisterStateDriver(hdr, "actionsettings", driver)
+	RegisterStateDriver(hdr, "visibility", visible)
+
 	hdr:SetAttribute("statebutton", statelist)
+	hdr:SetAttribute("state", state)
 	
   	hdr:SetWidth(vals.cols * (36 + vals.xgap) - vals.xgap)
 	hdr:SetHeight(vals.rows * (36 + vals.ygap) - vals.ygap)
@@ -1003,7 +1004,6 @@ function Nurfed:updatebar(hdr)
 			local btn = table.remove(btns, 1) or getbtn(hdr)
 			btn:SetID(count)
 			hdr:SetAttribute("addchild", btn)
-			hdr:SetAttribute("state", state)
 			vals.buttons[count] = vals.buttons[count] or {}
       
 			for k, v in pairs(vals.buttons[count]) do
@@ -1077,7 +1077,6 @@ function Nurfed:createbar(frame)
 		hdr:SetPoint(unpack(vals.Point or {"CENTER"}))
 		hdr:SetAttribute("unit", vals.unit)
 		hdr:SetAttribute("useunit", vals.useunit)
-		hdr:HookScript("OnAttributeChanged", function() Nurfed:sendevent("NURFED_UPDATE_ICONS") end)
 
 		_G[frame.."dragtext"]:SetText(frame)
 
@@ -1087,6 +1086,7 @@ function Nurfed:createbar(frame)
 			vals.buttons[count] = nil
 			count = count + 1
 		end
+		hdr:HookScript("OnAttributeChanged", function() Nurfed:sendevent("NURFED_UPDATE_ICONS") end)
 	end
 end
 
