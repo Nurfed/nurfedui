@@ -313,7 +313,7 @@ local function seticon(btn)
 			if texture then
 				btn:SetAlpha(1)
 				if Nurfed:getopt("fadein") then
-					UIFrameFadeIn(icon, 0.35)
+					UIFrameFadeIn(icon, 0.25)
 				end
 			end
 			updateitem(btn)
@@ -593,16 +593,19 @@ local function getbtn(hdr)
 		--btn = CreateFrame("CheckButton", "Nurfed_Button"..new, UIParent, "SecureActionButtonTemplate ActionButtonTemplate")
 		btn:RegisterForClicks("AnyUp")
 		btn:RegisterForDrag("LeftButton")
+
 		btn:SetAttribute("checkselfcast", true)
 		btn:SetAttribute("useparent-unit", true)
-		--//
-		btn:SetAttribute("useparent-state", true)
-		--//
 		btn:SetAttribute("useparent-statebutton", true)
-		btn:SetScript("OnEnter", function(self) btnenter(self) end)
+
+		--btn:SetScript("OnEnter", function(self) btnenter(self) end)
+		btn:SetScript("OnEnter", btnenter)
 		btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
-		btn:SetScript("OnDragStart", function(self) btndragstart(self) end)
-		btn:SetScript("OnReceiveDrag", function(self) btnreceivedrag(self) end)
+--		btn:SetScript("OnDragStart", function(self) btndragstart(self) end)
+--		btn:SetScript("OnReceiveDrag", function(self) btnreceivedrag(self) end)
+		btn:SetScript("OnDragStart", btndragstart)
+		btn:SetScript("OnReceiveDrag", btnreceivedrag)
+		
 		btn:SetScript("PreClick", function(self)
 			if GetCursorInfo() and not InCombatLockdown() then
 				self:SetScript("OnClick", nil)
@@ -613,16 +616,17 @@ local function getbtn(hdr)
 			self:SetChecked(nil)
 			if not self:GetScript("OnClick") then
 				self:GetParent():SetAttribute("addchild", self)
+				local oldstate = self:GetParent():GetAttribute("state")
+				self:GetParent():SetAttribute("state", nil)
+				self:GetParent():SetAttribute("state", oldstate)
 			end
 		end)
-		--mybar:WrapScript(btn, "OnClick", [[return true, state]])
-		--btn:WrapScript(hdr, "OnClick", [[ return true, state ]])
---		hdr:WrapScript(btn, "OnClick", [[ return true, self:GetParent():GetAttribute("state") ]])
 		
 		local cd = _G[btn:GetName().."Cooldown"]
 		cd.text = cd:CreateFontString(nil, "OVERLAY")
 		cd.text:SetPoint("CENTER")
 		cd.text:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
+		
 		local flash = _G[btn:GetName().."Flash"]
 		flash:ClearAllPoints()
 		flash:SetAllPoints(cd)
@@ -630,6 +634,7 @@ local function getbtn(hdr)
 	end
 	table.insert(live, btn)
 	btn:SetScript("OnAttributeChanged", saveattrib)
+	hdr:WrapScript(btn, "OnClick", [[ return state or self:GetParent():GetAttribute("state") ]])
 	return btn
 end
 
@@ -668,40 +673,29 @@ end
 ----------------------------------------------------------------
 -- Button events
 local btnevents = {
-	["PLAYER_ENTERING_WORLD"] = function(btn) seticon(btn) end,
+	--["PLAYER_ENTERING_WORLD"] = function(btn) seticon(btn) end,
+	["PLAYER_ENTERING_WORLD"] = seticon,
 	["PLAYER_TARGET_CHANGED"] = function(btn)
 		if SecureButton_GetUnit(btn) == "target" then
 			seticon(btn)
 		end
 	end,
-	["NURFED_UPDATE_ICONS"] = function(btn) seticon(btn) end,
+	--["NURFED_UPDATE_ICONS"] = function(btn) seticon(btn) end,
+	["NURFED_UPDATE_ICONS"] = seticon,
 	["PLAYER_FOCUS_CHANGED"] = function(btn)
 		if SecureButton_GetUnit(btn) == "focus" then
 			seticon(btn)
 		end
 	end,
-	["COMPANION_UPDATE"] = function(btn)
-		local value, unit, useunit, count
-		value = btn:GetParent():GetAttribute("state")
-		value = value ~= "0" and value or nil
-		unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
-		value = value and "-"..value or "*"
-		useunit = btn:GetParent():GetAttribute("useunit")
-		if useunit and unit and unit ~= "none" and UnitExists(unit) then
-			if UnitCanAttack("player", unit) then
-				value = "-nuke"..value
-			elseif UnitCanAssist("player", unit) then
-				value = "-heal"..value
-			end
-		end
-		if btn:GetAttribute("*companionID"..value) then
-			seticon(btn)
-		end
-	end,
-	["MODIFIER_STATE_CHANGED"] = function(btn) seticon(btn) end,
-	["ACTIONBAR_UPDATE_USABLE"] = function(btn) updatecooldown(btn) end,
-	["UPDATE_INVENTORY_ALERTS"] = function(btn) updatecooldown(btn) end,
-	["ACTIONBAR_UPDATE_COOLDOWN"] = function(btn) updatecooldown(btn) end,
+	["COMPANION_UPDATE"] = seticon,
+	["MODIFIER_STATE_CHANGED"] = seticon,
+	["ACTIONBAR_UPDATE_STATE"] = seticon,
+	["UPDATE_BONUS_ACTIONBAR"] = seticon,
+
+	["ACTIONBAR_UPDATE_USABLE"] = updatecooldown,
+	["ACTIONBAR_UPDATE_COOLDOWN"] = updatecooldown,
+	["UPDATE_INVENTORY_ALERTS"] = updatecooldown,
+
 	["UPDATE_BINDINGS"] = function(btn)
 		if isloaded then
 			local id = btn:GetID()
@@ -749,7 +743,8 @@ local btnevents = {
 			seticon(btn)
 		end
 	end,
-	["BAG_UPDATE"] = function(btn) updateitem(btn) end,
+
+	["BAG_UPDATE"] = updateitem,
 	["UNIT_SPELLCAST_SUCCEEDED"] = function(btn)
 		if btn.type == "macro" then
 			btn.macro = true
@@ -769,8 +764,8 @@ local btnevents = {
 	["START_AUTOREPEAT_SPELL"] = function(btn) btn.flash = true end,
 	["PLAYER_LEAVE_COMBAT"] = function(btn) btn.flash = nil end,
 	["STOP_AUTOREPEAT_SPELL"] = function(btn) btn.flash = nil end,
-	["UNIT_FACTION"] = function(btn, ...)
-		if SecureButton_GetUnit(btn) == arg1 then
+	["UNIT_FACTION"] = function(btn, unit)
+		if SecureButton_GetUnit(btn) == unit then
 			seticon(btn)
 		end
 	end,
@@ -782,7 +777,7 @@ local function btnevent(event, ...)
 	end
 end
 
-for event, func in pairs(btnevents) do
+for event, _ in pairs(btnevents) do
 	Nurfed:regevent(event, btnevent)
 end
 
@@ -928,19 +923,6 @@ end
 
 ----------------------------------------------------------------
 -- Action bar management
-local function updateattribs(self, ...)
-	local children = self:GetChildren()
-	if children then
-		local dragname = self:GetName().."drag"
-		local i=2
-		local tbl = select(i, self:GetChildren())
-		while tbl do
-			seticon(tbl)
-			i=i+1
-			tbl = select(i, self:GetChildren())
-		end
-	end		
-end
 function Nurfed:updatebar(hdr)
 	local state, visible
 	local btns, statelist, driver = {}, {}, {}
@@ -999,38 +981,17 @@ function Nurfed:updatebar(hdr)
 	if vals.visible ~= "hide" and vals.visible ~= "show" then
 		visible = "["..vals.visible.."]".." show; hide"
 	end
---
---	RegisterStateDriver(hdr, "state", driver)
---	RegisterStateDriver(hdr, "visibility", visible)
-	-- code given by alestane
---	hdr:SetAttribute("_onstate-state", [[ -- (self, stateid, newstate)
---					  state = newstate;
---					  self:SetAttribute("state", newstate)
---					  control:ChildUpdate(stateid, newstate) ]]
---					)
---	hdr:SetAttribute("statebutton", statelist)
---	hdr:SetAttribute("state", state)
+	
 	RegisterStateDriver(hdr, "actionsettings", driver)
 	RegisterStateDriver(hdr, "visibility", visible)
+	
 	hdr:SetAttribute("_onstate-actionsettings", [[ -- (self, stateid, newstate)
 						state = newstate;
 						self:SetAttribute("state", newstate)
-						print("new state!")
-						local i = 2
-						local children = select(i, self:GetChildren())
-						while children do
-							children:SetAttribute("*spell*", children:GetAttribute("*spell-"..newstate))
-							children:SetAttribute("*type*", children:GetAttribute("*type-"..newstate))
-							if children:GetAttribute("*spell-"..newstate) then
-								print("setting new state", newstate, children:GetAttribute("*spell-"..newstate))
-							end
-							i = i + 1
-							children = select(i, self:GetChildren())
-						end
 						control:ChildUpdate(stateid, newstate) ]]
 					)
+			
 	hdr:SetAttribute("statebutton", statelist)
-	hdr:SetAttribute("state", state)
 	
   	hdr:SetWidth(vals.cols * (36 + vals.xgap) - vals.xgap)
 	hdr:SetHeight(vals.rows * (36 + vals.ygap) - vals.ygap)
@@ -1042,6 +1003,7 @@ function Nurfed:updatebar(hdr)
 			local btn = table.remove(btns, 1) or getbtn(hdr)
 			btn:SetID(count)
 			hdr:SetAttribute("addchild", btn)
+			hdr:SetAttribute("state", state)
 			vals.buttons[count] = vals.buttons[count] or {}
       
 			for k, v in pairs(vals.buttons[count]) do
@@ -1115,10 +1077,7 @@ function Nurfed:createbar(frame)
 		hdr:SetPoint(unpack(vals.Point or {"CENTER"}))
 		hdr:SetAttribute("unit", vals.unit)
 		hdr:SetAttribute("useunit", vals.useunit)
-		-- this stops the state from changing?
-		--hdr:SetScript("OnAttributeChanged", updateattribs)
-		--hooksecurefunc(hdr:GetScript("OnAttributeChanged"), updateattribs)
-		hdr:HookScript("OnAttributeChanged", updateattribs)
+		hdr:HookScript("OnAttributeChanged", function() Nurfed:sendevent("NURFED_UPDATE_ICONS") end)
 
 		_G[frame.."dragtext"]:SetText(frame)
 
@@ -1726,27 +1685,10 @@ hooksecurefunc("CompanionButton_OnDrag", function(self)
 end)
 --hooksecurefunc(MainMenuBar, "OnShow", nrf_mainmenu)
 MainMenuBar:SetScript("OnShow", nrf_mainmenu)
---[[
-local testevent = function(...)
-	debug(...)
-end
-Nurfed:regevent("PLAYER_CONTROL_LOST", testevent)
-	Nurfed:regevent("PLAYER_CONTROL_GAINED", testevent);
-	Nurfed:regevent("PLAYER_FARSIGHT_FOCUS_CHANGED", testevent);
-	Nurfed:regevent("UNIT_PET", testevent);
-	Nurfed:regevent("UNIT_FLAGS", testevent);
-	Nurfed:regevent("PET_BAR_UPDATE", testevent);
-	Nurfed:regevent("PET_BAR_UPDATE_COOLDOWN", testevent);
-	Nurfed:regevent("PET_BAR_SHOWGRID", testevent);
-	Nurfed:regevent("PET_BAR_HIDEGRID", testevent);
-	Nurfed:regevent("PET_BAR_HIDE", testevent);
-]]
+
 ------------------------- default settings shit....kthxdie?
 function Nurfed_CreateDefaultActionBar(type)
 	assert(type, "NO TYPE TO CREATE A DEFAULT FOR DUMBASS!")
-	--for i in ipairs(NURFED_ACTIONBARS) do
-	--	NURFED_ACTIONBARS[i] = nil
-	--end
 	local typeLst = {
 		["rogueStealth"] = true,
 		["druidNoStealth"] = true,
@@ -1817,6 +1759,14 @@ function Nurfed_CreateDefaultActionBar(type)
 			["stance:1"] = "s1",
 			["stance:2"] = "s2",
 			["stance:3"] = "s3",
+		}
+	elseif type == "customShow" then
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_CustomShow"
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
+			["target=target,harm"] = "s1",
+			["target=target,help"] = "s2",
+			["target=target,noexists"] = "s3",
+			["target=target,group:party/raid"] = "s4",
 		}
 	end
 	StaticPopup_Show("NRF_RELOADUI")

@@ -168,9 +168,7 @@ function util:AddUnitClassByUnit(unit)
 		local name = UnitName(unit)
 		if not classLst[name] then
 			local class = UnitClass(unit)
-			--class = class == "Death Knight" and "DeathKnight" or class
 			classLst[UnitName(unit)] = class
-			debug("added", UnitName(unit), class)
 		end
 	end
 end
