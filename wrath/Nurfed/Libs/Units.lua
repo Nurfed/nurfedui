@@ -759,16 +759,6 @@ NURFED_FRAMES = NURFED_FRAMES or {
 				buff7 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff6", "RIGHT", 0, 0 } },
 				buff8 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff7", "RIGHT", 0, 0 } },
 				buff9 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff8", "RIGHT", 0, 0 } },
-				--[[buff1 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "TOPLEFT", "$parent", "BOTTOMLEFT", 4, 2 } },
-				buff2 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff1", "RIGHT", 0, 0 } },
-				buff3 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff2", "RIGHT", 0, 0 } },
-				buff4 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff3", "RIGHT", 0, 0 } },
-				buff5 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff4", "RIGHT", 0, 0 } },
-				buff6 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff5", "RIGHT", 0, 0 } },
-				buff7 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff6", "RIGHT", 0, 0 } },
-				buff8 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff7", "RIGHT", 0, 0 } },
-				buff9 = { type = "Button", uitemp = "TargetBuffButtonTemplate", Anchor = { "LEFT", "$parentbuff8", "RIGHT", 0, 0 } },
-				]]
 				debuff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parentbuff1", "BOTTOMLEFT", 0, -1 } },
 				debuff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff1", "RIGHT", 0, 0 } },
 				debuff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff2", "RIGHT", 0, 0 } },
@@ -2068,7 +2058,10 @@ local function updateframe(self, notext)
 	if self.Health then updateinfo(self, "Health") end
 	if self.XP then updateinfo(self, "XP") end
 	if self.combo then updatecombo(self) end
-	if self.Mana then manacolor(self) end
+	if self.Mana then 
+		self.manaPowerType = UnitPowerType(unit)
+		manacolor(self) 
+	end
 	if self.buff or frame.debuff then updateauras(self) end
 	if self.portrait then SetPortraitTexture(self.portrait, unit) end
 	if self.pvp then updatepvp(self) end
@@ -2087,6 +2080,7 @@ local function updateframe(self, notext)
 	end
 end
 local events = {
+	--[[
 	["PLAYER_ENTERING_WORLD"] = function(self) updateframe(self) end,
 	["PLAYER_FOCUS_CHANGED"] = function(self) updateframe(self) end,
 	["PLAYER_TARGET_CHANGED"] = function(self) updateframe(self) end,
@@ -2094,13 +2088,26 @@ local events = {
 	["PLAYER_REGEN_ENABLED"] = function(self) updatestatus(self) end,
 	["PLAYER_UPDATE_RESTING"] = function(self) updatestatus(self) end,
 	["PLAYER_FLAGS_CHANGED"] = function(self) updatestatus(self) end,
-	["UNIT_COMBO_POINTS"] = function(self) updatecombo(self) end,
+	]]
+	["PLAYER_ENTERING_WORLD"] = updateframe,
+	["PLAYER_FOCUS_CHANGED"] = updateframe,
+	["PLAYER_TARGET_CHANGED"] = updateframe,
+	["PLAYER_REGEN_DISABLED"] = updatestatus,
+	["PLAYER_REGEN_ENABLED"] = updatestatus,
+	["PLAYER_UPDATE_RESTING"] = updatestatus,
+	["PLAYER_FLAGS_CHANGED"] = updatestatus,
+	
+	--["UNIT_COMBO_POINTS"] = function(self) updatecombo(self) end,
+	["UNIT_COMBO_POINTS"] = updatecombo,
+	
 	["PLAYER_XP_UPDATE"] = function(self) updateinfo(self, "XP") end,
 	["PLAYER_LEVEL_UP"] = function(self) updateinfo(self, "XP") end,
 	["UPDATE_FACTION"] = function(self) updateinfo(self, "XP") end,
 	["UPDATE_EXHAUSTION"] = function(self) updateinfo(self, "XP") end,
 	["PLAYER_GUILD_UPDATE"] = function(self) formattext(self.guild, self) end,
-	["RAID_TARGET_UPDATE"] = function(self) updateraid(self) end,
+	--["RAID_TARGET_UPDATE"] = function(self) updateraid(self) end,
+	["RAID_TARGET_UPDATE"] = updateraid,
+	
 	["PARTY_MEMBERS_CHANGED"] = function(self)
 		if self.isParty then
 			updateframe(self)
@@ -2119,10 +2126,14 @@ local events = {
 		updatemaster(self)
 		updateloot(self)
 	end,
-	["RAID_ROSTER_UPDATE"] = function(self) updategroup(self) end,
+	--["RAID_ROSTER_UPDATE"] = function(self) updategroup(self) end,
+	["RAID_ROSTER_UPDATE"] = updategroup,
+	
 	["UPDATE_BINDINGS"] = function(self) formattext(self.key, self) end,
 	["UNIT_PET_EXPERIENCE"] = function(self) updateinfo(self, "XP") end,
-	["UNIT_PET"] = function(self) updateframe(self) end,
+	--["UNIT_PET"] = function(self) updateframe(self) end,
+	["UNIT_PET"] = updateframe,
+	
 	["UNIT_HEALTH"] = function(self) updateinfo(self, "Health") end,
 	["UNIT_MAXHEALTH"] = function(self) updateinfo(self, "Health") end,
 	["UNIT_MANA"] = function(self) updateinfo(self, "Mana") end,
@@ -2135,6 +2146,7 @@ local events = {
 	["UNIT_MAXRAGE"] = function(self) updateinfo(self, "Mana") end,
 	["UNIT_MAXFOCUS"] = function(self) updateinfo(self, "Mana") end,
 	["UNIT_MAXRUNIC_POWER"] = function(self) updateinfo(self, "Mana") end,
+	
 	["UNIT_COMBAT"] = function(self, ...) updatedamage(self, ...) end,
 	["UNIT_AURA"] = function(self) updateauras(self) end,
 	["UNIT_DISPLAYPOWER"] = function(self) manacolor(self) end,
@@ -2193,7 +2205,6 @@ end
 
 local function predictstats(self)
 	if ( not self.disconnected ) then
-		--updateinfo(self, "Mana")
 		local currValue
 		if self.predictedPower then
 			currValue = UnitPower(self.unit, self.manaPowerType)
@@ -2202,6 +2213,7 @@ local function predictstats(self)
 				updateinfo(self, "Mana")
 			end
 		end
+		
 		if self.predictedHealth then
 			currValue = UnitHealth(self.unit)
 			if currValue ~= self.healthCurrValue then
@@ -2330,6 +2342,7 @@ function Nurfed:unitimbue(frame)
 				if GetCVarBool("predictedPower") then
 					frame:SetScript("OnUpdate", predictstats)
 					frame.predictedPower = true
+					if not frame.unit and frame:GetParent().unit then frame.unit = frame:GetParent().unit end
 					frame.manaPowerType = UnitPowerType(frame.unit)
 				else
 					table.insert(events, "UNIT_MANA");

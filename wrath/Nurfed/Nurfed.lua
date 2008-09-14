@@ -537,7 +537,7 @@ function nrf_togglechat()
 	end
 end
 
-for i = 1, 7 do
+for i = 1, 7, 1 do
 	local chatframe = _G["ChatFrame"..i]
 	local buttons = Nurfed:getopt("chatbuttons")
 	

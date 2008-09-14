@@ -568,7 +568,7 @@ local function btnreceivedrag(self)
 end
 
 local function saveattrib(self, name, value)
-	if name:find("^%*") or name:find("^shift") or name:find("^ctrl") or name:find("^alt") or name:find("^spellid") then
+	if name:find("^%*") or name:find("^shift") or name:find("^ctrl") or name:find("^alt") then
 		local parent = self:GetParent():GetName()
 		for _,tbl in ipairs(NURFED_ACTIONBARS) do
 			if tbl.name == parent then
@@ -590,7 +590,6 @@ local function getbtn(hdr)
 	else
 		local new = #live + 1
 		btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate ActionButtonTemplate")
-		--btn = CreateFrame("CheckButton", "Nurfed_Button"..new, UIParent, "SecureActionButtonTemplate ActionButtonTemplate")
 		btn:RegisterForClicks("AnyUp")
 		btn:RegisterForDrag("LeftButton")
 
@@ -598,11 +597,8 @@ local function getbtn(hdr)
 		btn:SetAttribute("useparent-unit", true)
 		btn:SetAttribute("useparent-statebutton", true)
 
-		--btn:SetScript("OnEnter", function(self) btnenter(self) end)
 		btn:SetScript("OnEnter", btnenter)
 		btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
---		btn:SetScript("OnDragStart", function(self) btndragstart(self) end)
---		btn:SetScript("OnReceiveDrag", function(self) btnreceivedrag(self) end)
 		btn:SetScript("OnDragStart", btndragstart)
 		btn:SetScript("OnReceiveDrag", btnreceivedrag)
 		
@@ -612,6 +608,7 @@ local function getbtn(hdr)
 				btnreceivedrag(self)
 			end
 		end)
+		
 		btn:SetScript("PostClick", function(self)
 			self:SetChecked(nil)
 			if not self:GetScript("OnClick") then
@@ -649,7 +646,6 @@ local function delbtn(btn)
 
 	btn:SetScript("OnAttributeChanged", nil)
 
-	--local attribs = NURFED_ACTIONBARS[btn:GetParent():GetName()].buttons[btn:GetID()]
 	local attribs
 	local parent = btn:GetParent():GetName()
 	for i,v in ipairs(NURFED_ACTIONBARS) do
@@ -673,29 +669,31 @@ end
 ----------------------------------------------------------------
 -- Button events
 local btnevents = {
-	--["PLAYER_ENTERING_WORLD"] = function(btn) seticon(btn) end,
-	["PLAYER_ENTERING_WORLD"] = seticon,
 	["PLAYER_TARGET_CHANGED"] = function(btn)
 		if SecureButton_GetUnit(btn) == "target" then
 			seticon(btn)
 		end
 	end,
-	--["NURFED_UPDATE_ICONS"] = function(btn) seticon(btn) end,
-	["NURFED_UPDATE_ICONS"] = seticon,
 	["PLAYER_FOCUS_CHANGED"] = function(btn)
 		if SecureButton_GetUnit(btn) == "focus" then
 			seticon(btn)
 		end
 	end,
+	
 	["COMPANION_UPDATE"] = seticon,
+	["NURFED_UPDATE_ICONS"] = seticon,
+	["PLAYER_ENTERING_WORLD"] = seticon,
 	["MODIFIER_STATE_CHANGED"] = seticon,
 	["ACTIONBAR_UPDATE_STATE"] = seticon,
 	["UPDATE_BONUS_ACTIONBAR"] = seticon,
-
+	
 	["ACTIONBAR_UPDATE_USABLE"] = updatecooldown,
-	["ACTIONBAR_UPDATE_COOLDOWN"] = updatecooldown,
 	["UPDATE_INVENTORY_ALERTS"] = updatecooldown,
+	["ACTIONBAR_UPDATE_COOLDOWN"] = updatecooldown,
 
+	["PLAYER_REGEN_ENABLED"] = function(btn) seticon(btn); updatecooldown(btn); end,
+	["PLAYER_REGEN_DISABLED"] = function(btn) seticon(btn); updatecooldown(btn); end,
+	
 	["UPDATE_BINDINGS"] = function(btn)
 		if isloaded then
 			local id = btn:GetID()
@@ -703,7 +701,6 @@ local btnevents = {
 				local key = GetBindingKey("CLICK "..btn:GetName()..":LeftButton")
 				local parent = btn:GetParent():GetName()
 				if parent ~= "UIParent" then
-					--NURFED_ACTIONBARS[parent].buttons[id].bind = key
 					for i,v in ipairs(NURFED_ACTIONBARS) do
 						if v.name == parent then
 							v.buttons[id].bind = key
@@ -760,110 +757,92 @@ local btnevents = {
 			btn:SetAlpha(0)
 		end
 	end,
-	["PLAYER_ENTER_COMBAT"] = function(btn) btn.flash = true end,
+	
 	["START_AUTOREPEAT_SPELL"] = function(btn) btn.flash = true end,
-	["PLAYER_LEAVE_COMBAT"] = function(btn) btn.flash = nil end,
 	["STOP_AUTOREPEAT_SPELL"] = function(btn) btn.flash = nil end,
+
+	["PLAYER_ENTER_COMBAT"] = function(btn) btn.flash = true end,
+	["PLAYER_LEAVE_COMBAT"] = function(btn) btn.flash = nil end,
+
 	["UNIT_FACTION"] = function(btn, unit)
 		if SecureButton_GetUnit(btn) == unit then
-			seticon(btn)
+			seticon(btn);
 		end
 	end,
 }
 
 local function btnevent(event, ...)
 	for _, btn in ipairs(live) do
-		btnevents[event](btn, ...)
+		btnevents[event](btn, ...);
 	end
 end
 
 for event, _ in pairs(btnevents) do
-	Nurfed:regevent(event, btnevent)
+	Nurfed:regevent(event, btnevent);
 end
 
 local function btnupdate()
 	for _, btn in ipairs(live) do
-		local r, g, b = 1, 1, 1
-		local unit = SecureButton_GetUnit(btn)
+		local r, g, b = 1, 1, 1;
+		local unit = SecureButton_GetUnit(btn);
 		if btn.type == "spell" then
 			if IsCurrentSpell(btn.spell) or UnitCastingInfo("player") == btn.spell then
-				btn:SetChecked(true)
+				btn:SetChecked(true);
 			else
-				btn:SetChecked(nil)
+				btn:SetChecked(nil);
 			end
 			if btn.IsPetAction then 
 				-- do nothing yet, maybe never?
 			elseif btn.companionID then
-				local value, unit, useunit, count
-				value = btn:GetParent():GetAttribute("state")
-				value = value ~= "0" and value or nil
-				unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
-				value = value and "-"..value or "*"
-				useunit = btn:GetParent():GetAttribute("useunit")
-				if useunit and unit and unit ~= "none" and UnitExists(unit) then
-					if UnitCanAttack("player", unit) then
-						value = "-nuke"..value
-					elseif UnitCanAssist("player", unit) then
-						value = "-heal"..value
-					end
-				end	
-				if not btn:GetChecked() and select(5, GetCompanionInfo(btn:GetAttribute("*companionType"..value), btn:GetAttribute("*companionSlot"..value))) then
-					btn:SetChecked(true)
-				end
 				if UnitAffectingCombat("player") then
-					r, g, b =  0.4, 0.4, 0.4
+					r, g, b =  0.4, 0.4, 0.4;
 				end	
 			else
-				--[[if IsCurrentSpell(btn.spell) or UnitCastingInfo("player") == btn.spell then
-					btn:SetChecked(true)
-				else
-					btn:SetChecked(nil)
-				end]]
-				local usable, nomana = IsUsableSpell(btn.spell)
+				local usable, nomana = IsUsableSpell(btn.spell);
 				if nomana then
-					r, g, b = 0.5, 0.5, 1
+					r, g, b = 0.5, 0.5, 1;
 				elseif not usable then
-					r, g, b = 0.4, 0.4, 0.4
+					r, g, b = 0.4, 0.4, 0.4;
 				elseif SpellHasRange(btn.spell) and IsSpellInRange(btn.spell, unit) == 0 then
-					r, g, b = 1, 0, 0
+					r, g, b = 1, 0, 0;
 				end
 			end
 	
 		elseif btn.type == "item" then
 			if not IsUsableItem(btn.spell) then
-				r, g, b = 0.4, 0.4, 0.4
+				r, g, b = 0.4, 0.4, 0.4;
 			elseif ItemHasRange(btn.spell) and IsItemInRange(btn.spell, unit) == 0 then
-				r, g, b = 1, 0, 0
+				r, g, b = 1, 0, 0;
 			end
 			
 		elseif btn.type == "macro" then
-			local item, link = GetMacroItem(btn.spell)
-			local spell, rank = GetMacroSpell(btn.spell)
+			local item, link = GetMacroItem(btn.spell);
+			local spell, rank = GetMacroSpell(btn.spell);
 			if item then
 				if not IsUsableItem(item) then
-					r, g, b = 0.4, 0.4, 0.4
+					r, g, b = 0.4, 0.4, 0.4;
 				elseif ItemHasRange(item) and IsItemInRange(item, unit) == 0 then
-					r, g, b = 1, 0, 0
+					r, g, b = 1, 0, 0;
 				end
 			
 			elseif spell then
-				local usable, nomana = IsUsableSpell(spell)
+				local usable, nomana = IsUsableSpell(spell);
 				if nomana then
-					r, g, b = 0.5, 0.5, 1
+					r, g, b = 0.5, 0.5, 1;
 				elseif not usable then
-					r, g, b = 0.4, 0.4, 0.4
+					r, g, b = 0.4, 0.4, 0.4;
 				elseif SpellHasRange(spell) and IsSpellInRange(spell, unit) == 0 then
-					r, g, b = 1, 0, 0
+					r, g, b = 1, 0, 0;
 				end
 			end
 
 			if btn.macro then
-				seticon(btn)
-				btn.macro = nil
+				seticon(btn);
+				btn.macro = nil;
 			end
 		end
-		_G[btn:GetName().."Icon"]:SetVertexColor(r, g, b)
-		nrfcooldowntext(btn)
+		_G[btn:GetName().."Icon"]:SetVertexColor(r, g, b);
+		nrfcooldowntext(btn);
 	end
 end
 
@@ -871,33 +850,33 @@ Nurfed:schedule(TOOLTIP_UPDATE_TIME, btnupdate, true)
 
 local function btnflash()
 	for _, btn in ipairs(live) do
-		local flash = _G[btn:GetName().."Flash"]
+		local flash = _G[btn:GetName().."Flash"];
 		if btn.flash and btn.attack then
 			if flash:IsVisible() then
-				flash:Hide()
+				flash:Hide();
 			else
-				flash:Show()
+				flash:Show();
 			end
 		else
-			flash:Hide()
+			flash:Hide();
 		end
 	end
 end
 
-Nurfed:schedule(ATTACK_BUTTON_FLASH_TIME, btnflash, true)
+Nurfed:schedule(ATTACK_BUTTON_FLASH_TIME, btnflash, true);
 
 ----------------------------------------------------------------
 -- Reset stance bar border
 hooksecurefunc("UIParent_ManageFramePositions", function()
 	if not MainMenuBar:IsShown() then
 		for i = 1, 10 do
-			local border = _G["ShapeshiftButton"..i.."NormalTexture"]
-			border:SetWidth(50)
-			border:SetHeight(50)
-			border = _G["PossessButton"..i.."NormalTexture"]
+			local border = _G["ShapeshiftButton"..i.."NormalTexture"];
+			border:SetWidth(50);
+			border:SetHeight(50);
+			border = _G["PossessButton"..i.."NormalTexture"];
 			if border then
-				border:SetWidth(50)
-				border:SetHeight(50)
+				border:SetWidth(50);
+				border:SetHeight(50);
 			end
 		end
 	end
@@ -908,156 +887,183 @@ end)
 local function updatecooling(self, start, duration, enable)
 	if not self:GetName() or not self.text then return end
 	if start > 2 and duration > 2 then
-		self.cool = true
-		self.start = start
-		self.duration = duration
+		self.cool = true;
+		self.start = start;
+		self.duration = duration;
 	else
-		self.cool = nil
-		self.text:SetText(nil)
+		self.cool = nil;
+		self.text:SetText(nil);
 	end
 end
 
 if not GetAddOnMetadata("OmniCC", "Version") and not IsAddOnLoaded("CooldownCount") then
-	hooksecurefunc("CooldownFrame_SetTimer", updatecooling)
+	hooksecurefunc("CooldownFrame_SetTimer", updatecooling);
 end
 
 ----------------------------------------------------------------
 -- Action bar management
 function Nurfed:updatebar(hdr)
-	local state, visible
-	local btns, statelist, driver = {}, {}, {}
+	local state, visible;
+	local btns, statelist, driver = {}, {}, {};
 	for _, child in ipairs({ hdr:GetChildren() }) do
-		--if string.find(child:GetName(), "^Nurfed_Button") then
 		if child:GetName():find("^Nurfed_Button") then
-			table.insert(btns, child:GetID(), child)
+			table.insert(btns, child:GetID(), child);
 		end
 	end
 
-	--local vals = NURFED_ACTIONBARS[hdr:GetName()]
-	local vals
+	local vals;
 	for i,v in ipairs(NURFED_ACTIONBARS) do
 		if v.name == hdr:GetName() then
-			vals = v
+			vals = v;
 			break
 		end
 	end
+	local unitLst	
 	if vals.statemaps then
 		for k, v in pairs(vals.statemaps) do
+			if k:find("%(unit-%S+%)") then
+				if not unitLst then
+					unitLst = {}
+				end
+				local unit = k:match("%(unit-%S+%)"):gsub("%)", ""):gsub("%(unit%-", "")
+				k = k:gsub("%(unit-%S+%)", "")
+				unitLst[v] = unit
+			end
+
 			if k:find("%-") then
-				k = k:gsub("%-", ":")
+				k = k:gsub("%-", ":");
 			end
 	
-			local add = true
-			local list = v..":"..v
-			table.insert(driver, "["..k.."] "..v)
+			local add = true;
+			local list = v..":"..v;
+			table.insert(driver, "["..k.."] "..v);
 
 			for _, l in ipairs(statelist) do
 				if l == list then
-					add = nil
+					add = nil;
 					break
 				end
 			end
 
 			if add then
-				table.insert(statelist, v..":"..v)
+				table.insert(statelist, v..":"..v);
 			end
 		end
 	end
 
-	driver = table.concat(driver, ";")
-	state = SecureCmdOptionParse(driver)
-	statelist = table.concat(statelist, ";")
+	driver = table.concat(driver, ";");
+	state = SecureCmdOptionParse(driver);
+	statelist = table.concat(statelist, ";");
 
 	if #driver == 0 then
-		state = "0"
+		state = "0";
 	end
 
 	if not vals.visible or vals.visible == "" then
-		vals.visible = "show"
+		vals.visible = "show";
 	end
 
-	visible = vals.visible
+	visible = vals.visible;
 
 	if vals.visible ~= "hide" and vals.visible ~= "show" then
-		visible = "["..vals.visible.."]".." show; hide"
+		visible = "["..vals.visible.."]".." show; hide";
 	end
-	
+	if unitLst then
+		hdr:SetAttribute("customUnits", true)
+		for tstate, unit in pairs(unitLst) do
+			hdr:SetAttribute("customUnit-"..tstate, unit)
+		end
+	end
 	hdr:SetAttribute("_onstate-actionsettings", [[ -- (self, stateid, newstate)
 						state = newstate;
 						self:SetAttribute("state", newstate)
-						control:ChildUpdate(stateid, newstate) ]]
+						control:ChildUpdate(stateid, newstate)]]
 					)
-			
-	RegisterStateDriver(hdr, "actionsettings", driver)
-	RegisterStateDriver(hdr, "visibility", visible)
+						--[[
+						if self:GetAttribute("customUnits") then
+							print("customunits")
+							if self:GetAttribute("customUnit-"..newstate) == newstate then
+								print("setting new unit", self:GetAttribute("customUnit-"..newstate))
+								self:SetAttribute("useunit", true)
+								self:SetAttribute("unit", self:GetAttribute("customUnit-"..newstate))
+							else
+								print("setting new unit", self:GetAttribute("customUnit-"..newstate))
+								self:SetAttribute("useunit", nil)
+								self:SetAttribute("unit", nil)
+							end
+						end ]]
+	RegisterStateDriver(hdr, "actionsettings", driver);
+	RegisterStateDriver(hdr, "visibility", visible);
 
-	hdr:SetAttribute("statebutton", statelist)
-	hdr:SetAttribute("state", state)
+	hdr:SetAttribute("statebutton", statelist);
+	hdr:SetAttribute("state", state);
 	
-  	hdr:SetWidth(vals.cols * (36 + vals.xgap) - vals.xgap)
-	hdr:SetHeight(vals.rows * (36 + vals.ygap) - vals.ygap)
+  	hdr:SetWidth(vals.cols * (36 + vals.xgap) - vals.xgap);
+	hdr:SetHeight(vals.rows * (36 + vals.ygap) - vals.ygap);
 	
-	local last, begin
-	local count = 1
+	local last, begin;
+	local count = 1;
 	for i = 1, vals.rows do
 		for j = 1, vals.cols do
-			local btn = table.remove(btns, 1) or getbtn(hdr)
-			btn:SetID(count)
-			hdr:SetAttribute("addchild", btn)
-			vals.buttons[count] = vals.buttons[count] or {}
+			local btn = table.remove(btns, 1) or getbtn(hdr);
+			btn:SetID(count);
+			hdr:SetAttribute("addchild", btn);
+			vals.buttons[count] = vals.buttons[count] or {};
       
 			for k, v in pairs(vals.buttons[count]) do
 				if k == "bind" then
-					SetBindingClick(v, btn:GetName(), "LeftButton")
+					SetBindingClick(v, btn:GetName(), "LeftButton");
 				else
-					btn:SetAttribute(k, v)
+					btn:SetAttribute(k, v);
 				end
 			end
-			btn:ClearAllPoints()
+			
+			btn:ClearAllPoints();
+			
 			if j == 1 then
 				if begin then
-					btn:SetPoint("BOTTOMLEFT", begin, "TOPLEFT", 0, vals.ygap)
+					btn:SetPoint("BOTTOMLEFT", begin, "TOPLEFT", 0, vals.ygap);
 				else
-					btn:SetPoint("BOTTOMLEFT", hdr, "BOTTOMLEFT", 0, 0)
+					btn:SetPoint("BOTTOMLEFT", hdr, "BOTTOMLEFT", 0, 0);
 				end
-				begin = btn
+				begin = btn;
 			else
-				btn:SetPoint("LEFT", last, "RIGHT", vals.xgap, 0)
+				btn:SetPoint("LEFT", last, "RIGHT", vals.xgap, 0);
 			end
-			last = btn
-			count = count + 1
+			last = btn;
+			count = count + 1;
 		end
 	end
 
 	for _, v in ipairs(btns) do
-		delbtn(v)
+		delbtn(v);
 	end
 
 	if NRF_LOCKED then
-		_G[hdr:GetName().."drag"]:Hide()
+		_G[hdr:GetName().."drag"]:Hide();
 	end
 	return count
 end
 
 function Nurfed:deletebar(frame)
-	local hdr = _G[frame]
+	local hdr = _G[frame];
 	if hdr then
-		UnregisterUnitWatch(hdr)
-		hdr:SetAttribute("unit", nil)
-		RegisterStateDriver(hdr, "visibility", "hide")
-		hdr:Hide()
+		UnregisterUnitWatch(hdr);
+		hdr:SetAttribute("unit", nil);
+		RegisterStateDriver(hdr, "visibility", "hide");
+		hdr:Hide();
 
-		local children = { hdr:GetChildren() }
+		local children = { hdr:GetChildren() };
 		for _, child in ipairs(children) do
 			if child:GetName():find("^Nurfed_Button") then
-				delbtn(child)
+				delbtn(child);
 			end
 		end
 	end
 	for i,v in ipairs(NURFED_ACTIONBARS) do
 		if v.name == hdr:GetName() then
-			table.remove(NURFED_ACTIONBARS, i)
-			break
+			table.remove(NURFED_ACTIONBARS, i);
+			break;
 		end
 	end
 end
@@ -1066,56 +1072,57 @@ function Nurfed:createbar(frame)
 	local vals
 	for _,v in ipairs(NURFED_ACTIONBARS) do
 		if v.name == frame then
-			vals = v
-			break
+			vals = v;
+			break;
 		end
 	end
-	local hdr = _G[frame] or Nurfed:create(frame, "actionbar")
+	local hdr = _G[frame] or Nurfed:create(frame, "actionbar");
 	if hdr and type(hdr) == "table" then
-		hdr:SetScale(vals.scale)
-		hdr:SetAlpha(vals.alpha)
-		hdr:SetPoint(unpack(vals.Point or {"CENTER"}))
-		hdr:SetAttribute("unit", vals.unit)
-		hdr:SetAttribute("useunit", vals.useunit)
+		hdr:SetScale(vals.scale);
+		hdr:SetAlpha(vals.alpha);
+		hdr:SetPoint(unpack(vals.Point or {"CENTER"}));
+		hdr:SetAttribute("unit", vals.unit);
+		hdr:SetAttribute("useunit", vals.useunit);
 
-		_G[frame.."dragtext"]:SetText(frame)
+		_G[frame.."dragtext"]:SetText(frame);
 
-		local count = Nurfed:updatebar(hdr)
-
+		local count = Nurfed:updatebar(hdr);
 		while vals.buttons[count] do
-			vals.buttons[count] = nil
-			count = count + 1
+			vals.buttons[count] = nil;
+			count = count + 1;
 		end
-		hdr:HookScript("OnAttributeChanged", function() Nurfed:sendevent("NURFED_UPDATE_ICONS") end)
+		--TODO: Find a better way, event possibly, that fires after the states change.  ^_^;
+		hdr:HookScript("OnAttributeChanged", function() Nurfed:sendevent("NURFED_UPDATE_ICONS") end);
 	end
 end
 
 function Nurfed:updatehks(frame)
-	--local vals = NURFED_ACTIONBARS[frame]
 	for i,v in ipairs(NURFED_ACTIONBARS) do
 		if v.name == frame then
-			vals = v
+			vals = v; 
+			break;
 		end
 	end
-	local hdr = _G[frame] or Nurfed:create(frame, "actionbar")
+	
+	local hdr = _G[frame] or Nurfed:create(frame, "actionbar");
 	if hdr and type(hdr) == "table" then
 		local count = Nurfed:updatebar(hdr)
 		while vals.buttons[count] do
-			vals.buttons[count] = nil
-			count = count + 1
+			vals.buttons[count] = nil;
+			count = count + 1;
 		end
 		if hdr:IsUserPlaced() then
 			for i,v in ipairs(NURFED_ACTIONBARS) do
 				if v.name == hdr:GetName() then
-					v.Point = { hdr:GetPoint() }
-					break
+					v.Point = { hdr:GetPoint() };
+					break;
 				end
 			end
 		end
 		
 		if vals.Point then
-			hdr:ClearAllPoints()
-			hdr:SetPoint(unpack(vals.Point))
+			hdr:ClearAllPoints();
+			hdr:SetPoint(unpack(vals.Point));
 		end
 	end
 end
@@ -1162,16 +1169,9 @@ Nurfed:createtemp("actionbar", {
 			OnDragStart = function(self) self:GetParent():StartMoving() end,
 			OnDragStop = function(self)
 				local parent = self:GetParent()
-				local pname = parent:GetName()
 				parent:StopMovingOrSizing()
-				--[[if NURFED_ACTIONBARS[pname] then
-					NURFED_ACTIONBARS[pname].Point = { parent:GetPoint() }
-				else
-					parent:SetUserPlaced(true)
-				end]]
 				for i,v in ipairs(NURFED_ACTIONBARS) do
-					if v.name == pname then
-						--NURFED_ACTIONBARS[i].Point = { parent:GetPoint() }
+					if v.name == parent:GetName() then
 						v.Point = { parent:GetPoint() }
 						break
 					end
@@ -1324,30 +1324,16 @@ local barevents = {
 			_G[self:GetName().."drag"]:Show()
 		end
 	end,
---[[	["PLAYER_CONTROL_LOST"] = function(self)	-- pet bar controlling
-	end,
-	["PLAYER_CONTROL_GAINED"] = function(self)	
-	end,
-	["PLAYER_FARSIGHT_FOCUS_CHANGED"] = function(self)
-		nrf_updatePetBarControl(self)
-	end,]]
 	["UPDATE_BONUS_ACTIONBAR"] = function(self)
 		nrf_updatePetBarControl(self)
-		--nrf_mainmenu()
 	end,
-	["UNIT_ENTERED_VEHICLE"] = function(self)
-		--nrf_mainmenu()
-	end,
+	["UNIT_ENTERED_VEHICLE"] = function(self) end,
 	["UNIT_EXITED_VEHICLE"] = function(self)
 		Nurfed:schedule(1, function() nrf_mainmenu() end)
-		--nrf_mainmenu()
 	end,
 }
 
 local function barevent(event, ...)
-	--[[for k in pairs(NURFED_ACTIONBARS) do
-		barevents[event](_G[k])
-	end]]
 	for i,v in ipairs(NURFED_ACTIONBARS) do
 		barevents[event](_G[v.name])
 	end
@@ -1440,9 +1426,6 @@ function nrf_updatemainbar(bar)
 end
 
 local function createbars(bars)
-	--[[for k in pairs(NURFED_ACTIONBARS) do
-		Nurfed:createbar(k)
-	end]]
 	for i,v in ipairs(NURFED_ACTIONBARS) do
 		Nurfed:createbar(v.name)
 	end
@@ -1481,9 +1464,6 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 end)
 
 Nurfed:regevent("PLAYER_LOGIN", function()
-	--[[for k in pairs(NURFED_ACTIONBARS) do
-		Nurfed:updatehks(k)
-	end]]
 	for i,v in ipairs(NURFED_ACTIONBARS) do
 		Nurfed:updatehks(v.name)
 	end
