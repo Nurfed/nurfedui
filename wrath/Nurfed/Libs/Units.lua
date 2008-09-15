@@ -1462,7 +1462,7 @@ local function updateinfo(self, stat)
 					text = text:gsub("$max", maxtext)
 					text = text:gsub("$perc", perc.."%%")
 					if missingtext ~= 0 then
-						text = text:gsub("$miss", "|cffcc1111"..missingtext.."|r | ")
+						text = text:gsub("$miss", "|cffcc1111"..missingtext.."|r")
 					else
 						text = text:gsub("$miss", "")
 					end
@@ -2330,6 +2330,7 @@ function Nurfed:unitimbue(frame)
 	local regstatus = function(pre, child)
 		if not frame[pre] then
 			frame[pre] = {}
+			if not frame.unit and frame:GetParent().unit then frame.unit = frame:GetParent().unit end
 			if pre == "Health" then
 				if GetCVarBool("predictedHealth") then
 					frame:SetScript("OnUpdate", predictstats)
@@ -2339,10 +2340,9 @@ function Nurfed:unitimbue(frame)
 				end
 				table.insert(events, "UNIT_MAXHEALTH")
 			elseif pre == "Mana" then
-				if GetCVarBool("predictedPower") then
+				if GetCVarBool("predictedPower") and frame.unit == "player" or frame.unit == "target" or frame.unit == "focus" then
 					frame:SetScript("OnUpdate", predictstats)
 					frame.predictedPower = true
-					if not frame.unit and frame:GetParent().unit then frame.unit = frame:GetParent().unit end
 					frame.manaPowerType = UnitPowerType(frame.unit)
 				else
 					table.insert(events, "UNIT_MANA");
