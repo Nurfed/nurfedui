@@ -406,6 +406,12 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					size = { 130, 10 },
 					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 14 },
 				},
+				manabar = {
+					template = "Nurfed_Unit_mp",
+					size = { 130, 10 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 14 },
+					vars = { type = "mana", },
+				},
 				xp = {
 					template = "Nurfed_Unit_xp",
 					size = { 170, 8 },
@@ -2339,6 +2345,26 @@ function Nurfed:unitimbue(frame)
 					table.insert(events, "UNIT_HEALTH")
 				end
 				table.insert(events, "UNIT_MAXHEALTH")
+			elseif pre == "ManaBar" then
+				if GetCVarBool("predictedPower") then
+					frame:SetScript("OnUpdate", predictedstats)
+					frame.predictedPower = true
+					frame.manaPowerType = child.power
+				else
+					table.insert(events, "UNIT_MANA")
+					table.insert(events, "UNIT_RAGE")
+					table.insert(events, "UNIT_FOCUS")
+					table.insert(events, "UNIT_ENERGY")
+					table.insert(events, "UNIT_HAPPINESS")
+					table.insert(events, "UNIT_RUNIC_POWER")
+				end
+				table.insert(events, "UNIT_MAXMANA");
+				table.insert(events, "UNIT_MAXRAGE");
+				table.insert(events, "UNIT_MAXFOCUS");
+				table.insert(events, "UNIT_MAXENERGY");
+				table.insert(events, "UNIT_MAXHAPPINESS");
+				table.insert(events, "UNIT_MAXRUNIC_POWER");
+				table.insert(events, "UNIT_DISPLAYPOWER");
 			elseif pre == "Mana" then
 				if GetCVarBool("predictedPower") and frame.unit == "player" or frame.unit == "target" or frame.unit == "focus" then
 					frame:SetScript("OnUpdate", predictstats)
@@ -2402,6 +2428,8 @@ function Nurfed:unitimbue(frame)
 					pre = "Mana"
 				elseif pre == "xp" then
 					pre = "XP"
+				elseif pre == "manabar" then
+					pre = "manabar"
 				end
 				regstatus(pre, child)
 				if child.ani then
