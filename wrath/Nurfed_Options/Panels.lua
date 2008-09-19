@@ -59,10 +59,10 @@ local addstate = function()
 				break
 			end
 		end
-		local state = NurfedActionBarsPanelstatesstate:GetText()
-		local map = NurfedActionBarsPanelstatesmap:GetText()
-		state = string.trim(state)
-		map = string.trim(map)
+		local state = string.trim(NurfedActionBarsPanelstatesstate:GetText())
+		local map = string.trim(NurfedActionBarsPanelstatesmap:GetText())
+		--state = string.trim(state)
+		--map = string.trim(map)
 		if map == "" or state == "" then
 			return
 		end

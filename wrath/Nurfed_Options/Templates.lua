@@ -264,7 +264,8 @@ end
 local templates = {
 	nrf_check = {
 		type = "CheckButton",
-		uitemp = "InterfaceOptionsCheckButtonTemplate",
+		--uitemp = "InterfaceOptionsCheckButtonTemplate",
+		uitemp = "OptionsCheckButtonTemplate",
 		OnShow = onshow,
 		OnClick = saveopt,
 	},
@@ -296,7 +297,8 @@ local templates = {
 	},
 	nrf_slider = {
 		type = "Slider",
-		uitemp = "InterfaceOptionsSliderTemplate",
+		--uitemp = "InterfaceOptionsSliderTemplate",
+		uitemp = "OptionsSliderTemplate",
 		children = {
 			value = {
 				template = "nrf_editbox",
