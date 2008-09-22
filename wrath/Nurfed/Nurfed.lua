@@ -349,6 +349,7 @@ local function onevent(self, ...)
 		for _, val in pairs(RAID_CLASS_COLORS) do
 			val.hex = Nurfed:rgbhex(val.r, val.g, val.b)
 		end
+		
 		if UnitReactionColor then
 			for _, val in ipairs(UnitReactionColor) do
 				val.hex = Nurfed:rgbhex(val.r, val.g, val.b)

@@ -52,22 +52,7 @@ local IsItemInRange = _G.IsItemInRange
 local Nurfed = _G.Nurfed
 local L = _G.Nurfed:GetTranslations()
 local nrfCompanionID, nrfCompanionType, nrfCompanionSlot
--- Default Options
---[[
-NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
-	["Nurfed_Bar1"] = {
-		rows = 1,
-		cols = 12,
-		scale = 1,
-		alpha = 1,
-		unitshow = false,
-		xgap = 2,
-		ygap = 2,
-		buttons = {},
-		statemaps = {},
-		visible = "show",
-	},
-}]]
+local companionList
 NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
 	[1] = {
 		name = "Nurfed_Bar1",
@@ -149,7 +134,6 @@ end
 local function updatecooldown(btn)
 	if btn.companionID then return end
 	local start, duration, enable = 0, 0, 0
-	--local cooldown = _G[btn:GetName().."Cooldown"]
 	if btn.spell then
 		if btn.type == "spell" then
 			if btn.IsPetAction then
@@ -173,6 +157,7 @@ local function updatecooldown(btn)
 		CooldownFrame_SetTimer(_G[btn:GetName().."Cooldown"], start, duration, enable)
 	end
 end
+
 -- unlocalize and change the name to an unused global to allow hooking from PT3Bar and AutoBar etc
 -- No Reason to use "CooldownCount" etc if this function does everything we want in a nice clean fashion
 --local cooldowntext = function(btn)
@@ -251,31 +236,8 @@ local function seticon(btn)
 						end
 					else
 						texture = GetSpellTexture(spell)
-						if not texture then
-							local value, unit, useunit, count
-							value = btn:GetParent():GetAttribute("state")
-							value = value ~= "0" and value or nil
-							unit = SecureButton_GetModifiedUnit(btn, (value or "LeftButton"))
-							value = value and "-"..value or "*"
-							useunit = btn:GetParent():GetAttribute("useunit")
-							if useunit and unit and unit ~= "none" and UnitExists(unit) then
-								if UnitCanAttack("player", unit) then
-									value = "-nuke"..value
-								elseif UnitCanAssist("player", unit) then
-									value = "-heal"..value
-								end
-							end
-							attrib = btn:GetAttribute("*companionID"..value)
-							if attrib then
-								local attribType = btn:GetAttribute("*companionType"..value)
-								local attribSlot = btn:GetAttribute("*companionSlot"..value)
-								if attribType and attribSlot then
-									texture = select(4, GetCompanionInfo(attribType, attribSlot))
-								else
-									texture = select(3, GetSpellInfo(attrib))
-								end
-								btn.companionID = attrib
-							end
+						if not texture and companionList and companionList[spell] then
+							texture = select(3, GetSpellInfo(companionList[spell]))
 						end
 						if IsAttackSpell(spell) or IsAutoRepeatSpell(spell) then
 							btn.attack = true
@@ -337,7 +299,6 @@ local function btnenter(self)
 			else
 				local id = Nurfed:getspell(self.spell)
 				if id then
-					
 					local rank = select(2, GetSpellName(id, BOOKTYPE_SPELL))
 					GameTooltip:SetHyperlink(GetSpellLink(id, BOOKTYPE_SPELL))
 					if rank then
@@ -346,22 +307,8 @@ local function btnenter(self)
 						GameTooltipTextRight1:Show()
 					end
 				else
-					local value, unit, useunit, count
-					value = self:GetParent():GetAttribute("state")
-					value = value ~= "0" and value or nil
-					unit = SecureButton_GetModifiedUnit(self, (value or "LeftButton"))
-					value = value and "-"..value or "*"
-					useunit = self:GetParent():GetAttribute("useunit")
-					if useunit and unit and unit ~= "none" and UnitExists(unit) then
-						if UnitCanAttack("player", unit) then
-							self = "-nuke"..value
-						elseif UnitCanAssist("player", unit) then
-							self = "-heal"..value
-						end
-					end
-					local attrib = self:GetAttribute("*companionID"..value)
-					if attrib then
-						GameTooltip:SetHyperlink("spell:"..attrib)
+					if companionList and companionList[self.spell] then
+						GameTooltip:SetHyperlink("spell:"..companionList[self.spell])
 					end
 				end
 			end
@@ -413,15 +360,20 @@ local function btndragstart(self)
 					value = "-"..value
 				end
 				if new == "spell" then
-					if self:GetAttribute("*companionID"..value) then
-						nrfCompanionID = self:GetAttribute("*companionID"..value)
-						nrfCompanionType = self:GetAttribute("*companionType"..value)
-						nrfCompanionSlot = self:GetAttribute("*companionSlot"..value)
-						PickupCompanion(nrfCompanionType, nrfCompanionSlot)
-						self:SetAttribute("*companionID"..value, nil)
-						self:SetAttribute("*companionType"..value, nil)
-						self:SetAttribute("*companionSlot"..value, nil)
-						self.companionID = nil
+					if companionList and companionList[spell] then
+						for i=1, GetNumCompanions("MOUNT") do
+							if select(3, GetCompanionInfo("MOUNT", i)) == companionList[spell] then
+								PickupCompanion("MOUNT", i)
+								break
+							end
+						end
+						for i=1, GetNumCompanions("CRITTER") do
+							if select(3, GetCompanionInfo("CRITTER", i)) == companionList[spell] then
+								PickupCompanion("CRITTER", i)
+								break
+							end
+						end
+						-- do nothing.
 					else
 						PickupSpell(Nurfed:getspell(spell), BOOKTYPE_SPELL)
 					end
@@ -489,17 +441,10 @@ local function btnreceivedrag(self)
 		--value = value ~= "*" and value.."*" or value
 		self:SetAttribute("*type"..value, cursor)
 		--TODO: Rewrite this so it clears values cleaner
-		local oldCompanionID, oldCompanionType, oldCompanionSlot = self:GetAttribute("*companionID"..value), self:GetAttribute("*companionType"..value), self:GetAttribute("*companionSlot"..value)
 		if cursor == "spell" then
 			local spell, rank
 			if arg1 == 0 and arg2 == "spell" and nrfCompanionID and nrfCompanionType and nrfCompanionSlot and nrfCompanionSlot then
 				spell = GetSpellInfo(nrfCompanionID)
-				self:SetAttribute("*companionID"..value, nrfCompanionID)
-				self:SetAttribute("*companionType"..value, nrfCompanionType)
-				self:SetAttribute("*companionSlot"..value, nrfCompanionSlot)
-				nrfCompanionType = nil
-				nrfCompanionSlot = nil
-				nrfCompanionID = nil
 			else
 				spell, rank = GetSpellName(arg1, arg2)
 				if rank:find(RANK) then
@@ -507,9 +452,6 @@ local function btnreceivedrag(self)
 				elseif spell:find("%(") then
 					spell = spell.."()"
 				end
-				self:SetAttribute("*companionID"..value, nil)
-				self:SetAttribute("*companionType"..value, nil)
-				self:SetAttribute("*companionSlot"..value, nil)
 			end
 			self:SetAttribute("*spell"..value, spell)
 			self:SetAttribute("*item"..value, nil)
@@ -518,21 +460,13 @@ local function btnreceivedrag(self)
 			self:SetAttribute("*macroID"..value, nil)
 			
 		elseif cursor == "item" then
-			--local item = GetItemInfo(arg1)
 			self:SetAttribute("*spell"..value, nil)
-			self:SetAttribute("*companionID"..value, nil)
-			self:SetAttribute("*companionType"..value, nil)
-			self:SetAttribute("*companionSlot"..value, nil)
-			--self:SetAttribute("*item"..value, item)
 			self:SetAttribute("*item"..value, GetItemInfo(arg1))
 			self:SetAttribute("*itemid"..value, arg1)
 			self:SetAttribute("*macro"..value, nil)
 			self:SetAttribute("*macroID"..value, nil)
 		elseif cursor == "macro" then
 			self:SetAttribute("*spell"..value, nil)
-			self:SetAttribute("*companionID"..value, nil)
-			self:SetAttribute("*companionType"..value, nil)
-			self:SetAttribute("*companionSlot"..value, nil)
 			self:SetAttribute("*item"..value, nil)
 			self:SetAttribute("*itemid"..value, nil)
 			self:SetAttribute("*macro"..value, arg1)
@@ -547,11 +481,10 @@ local function btnreceivedrag(self)
 
 		if oldtype and oldspell then
 			if oldtype == "spell" then
-				if oldCompanionID and oldCompanionType and oldCompanionSlot then
-					PickupCompanion(oldCompanionType, oldCompanionSlot)
-					nrfCompanionType = oldCompanionType
-					nrfCompanionSlot = oldCompanionSlot
-					nrfCompanionID = oldCompanionID
+				if nrfCompanionID then
+					nrfCompanionType = nil
+					nrfCompanionSlot = nil
+					nrfCompanionID = nil
 				else
 					local id = Nurfed:getspell(oldspell)
 					if id then
@@ -793,18 +726,24 @@ local function btnupdate()
 			end
 			if btn.IsPetAction then 
 				-- do nothing yet, maybe never?
-			elseif btn.companionID then
-				if UnitAffectingCombat("player") then
-					r, g, b =  0.4, 0.4, 0.4;
-				end	
+			--elseif btn.companionID then
+			--	if UnitAffectingCombat("player") then
+			--		r, g, b =  0.4, 0.4, 0.4;
+			--	end	
 			else
-				local usable, nomana = IsUsableSpell(btn.spell);
-				if nomana then
-					r, g, b = 0.5, 0.5, 1;
-				elseif not usable then
-					r, g, b = 0.4, 0.4, 0.4;
-				elseif SpellHasRange(btn.spell) and IsSpellInRange(btn.spell, unit) == 0 then
-					r, g, b = 1, 0, 0;
+				if companionList[btn.spell] then
+					if UnitAffectingCombat("player") then
+						r, g, b = 0.4, 0.4, 0.4;
+					end
+				else
+					local usable, nomana = IsUsableSpell(btn.spell);
+					if nomana then
+						r, g, b = 0.5, 0.5, 1;
+					elseif not usable then
+						r, g, b = 0.4, 0.4, 0.4;
+					elseif SpellHasRange(btn.spell) and IsSpellInRange(btn.spell, unit) == 0 then
+						r, g, b = 1, 0, 0;
+					end
 				end
 			end
 	
@@ -1460,6 +1399,17 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 			end
 		end
 	end
+	if not companionList then
+		companionList = {}
+		for i=1, GetNumCompanions("MOUNT") do
+			local _, name, id = GetCompanionInfo("MOUNT", i)
+			companionList[name] = id
+		end
+		for i=1, GetNumCompanions("CRITTER") do
+			local _, name, id = GetCompanionInfo("CRITTER", i)
+			companionList[name] = id
+		end
+	end
 	createbars()
 end)
 
@@ -1633,15 +1583,6 @@ function nrf_mainmenu()
 				btn:SetPoint("BOTTOMLEFT")
 			end
 			_G["PossessButton"..i.."NormalTexture"]:Hide()
-			--[[
-			btn:SetScript("OnMouseUp", function(self)
-				Nurfed:schedule(0, function()
-					for i = 1, NUM_POSSESS_SLOTS do
-						_G["PossessButton"..i.."NormalTexture"]:Hide()
-					end
-				end)
-			end)
-			]]
 		end
 		nrf_updatemainbar("bags")
 		nrf_updatemainbar("micro")
@@ -1654,17 +1595,16 @@ function nrf_mainmenu()
 	end
 end
 
-hooksecurefunc("CompanionButton_OnDrag", function(self)
+hooksecurefunc("PickupCompanion", function(type, pos)
 	local check1, check2, check3 = GetCursorInfo()
 	if check1 == "spell" and check2 == 0 and check3 == "spell" then
-		local _, _, spellid = GetCompanionInfo(PetPaperDollFrameCompanionFrame.mode, dragged)
-		nrfCompanionID = spellid
-		nrfCompanionType = PetPaperDollFrameCompanionFrame.mode
-		nrfCompanionSlot = dragged
+		nrfCompanionID = select(3, GetCompanionInfo(type, pos))
+		nrfCompanionType = type
+		nrfCompanionSlot = pos
 	end
 end)
 --hooksecurefunc(MainMenuBar, "OnShow", nrf_mainmenu)
-MainMenuBar:SetScript("OnShow", nrf_mainmenu)
+MainMenuBar:HookScript("OnShow", nrf_mainmenu)
 
 ------------------------- default settings shit....kthxdie?
 function Nurfed_CreateDefaultActionBar(type)
