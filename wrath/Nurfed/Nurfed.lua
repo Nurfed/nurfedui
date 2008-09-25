@@ -350,12 +350,6 @@ local function onevent(self, ...)
 			val.hex = Nurfed:rgbhex(val.r, val.g, val.b)
 		end
 		
-		if UnitReactionColor then
-			for _, val in ipairs(UnitReactionColor) do
-				val.hex = Nurfed:rgbhex(val.r, val.g, val.b)
-			end
-		end
-
 		for i = 0, 6 do
 			local color = Nurfed:getopt(i == 0 and "mana" or i == 1 and "rage" or i == 2 and "focus" or i == 3 and "energy" or i == 4 and "happiness" or i == 5 and "runes" or i == 6 and "runic_power")
 			if color then

@@ -115,7 +115,7 @@ function util:GetClassByName(name)
 			while i <= numfriends do
 				fname, _, class, _, connected = GetFriendInfo(i)
 				if fname and connected  then
-					--class = class == "Death Knight" and "DeathKnight" or class
+					class = class == "Death Knight" and "DeathKnight" or class
 					classLst[fname] = string.upper(class)
 				end
 				i=i+1
@@ -128,7 +128,7 @@ function util:GetClassByName(name)
 			while i <= numGuildMembers do
 				fname, _, _, _, class = GetGuildRosterInfo(i)
 				if fname and class then
-					--class = class == "Death Knight" and "DeathKnight" or class
+					class = class == "Death Knight" and "DeathKnight" or class
 					classLst[fname] = string.upper(class)
 				end
 				i=i+1
@@ -140,7 +140,7 @@ function util:GetClassByName(name)
 			while i <= 5 do
 				local fname, class = UnitName("party"..i), UnitClass("party"..i)
 				if fname and class then
-					--class = class == "Death Knight" and "DeathKnight" or class
+					class = class == "Death Knight" and "DeathKnight" or class
 					classLst[fname] = string.upper(class)
 				end
 				i=i+1
@@ -153,7 +153,7 @@ function util:GetClassByName(name)
 			while i <= numraid do
 				local fname, class = UnitName("raid"..i), UnitClass("raid"..i)
 				if fname and class then
-					--class = class == "Death Knight" and "DeathKnight" or class
+					class = class == "Death Knight" and "DeathKnight" or class
 					classLst[fname] = string.upper(class)
 				end
 				i=i+1
@@ -364,7 +364,7 @@ local function HealthGradient(perc)
 	end
 end
 
-function util:getunitstat(unit, stat)
+function util:getunitstat(unit, stat, tstat, ttype)
 	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb
 	if stat == "XP" then
 		r, g, b = 0.58, 0.0, 0.55
@@ -391,9 +391,9 @@ function util:getunitstat(unit, stat)
 		curr = _G["UnitPower"](unit, stat)
 		--max = _G["Unit"..stat.."Max"](unit)
 		max = _G["UnitPower"..stat.."Max"](unit)]]
+		stat = "dMana" and ttype or stat
 		if stat == "Mana" then
-			local powertype = UnitPowerType(unit)
-			
+			local powertype = tstat or UnitPowerType(unit)
 			curr = _G["UnitPower"](unit, powertype)
 			max = _G["UnitPowerMax"](unit, powertype)
 		else

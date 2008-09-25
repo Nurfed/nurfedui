@@ -406,11 +406,11 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					size = { 130, 10 },
 					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 14 },
 				},
-				manabar = {
+				druidmanabar = {
 					template = "Nurfed_Unit_mp",
 					size = { 130, 10 },
-					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 14 },
-					vars = { type = "mana", },
+					Anchor = { "TOPRIGHT", "$parent", "BOTTOMRIGHT", -5, 144 },
+					vars = { powerType = 0, hideFrame = "xp" },
 				},
 				xp = {
 					template = "Nurfed_Unit_xp",
@@ -514,7 +514,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					vars = { damage = true },
 				},
 			},
-			vars = { unit = "player" },
+			vars = { unit = "player", enablePredictedStats = true, },
 		},
 
 		Nurfed_target = {
@@ -645,7 +645,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					Hide = true,
 				},
 			},
-			vars = { unit = "target", aurawidth = 176, aurasize = 17 },
+			vars = { unit = "target", aurawidth = 176, aurasize = 17, enablePredictedStats = true },
 		},
 		Nurfed_pet = {
 			type = "Button",
@@ -712,7 +712,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 				debuff8 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff7", "RIGHT", 0, 0 } },
 				debuff9 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff8", "RIGHT", 0, 0 } },
 			},
-			vars = { unit = "pet", aurawidth = 160 },
+			vars = { unit = "pet", aurawidth = 160, enablePredictedStats = true },
 		},
 		Nurfed_focus = {
 			type = "Button",
@@ -1399,10 +1399,10 @@ local function cuttexture(texture, size, fill, value)
 	end
 end
 
-local function updateinfo(self, stat)
+local function updateinfo(self, stat, tstat)
 	if not stat or not self[stat] then return end
 	local unit = SecureButton_GetUnit(self)
-	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb = Nurfed:getunitstat(unit, stat)
+	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb = Nurfed:getunitstat(unit, stat, tstat and self.dPowerType, tstat and self.dPowerTypeWord)
 	local maxtext, missingtext = max, missing
 	local rest
 
@@ -2052,7 +2052,7 @@ local function updateframe(self, notext)
 	if self.XP then updateinfo(self, "XP") end
 	if self.combo then updatecombo(self) end
 	if self.Mana then 
-		self.manaPowerType = UnitPowerType(unit)
+		self.powerType = UnitPowerType(unit)
 		manacolor(self) 
 	end
 	if self.buff or frame.debuff then updateauras(self) end
@@ -2196,22 +2196,46 @@ local function totupdate()
 	end
 end
 
-local function predictstats(self)
-	if ( not self.disconnected ) then
-		local currValue
-		if self.predictedPower then
-			currValue = UnitPower(self.unit, self.manaPowerType)
-			if currValue ~= self.manaCurrValue then
-				self.manaCurrValue = currValue
-				updateinfo(self, "Mana")
-			end
-		end
-		
-		if self.predictedHealth then
-			currValue = UnitHealth(self.unit)
-			if currValue ~= self.healthCurrValue then
-				self.healthCurrValue = currValue
-				updateinfo(self, "Health")
+local predictedStatsUpdateFrame = CreateFrame("Frame")
+local predictedStatsTable = {}
+local function predictstats()
+	for _, self in ipairs(predictedStatsTable) do
+		if UnitExists(self.unit) then
+			if ( not self.disconnected ) then
+				local currValue
+				if self.predictedPower then
+					currValue = UnitPower(self.unit, self.powerType)
+					if currValue ~= self.currPowerValue then
+						self.currPowerValue = currValue
+						updateinfo(self, "Mana")	
+					end
+					if self.dMana then
+						currValue = UnitPower(self.unit, self.dPowerType)
+						local pType = UnitPowerType(self.unit)
+						if pType ~= self.dPowerType then
+							if currValue ~= self.currDPowerValue then
+								self.currDPowerVlaue = currValue
+								updateinfo(self, "dMana", true)
+								if not self.dMana[1]:IsShown() then
+									self.dMana[1]:Show()
+								end
+							end
+						else	
+							if self.dMana[1]:IsShown() then
+								self.dMana[1]:Hide()
+							end
+						end
+					end
+
+				end
+				
+				if self.predictedHealth then
+					currValue = UnitHealth(self.unit)
+					if currValue ~= self.currHealthValue then
+						self.currHealthValue = currValue
+						updateinfo(self, "Health")
+					end
+				end
 			end
 		end
 	end
@@ -2325,18 +2349,36 @@ function Nurfed:unitimbue(frame)
 			frame[pre] = {}
 			if not frame.unit and frame:GetParent().unit then frame.unit = frame:GetParent().unit end
 			if pre == "Health" then
-				if GetCVarBool("predictedHealth") then
-					frame:SetScript("OnUpdate", predictstats)
+				local add = true
+				if GetCVarBool("predictedHealth") and frame.enablePredictedStats then
+					predictedStatsUpdateFrame:SetScript("OnUpdate", predictstats)
 					frame.predictedHealth = true
+					for i,v in ipairs(predictedStatsTable) do
+						if v == frame then
+							add = false
+							break
+						end
+					end
+					if add then
+						table.insert(predictedStatsTable, frame)
+					end
 				else
 					table.insert(events, "UNIT_HEALTH")
 				end
 				table.insert(events, "UNIT_MAXHEALTH")
-			elseif pre == "ManaBar" then
-				if GetCVarBool("predictedPower") then
-					frame:SetScript("OnUpdate", predictedstats)
+			elseif pre == "dMana" then
+				if GetCVarBool("predictedPower") and frame.enablePredictedStats then
+					predictedStatsUpdateFrame:SetScript("OnUpdate", predictstats)
 					frame.predictedPower = true
-					frame.manaPowerType = child.power
+					for i,v in ipairs(predictedStatsTable) do
+						if v == frame then
+							add = false
+							break
+						end
+					end
+					if add then
+						table.insert(predictedStatsTable, frame)
+					end
 				else
 					table.insert(events, "UNIT_MANA")
 					table.insert(events, "UNIT_RAGE")
@@ -2344,6 +2386,19 @@ function Nurfed:unitimbue(frame)
 					table.insert(events, "UNIT_ENERGY")
 					table.insert(events, "UNIT_HAPPINESS")
 					table.insert(events, "UNIT_RUNIC_POWER")
+				end
+				frame.dPowerType = child.powerType
+				if frame.dPowerType == 0 then
+					frame.dPowerTypeWord = "Mana"
+				end
+				--frame.dHideFrame = child.hideFrame
+				if child.hideFrame then
+					child:SetScript("OnShow", function(self)
+						UIFrameFadeOut(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
+					end)
+					child:SetScript("OnHide", function(self)
+						UIFrameFadeIn(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
+					end)
 				end
 				table.insert(events, "UNIT_MAXMANA");
 				table.insert(events, "UNIT_MAXRAGE");
@@ -2353,10 +2408,19 @@ function Nurfed:unitimbue(frame)
 				table.insert(events, "UNIT_MAXRUNIC_POWER");
 				table.insert(events, "UNIT_DISPLAYPOWER");
 			elseif pre == "Mana" then
-				if GetCVarBool("predictedPower") and frame.unit == "player" or frame.unit == "target" or frame.unit == "focus" then
-					frame:SetScript("OnUpdate", predictstats)
+				if GetCVarBool("predictedPower") and frame.enablePredictedStats then
+					predictedStatsUpdateFrame:SetScript("OnUpdate", predictstats)
 					frame.predictedPower = true
-					frame.manaPowerType = UnitPowerType(frame.unit)
+					frame.powerType = UnitPowerType(frame.unit)
+					for i,v in ipairs(predictedStatsTable) do
+						if v == frame then
+							add = false
+							break
+						end
+					end
+					if add then
+						table.insert(predictedStatsTable, frame)
+					end
 				else
 					table.insert(events, "UNIT_MANA");
 					table.insert(events, "UNIT_RAGE");
@@ -2408,17 +2472,18 @@ function Nurfed:unitimbue(frame)
 		if not childname:find("^target") and not childname:find("^pet") then
 			
 			local pre = childname:sub(1, 2)
-			if pre == "hp" or pre == "mp" or pre == "xp" then
+			if pre == "hp" or pre == "mp" or pre == "xp" or pre == "dr" then
 				if pre == "hp" then
 					pre = "Health"
 				elseif pre == "mp" then
 					pre = "Mana"
 				elseif pre == "xp" then
 					pre = "XP"
-				elseif pre == "manabar" then
-					pre = "manabar"
+				elseif pre == "dr" then
+					pre = "dMana"
 				end
 				regstatus(pre, child)
+
 				if child.ani then
 					if child.ani == "glide" then
 						child.endvalue = 1

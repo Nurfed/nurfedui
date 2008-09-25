@@ -1185,9 +1185,6 @@ function nrf_updatePetBarControl(self)
 
 				btn:SetAttribute("*type"..value, nil)
 				btn:SetAttribute("*spell"..value, nil)
-				btn:SetAttribute("*companionID"..value, nil)
-				btn:SetAttribute("*companionType"..value, nil)
-				btn:SetAttribute("*companionSlot"..value, nil)
 				btn:SetAttribute("*item"..value, nil)
 				btn:SetAttribute("*itemid"..value, nil)
 				btn:SetAttribute("*macro"..value, nil)
@@ -1230,9 +1227,6 @@ function nrf_updatePetBarControl(self)
 			oldBarSettings[k]["*harmbutton"..value] = "nuke"..value or "nil"
 			oldBarSettings[k]["*helpbutton"..value] = "heal"..value or "nil"
 			oldBarSettings[k]["*type"..value] = btn:GetAttribute("*type"..value) or "nil"
-			oldBarSettings[k]["*companionID"..value] = btn:GetAttribute("*companionID"..value) or "nil"
-			oldBarSettings[k]["*companionType"..value] = btn:GetAttribute("*companionType"..value) or "nil"
-			oldBarSettings[k]["*companionSlot"..value] = btn:GetAttribute("*companionSlot"..value) or "nil"
 			oldBarSettings[k]["*spell"..value] = btn:GetAttribute("*spell"..value) or "nil"
 			oldBarSettings[k]["*item"..value] = btn:GetAttribute("*item"..value) or "nil"
 			oldBarSettings[k]["*itemid"..value] = btn:GetAttribute("*itemid"..value) or "nil"
@@ -1241,9 +1235,6 @@ function nrf_updatePetBarControl(self)
 			btn.IsPetAction = i
 			btn:SetAttribute("*type"..value, "spell")
 			btn:SetAttribute("*spell"..value, name)
-			btn:SetAttribute("*companionID"..value, nil)
-			btn:SetAttribute("*companionType"..value, nil)
-			btn:SetAttribute("*companionSlot"..value, nil)
 			btn:SetAttribute("*item"..value, nil)
 			btn:SetAttribute("*itemid"..value, nil)
 			btn:SetAttribute("*macro"..value, nil)
