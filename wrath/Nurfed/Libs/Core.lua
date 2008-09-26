@@ -411,7 +411,7 @@ function util:getunitstat(unit, stat, tstat, ttype)
 	if stat == "Mana" then
 		local color = self:getopt("mpcolor")
 		if color == "normal" then
-			local powertype = UnitPowerType(unit)
+			local powertype = tstat or UnitPowerType(unit)
 			if powertype == 0 then r, g, b = unpack(self:getopt("mana"))
 			elseif powertype == 1 then r, g, b = unpack(self:getopt("rage"))
 			elseif powertype == 2 then r, g, b = unpack(self:getopt("focus"))
@@ -1123,32 +1123,4 @@ function debug(...)
 	else
 		LibStub("AceConsole-3.0"):Print(frame, ...)
 	end
-end
-do
-	local i = 1
-	local LnL
-	local f = CreateFrame("Frame")
-	f:SetScript("OnUpdate", function()
-		if i <= 10 then
-			i=i+1
-			return
-		end
-		local v = 1
-		local name, _, _, amount = UnitBuff("player", v)
-		while name do
-			if name == "Lock and Load" and amount and not LnL then
-				LnL = true
-				RaidNotice_AddMessage(RaidWarningFrame, "Lock and Load!", ChatTypeInfo["RAID_WARNING"])
-			end
-			if name == "Lock and Load" then return end
-			v=v+1
-			name, _, _, amount = UnitBuff("player", v)
-		end
-		if LnL then
-			LnL = false
-			RaidNotice_AddMessage(RaidWarningFrame, "Lock and Load Gone!!", ChatTypeInfo["RAID_WARNING"])
-		end
-		i=1
-	end)
-	f:Show()
 end

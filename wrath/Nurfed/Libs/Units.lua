@@ -125,7 +125,31 @@ NURFED_FRAMES = NURFED_FRAMES or {
 			},
 			vars = { ani = "glide" },
 		},
-
+		Nurfed_Unit_druidmp = {
+			type = "StatusBar",
+			FrameStrata = "LOW",
+			StatusBarTexture = NRF_IMG.."statusbar5",
+			children = {
+				bg = {
+					type = "Texture",
+					layer = "BACKGROUND",
+					Texture = NRF_IMG.."statusbar5",
+					VertexColor = { 0, 1, 1, 0.25 },
+					Anchor = "all"
+				},
+				text = {
+					type = "FontString",
+					layer = "OVERLAY",
+					FontObject = "Nurfed_UnitFont",
+					JustifyH = "LEFT",
+					ShadowColor = { 0, 0, 0, 0.75 },
+					ShadowOffset = { -1, -1 },
+					Anchor = "all",
+					vars = { format = "$cur ($max)" },
+				},
+			},
+			vars = { ani = "glide" },
+		},
 		Nurfed_Unit_xp = {
 			type = "StatusBar",
 			StatusBarTexture = NRF_IMG.."statusbar5",
@@ -406,16 +430,16 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					size = { 130, 10 },
 					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 14 },
 				},
-				druidmanabar = {
-					template = "Nurfed_Unit_mp",
-					size = { 130, 10 },
-					Anchor = { "TOPRIGHT", "$parent", "BOTTOMRIGHT", -5, 144 },
-					vars = { powerType = 0, hideFrame = "xp" },
-				},
 				xp = {
 					template = "Nurfed_Unit_xp",
 					size = { 170, 8 },
 					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 5 },
+				},
+				druidmanabar = {
+					template = "Nurfed_Unit_druidmp",
+					size = { 170, 8 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 5 },
+					vars = { hideFrame = "xp" },
 				},
 				castingframe = {
 					template = "Nurfed_Unit_casting",
@@ -1402,7 +1426,7 @@ end
 local function updateinfo(self, stat, tstat)
 	if not stat or not self[stat] then return end
 	local unit = SecureButton_GetUnit(self)
-	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb = Nurfed:getunitstat(unit, stat, tstat and self.dPowerType, tstat and self.dPowerTypeWord)
+	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb = Nurfed:getunitstat(unit, stat, tstat and 0, tstat and "Mana")
 	local maxtext, missingtext = max, missing
 	local rest
 
@@ -1617,12 +1641,12 @@ local function updatehappiness(self)
 	end
 end
 
-local function updatecombo(self)
+local function updatecombo(self, unit)
 	if self.combo then
 		local comboPoints
 		for _, child in ipairs(self.combo) do
-			if child.unit1 ~= self.unit and child.unit2 ~= self.unit then return end
-			comboPoints = GetComboPoints(child.unit1, child.unit2)
+			if child.unit1 ~= unit then return end
+			comboPoints = GetComboPoints(unit, child.unit2)
 			if comboPoints > 0 then
 				local objtype = child:GetObjectType()
 				if objtype == "FontString" then
@@ -1775,9 +1799,6 @@ local function aurafade(self, time)
 end
 
 local removeLst = {
-	["Frenzy"] = {
-		["HUNTER"] = true,
-	},
 	["Enrage"] = {
 		["HUNTER"] = true,
 	},
@@ -2073,15 +2094,8 @@ local function updateframe(self, notext)
 	end
 end
 local events = {
-	--[[
-	["PLAYER_ENTERING_WORLD"] = function(self) updateframe(self) end,
-	["PLAYER_FOCUS_CHANGED"] = function(self) updateframe(self) end,
-	["PLAYER_TARGET_CHANGED"] = function(self) updateframe(self) end,
-	["PLAYER_REGEN_DISABLED"] = function(self) updatestatus(self) end,
-	["PLAYER_REGEN_ENABLED"] = function(self) updatestatus(self) end,
-	["PLAYER_UPDATE_RESTING"] = function(self) updatestatus(self) end,
-	["PLAYER_FLAGS_CHANGED"] = function(self) updatestatus(self) end,
-	]]
+	["UPDATE_SHAPESHIFT_FORM"] = updateframe,
+
 	["PLAYER_ENTERING_WORLD"] = updateframe,
 	["PLAYER_FOCUS_CHANGED"] = updateframe,
 	["PLAYER_TARGET_CHANGED"] = updateframe,
@@ -2090,7 +2104,6 @@ local events = {
 	["PLAYER_UPDATE_RESTING"] = updatestatus,
 	["PLAYER_FLAGS_CHANGED"] = updatestatus,
 	
-	--["UNIT_COMBO_POINTS"] = function(self) updatecombo(self) end,
 	["UNIT_COMBO_POINTS"] = updatecombo,
 	
 	["PLAYER_XP_UPDATE"] = function(self) updateinfo(self, "XP") end,
@@ -2098,7 +2111,6 @@ local events = {
 	["UPDATE_FACTION"] = function(self) updateinfo(self, "XP") end,
 	["UPDATE_EXHAUSTION"] = function(self) updateinfo(self, "XP") end,
 	["PLAYER_GUILD_UPDATE"] = function(self) formattext(self.guild, self) end,
-	--["RAID_TARGET_UPDATE"] = function(self) updateraid(self) end,
 	["RAID_TARGET_UPDATE"] = updateraid,
 	
 	["PARTY_MEMBERS_CHANGED"] = function(self)
@@ -2119,12 +2131,10 @@ local events = {
 		updatemaster(self)
 		updateloot(self)
 	end,
-	--["RAID_ROSTER_UPDATE"] = function(self) updategroup(self) end,
 	["RAID_ROSTER_UPDATE"] = updategroup,
 	
 	["UPDATE_BINDINGS"] = function(self) formattext(self.key, self) end,
 	["UNIT_PET_EXPERIENCE"] = function(self) updateinfo(self, "XP") end,
-	--["UNIT_PET"] = function(self) updateframe(self) end,
 	["UNIT_PET"] = updateframe,
 	
 	["UNIT_HEALTH"] = function(self) updateinfo(self, "Health") end,
@@ -2199,41 +2209,42 @@ end
 local predictedStatsUpdateFrame = CreateFrame("Frame")
 local predictedStatsTable = {}
 local function predictstats()
-	for _, self in ipairs(predictedStatsTable) do
-		if UnitExists(self.unit) then
-			if ( not self.disconnected ) then
+	for _, frame in ipairs(predictedStatsTable) do
+		if UnitExists(frame.unit) then
+			if ( not frame.disconnected ) then
 				local currValue
-				if self.predictedPower then
-					currValue = UnitPower(self.unit, self.powerType)
-					if currValue ~= self.currPowerValue then
-						self.currPowerValue = currValue
-						updateinfo(self, "Mana")	
+				if frame.predictedPower then
+					currValue = UnitPower(frame.unit, frame.powerType)
+					if currValue ~= frame.currPowerValue then
+						frame.currPowerValue = currValue
+						updateinfo(frame, "Mana")	
 					end
-					if self.dMana then
-						currValue = UnitPower(self.unit, self.dPowerType)
-						local pType = UnitPowerType(self.unit)
-						if pType ~= self.dPowerType then
-							if currValue ~= self.currDPowerValue then
-								self.currDPowerVlaue = currValue
-								updateinfo(self, "dMana", true)
-								if not self.dMana[1]:IsShown() then
-									self.dMana[1]:Show()
+					if frame.dMana then
+						currValue = UnitPower(frame.unit, 0)
+						if frame.powerType ~= 0 then
+							if currValue ~= frame.currDPowerValue then
+								frame.currDPowerValue = currValue
+								updateinfo(frame, "dMana", true)
+								if not frame.dManaShown then
+									frame.dManaShown = true
+									frame.dMana[1]:Show()
 								end
 							end
 						else	
-							if self.dMana[1]:IsShown() then
-								self.dMana[1]:Hide()
+							if frame.dManaShown then
+								frame.dManaShown = false
+								frame.dMana[1]:Hide()
 							end
 						end
 					end
 
 				end
 				
-				if self.predictedHealth then
-					currValue = UnitHealth(self.unit)
-					if currValue ~= self.currHealthValue then
-						self.currHealthValue = currValue
-						updateinfo(self, "Health")
+				if frame.predictedHealth then
+					currValue = UnitHealth(frame.unit)
+					if currValue ~= frame.currHealthValue then
+						frame.currHealthValue = currValue
+						updateinfo(frame, "Health")
 					end
 				end
 			end
@@ -2243,7 +2254,6 @@ end
 
 function Nurfed:unitimbue(frame)
 	local dropdown, menufunc
-	--local id, found = string.gsub(frame.unit, "party([1-4])", "%1")
 	local id, found = frame.unit:gsub("party([1-4])", "%1")
 	if found == 1 and string.len(frame.unit) > 6 then
 		id = nil
@@ -2313,6 +2323,8 @@ function Nurfed:unitimbue(frame)
 				end
 				hooksecurefunc("RuneButton_OnUpdate", nrfcooldowntext)
 			end
+		elseif playerClass == "DRUID" then
+			table.insert(events, "UPDATE_SHAPESHIFT_FORM")
 		end
 	end
 
@@ -2387,11 +2399,6 @@ function Nurfed:unitimbue(frame)
 					table.insert(events, "UNIT_HAPPINESS")
 					table.insert(events, "UNIT_RUNIC_POWER")
 				end
-				frame.dPowerType = child.powerType
-				if frame.dPowerType == 0 then
-					frame.dPowerTypeWord = "Mana"
-				end
-				--frame.dHideFrame = child.hideFrame
 				if child.hideFrame then
 					child:SetScript("OnShow", function(self)
 						UIFrameFadeOut(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
@@ -2399,6 +2406,13 @@ function Nurfed:unitimbue(frame)
 					child:SetScript("OnHide", function(self)
 						UIFrameFadeIn(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
 					end)
+					if UnitPowerType(frame.unit) ~= 0 then
+						child:Show()
+						UIFrameFadeOut(_G[frame:GetName()..child.hideFrame], 0.15)
+					else
+						child:Hide()
+						UIFrameFadeIn(_G[frame:GetName()..child.hideFrame], 0.15)
+					end
 				end
 				table.insert(events, "UNIT_MAXMANA");
 				table.insert(events, "UNIT_MAXRAGE");
@@ -2481,6 +2495,10 @@ function Nurfed:unitimbue(frame)
 					pre = "XP"
 				elseif pre == "dr" then
 					pre = "dMana"
+				end
+				if pre == "dMana" and child:GetParent().unit == "player" and playerClass ~= "DRUID" then 
+					child:Hide()
+					return 
 				end
 				regstatus(pre, child)
 
