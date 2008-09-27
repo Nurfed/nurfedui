@@ -843,7 +843,7 @@ end
 -- Action bar management
 function Nurfed:updatebar(hdr)
 	local state, visible;
-	local btns, statelist, driver = {}, {}, {};
+	local btns, statelist, driver, unitlist, unitdriver = {}, {}, {}, {}, {}
 	for _, child in ipairs({ hdr:GetChildren() }) do
 		if child:GetName():find("^Nurfed_Button") then
 			table.insert(btns, child:GetID(), child);
@@ -860,15 +860,6 @@ function Nurfed:updatebar(hdr)
 	local unitLst	
 	if vals.statemaps then
 		for k, v in pairs(vals.statemaps) do
-			if k:find("%(unit-%S+%)") then
-				if not unitLst then
-					unitLst = {}
-				end
-				local unit = k:match("%(unit-%S+%)"):gsub("%)", ""):gsub("%(unit%-", "")
-				k = k:gsub("%(unit-%S+%)", "")
-				unitLst[v] = unit
-			end
-
 			if k:find("%-") then
 				k = k:gsub("%-", ":");
 			end
@@ -889,10 +880,34 @@ function Nurfed:updatebar(hdr)
 			end
 		end
 	end
+	if vals.unitmaps then
+		for k, v in pairs(vals.unitmaps) do
+			if k:find("%-") then
+				k = k:gsub("%-", ":");
+			end
+	
+			local add = true;
+			local list = v..":"..v;
+			table.insert(unitdriver, "["..k.."] "..v);
 
+			for _, l in ipairs(unitlist) do
+				if l == list then
+					add = nil;
+					break
+				end
+			end
+
+			if add then
+				table.insert(unitlist, v..":"..v);
+			end
+		end
+	end
 	driver = table.concat(driver, ";");
 	state = SecureCmdOptionParse(driver);
 	statelist = table.concat(statelist, ";");
+	
+	unitdriver = table.concat(unitdriver, ";");
+	unitlist = table.concat(unitlist, ";");
 
 	if #driver == 0 then
 		state = "0";
@@ -907,35 +922,26 @@ function Nurfed:updatebar(hdr)
 	if vals.visible ~= "hide" and vals.visible ~= "show" then
 		visible = "["..vals.visible.."]".." show; hide";
 	end
-	if unitLst then
-		hdr:SetAttribute("customUnits", true)
-		for tstate, unit in pairs(unitLst) do
-			hdr:SetAttribute("customUnit-"..tstate, unit)
-		end
-	end
+
 	hdr:SetAttribute("_onstate-actionsettings", [[ -- (self, stateid, newstate)
 						state = newstate;
 						self:SetAttribute("state", newstate)
 						control:ChildUpdate(stateid, newstate)]]
 					)
-						--[[
-						if self:GetAttribute("customUnits") then
-							print("customunits")
-							if self:GetAttribute("customUnit-"..newstate) == newstate then
-								print("setting new unit", self:GetAttribute("customUnit-"..newstate))
-								self:SetAttribute("useunit", true)
-								self:SetAttribute("unit", self:GetAttribute("customUnit-"..newstate))
-							else
-								print("setting new unit", self:GetAttribute("customUnit-"..newstate))
-								self:SetAttribute("useunit", nil)
-								self:SetAttribute("unit", nil)
-							end
-						end ]]
+	hdr:SetAttribute("_onstate-unit", [[
+						newstate = newstate ~= "none" and newstate or nil
+						unit = newstate
+						self:SetAttribute("unit", newstate)
+						print(self:GetAttribute("unit"), self:GetAttribute("useunit"), ":::", newstate)
+						control:ChildUpdate(stateid, newstate)]]
+					)
+	RegisterStateDriver(hdr, "unit", unitdriver)
 	RegisterStateDriver(hdr, "actionsettings", driver);
 	RegisterStateDriver(hdr, "visibility", visible);
 
 	hdr:SetAttribute("statebutton", statelist);
 	hdr:SetAttribute("state", state);
+	hdr:SetAttribute("unit", SecureCmdOptionParse(unitdriver))
 	
   	hdr:SetWidth(vals.cols * (36 + vals.xgap) - vals.xgap);
 	hdr:SetHeight(vals.rows * (36 + vals.ygap) - vals.ygap);
