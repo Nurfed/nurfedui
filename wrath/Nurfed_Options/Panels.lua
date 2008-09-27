@@ -6,6 +6,7 @@ local mptype = { "normal", "class", "fade", "pitbull" }
 local auras = { "all", "curable", "yours" }
 local units = { "", "focus", "party1", "party2", "party3", "party4", "pet", "player", "target", "targettarget" }
 local states = { "stance:", "stealth:", "actionbar:", "shift:", "ctrl:", "alt:" }
+local unitstates = { "modifier: shift", "nomodifier: shift", "modifier: alt", "nomodifier: alt" };
 local visible = { "show", "hide", "combat", "nocombat", "exists" }
 local setupFrameName, setupParentName, setupPoints
 
@@ -73,6 +74,34 @@ local addstate = function()
 		NurfedActionBarsPanelstatesmap:SetText("")
 		if this.ClearFocus then
 			this:ClearFocus()
+		end
+	end
+end
+
+local addunitstate = function(self)
+	local bar = NurfedActionBarsPanel.bar
+	if bar then
+		--local statemaps = NURFED_ACTIONBARS[bar].statemaps
+		local unitmaps
+		for i,v in ipairs(NURFED_ACTIONBARS) do
+			if v.name == bar then
+				unitmaps = v.unitmaps
+				break
+			end
+		end
+
+		local state = string.trim(NurfedActionBarsPanelunitstatesstate:GetText())
+		local map = string.trim(NurfedActionBarsPanelunitstatesmap:GetText())
+		if map == "" or state == "" then
+			return
+		end
+		unitmaps[state] = map
+		Nurfed:updatebar(getglobal(bar))
+		Nurfed_ScrollActionBarsUnitStates()
+		NurfedActionBarsPanelunitstatesstate:SetText("")
+		NurfedActionBarsPanelunitstatesmap:SetText("")
+		if self.ClearFocus then
+			self:ClearFocus()
 		end
 	end
 end
@@ -971,7 +1000,7 @@ local panels = {
 	-- Action Bars Panel
 	{
 		name = "ActionBars",
-		subtext = "Change settings for the action bars provided by Nurfed.",
+		subtext = L["Change settings for the action bars provided by Nurfed."],
 		menu = {
 			savepos = {
 				template = "nrf_button",
@@ -1101,7 +1130,7 @@ local panels = {
 							end
 							self:ClearFocus()
 						end,
-						vars = { val = "petbarstartbutton", option = "petbarstartbutton", text = "Pet Bar Start Button" },
+						vars = { val = "petbarstartbutton", option = "petbarstartbutton", text = L["Pet Bar Start Button"] },
 					},
 				},
 			},
@@ -1119,7 +1148,7 @@ local panels = {
 							add = {
 								template = "nrf_button",
 								Anchor = { "LEFT", "$parent", "RIGHT", 0, 0 },
-								Text = "Unit",
+								Text = L["Unit"],
 								OnClick = function(self) Nurfed_DropMenu(self, units) end,
 							},
 						},
@@ -1131,7 +1160,7 @@ local panels = {
 						template = "nrf_check",
 						Anchor = { "BOTTOM", "$parent", "TOP", -50, -10 },
 						OnClick = function(self) updatebar(self) end,
-						vars = { text = "Harm / Help", val = "useunit" },
+						vars = { text = L["Harm / Help"], val = "useunit" },
 					},
 					visible = {
 						template = "nrf_editbox",
@@ -1141,7 +1170,7 @@ local panels = {
 							add = {
 								template = "nrf_button",
 								Anchor = { "LEFT", "$parent", "RIGHT", 0, 0 },
-								Text = "Visible",
+								Text = L["Visible"],
 								OnClick = function(self) Nurfed_DropMenu(self, visible) end,
 							},
 						},
@@ -1152,7 +1181,7 @@ local panels = {
 						template = "nrf_slider",
 						Anchor = { "TOPLEFT", "$parentvisible", "BOTTOMLEFT", 0, -13 },
 						vars = {
-							text = "Rows",
+							text = L["Rows"],
 							val = "rows",
 							low = 1,
 							high = 24,
@@ -1170,7 +1199,7 @@ local panels = {
 						template = "nrf_slider",
 						Anchor = { "TOP", "$parentrows", "BOTTOM", 0, -30 },
 						vars = {
-							text = "Columns",
+							text = L["Columns"],
 							val = "cols",
 							low = 1,
 							high = 24,
@@ -1188,7 +1217,7 @@ local panels = {
 						template = "nrf_slider",
 						Anchor = { "TOP", "$parentcols", "BOTTOM", 0, -30 },
 						vars = {
-							text = "Scale",
+							text = L["Scale"],
 							val = "scale",
 							low = "25%",
 							high = "300%",
@@ -1207,7 +1236,7 @@ local panels = {
 						template = "nrf_slider",
 						Anchor = { "TOP", "$parentscale", "BOTTOM", 0, -30 },
 						vars = {
-							text = "Alpha",
+							text = L["Alpha"],
 							val = "alpha",
 							low = "0%",
 							high = "100%",
@@ -1226,7 +1255,7 @@ local panels = {
 						template = "nrf_slider",
 						Anchor = { "TOP", "$parentalpha", "BOTTOM", 0, -30 },
 						vars = {
-							text = "X Gap",
+							text = L["X Gap"],
 							val = "xgap",
 							low = -2,
 							high = 50,
@@ -1244,7 +1273,7 @@ local panels = {
 						template = "nrf_slider",
 						Anchor = { "TOP", "$parentxgap", "BOTTOM", 0, -30 },
 						vars = {
-							text = "Y Gap",
+							text = L["Y Gap"],
 							val = "ygap",
 							low = -2,
 							high = 50,
@@ -1341,18 +1370,16 @@ local panels = {
 						template = "nrf_editbox",
 						size = { 125, 18 },
 						Anchor = { "TOPLEFT", 0, -7 },
-	--					size = { 160, 18 },
 						children = {
 							drop = {
 								template = "nrf_button",
 								Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
-								Text = "State",
+								Text = L["State"],
 								OnClick = function(self) Nurfed_DropMenu(self, states) end,
 							},
 						},
 						OnTabPressed = function() NurfedActionBarsPanelstatesmap:SetFocus() end,
 						OnEnterPressed = addstate,
-						--Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, -4 },
 					},
 					map = {
 						template = "nrf_editbox",
@@ -1361,7 +1388,7 @@ local panels = {
 							add = {
 								template = "nrf_button",
 								Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
-								Text = "State Value",
+								Text = L["State Value"],
 								OnClick = addstate,
 							},
 						},
@@ -1426,6 +1453,102 @@ local panels = {
 						template = "nrf_actionstates",
 						Anchor = { "TOPLEFT", "$parent9", "BOTTOMLEFT", 0, 0 },
 						OnClick = function(self) NurfedActionBarsPanelstatesstate:SetText(self.state) end,
+					},
+				},
+				Hide = true,
+			},
+			unitstates = {
+				type = "Frame",
+				size = { 230, 100 },
+				Anchor = { "TOPLEFT", "$parentadd", "BOTTOMRIGHT", 65, 25 },
+				children = {
+					state = {
+						template = "nrf_editbox",
+						size = { 125, 18 },
+						Anchor = { "TOPLEFT", 0, -7 },
+						children = {
+							drop = {
+								template = "nrf_button",
+								Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
+								Text = L["State"],
+								OnClick = function(self) Nurfed_DropMenu(self, unitstates) end,
+							},
+						},
+						OnTabPressed = function() NurfedActionBarsPanelunitstatesmap:SetFocus() end,
+						OnEnterPressed = addunitstate,
+					},
+					map = {
+						template = "nrf_editbox",
+						size = { 50, 18 },
+						children = {
+							add = {
+								template = "nrf_button",
+								Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
+								Text = L["Unit Value"],
+								OnClick = addunitstate,
+							},
+						},
+						OnTabPressed = function() NurfedActionBarsPanelunitstatesstate:SetFocus() end,
+						OnEnterPressed = addunitstate,
+						Anchor = { "TOPLEFT", "$parentstate", "BOTTOMLEFT", 0, -5 },
+					},
+					scroll = {
+						type = "ScrollFrame",
+						size = { 170, 155 },
+						Anchor = { "TOPLEFT", "$parentmap", "BOTTOMLEFT", 0, 0 },
+						uitemp = "FauxScrollFrameTemplate",
+						OnVerticalScroll = function() FauxScrollFrame_OnVerticalScroll(14, Nurfed_ScrollActionBarsUnitStates) end,
+						OnShow = function(self) Nurfed_ScrollActionBarsUnitStates(self) end,
+					},
+					["1"] = {
+						template = "nrf_unitstates",
+						Anchor = { "TOPLEFT", "$parentscroll", "TOPLEFT", 0, -8 },
+						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
+					},
+					["2"] = {
+						template = "nrf_unitstates",
+						Anchor = { "TOPLEFT", "$parent1", "BOTTOMLEFT", 0, 0 },
+						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
+					},
+					["3"] = {
+						template = "nrf_unitstates",
+						Anchor = { "TOPLEFT", "$parent2", "BOTTOMLEFT", 0, 0 },
+						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
+					},
+					["4"] = {
+						template = "nrf_unitstates",
+						Anchor = { "TOPLEFT", "$parent3", "BOTTOMLEFT", 0, 0 },
+						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
+					},
+					["5"] = {
+						template = "nrf_unitstates",
+						Anchor = { "TOPLEFT", "$parent4", "BOTTOMLEFT", 0, 0 },
+						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
+					},
+					["6"] = {
+						template = "nrf_unitstates",
+						Anchor = { "TOPLEFT", "$parent5", "BOTTOMLEFT", 0, 0 },
+						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
+					},
+					["7"] = {
+						template = "nrf_unitstates",
+						Anchor = { "TOPLEFT", "$parent6", "BOTTOMLEFT", 0, 0 },
+						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
+					},
+					["8"] = {
+						template = "nrf_unitstates",
+						Anchor = { "TOPLEFT", "$parent7", "BOTTOMLEFT", 0, 0 },
+						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
+					},
+					["9"] = {
+						template = "nrf_unitstates",
+						Anchor = { "TOPLEFT", "$parent8", "BOTTOMLEFT", 0, 0 },
+						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
+					},
+					["10"] = {
+						template = "nrf_unitstates",
+						Anchor = { "TOPLEFT", "$parent9", "BOTTOMLEFT", 0, 0 },
+						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
 					},
 				},
 				Hide = true,
@@ -1535,7 +1658,7 @@ local panels = {
 						text:Show()
 					end
 				end,
-				vars = { text = "Buff Filter List", func = function(text) NurfedUnitsPanelbutton3:SetText(""); removeDeBuff("bufffilterlist", text) end, page = 2 },
+				vars = { text = L["Buff Filter List"], func = function(text) NurfedUnitsPanelbutton3:SetText(""); removeDeBuff("bufffilterlist", text) end, page = 2 },
 			},
 			editbox1 = {
 				template = "nrf_editbox",
@@ -1544,7 +1667,7 @@ local panels = {
 				OnEnterPressed = function(self) addDeBuffFilter("bufffilterlist", self:GetText()); self:ClearFocus(); self:SetText("") end,
 				OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
 				OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
-				vars = { text = "Add Buff Filter", page = 2 },
+				vars = { text = L["Add Buff Filter"], page = 2 },
 			},
 			button4 = {
 				template = "nrf_optbutton",
@@ -1566,7 +1689,7 @@ local panels = {
 						text:Show()
 					end
 				end,
-				vars = { text = "Debuff Filter List", func = function(text) NurfedUnitsPanelbutton4:SetText(""); removeDeBuff("debufffilterlist", text) end, page = 2 },
+				vars = { text = L["Debuff Filter List"], func = function(text) NurfedUnitsPanelbutton4:SetText(""); removeDeBuff("debufffilterlist", text) end, page = 2 },
 			},
 			editbox2 = {
 				template = "nrf_editbox",
@@ -1575,7 +1698,7 @@ local panels = {
 				OnEnterPressed = function(self) addDeBuffFilter("debufffilterlist", self:GetText()); self:ClearFocus(); self:SetText("") end,
 				OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
 				OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
-				vars = { text = "Add Debuff Filter", page = 2 },
+				vars = { text = L["Add Debuff Filter"], page = 2 },
 			},
 		},
 	},
@@ -1854,7 +1977,7 @@ for _, info in ipairs(panels) do
 	end
 end
 
-function Nurfed_ScrollActionBarsStates()
+function Nurfed_ScrollActionBarsStates(self)
 	local states = {}
 	local bar = NurfedActionBarsPanel.bar
 	--local tbl = NURFED_ACTIONBARS[bar].statemaps
@@ -1892,6 +2015,43 @@ function Nurfed_ScrollActionBarsStates()
 	end
 end
 
+function Nurfed_ScrollActionBarsUnitStates(self)
+	local states = {}
+	local bar = NurfedActionBarsPanel.bar
+	local tbl
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		if v.name == bar then
+			if not v.unitmaps then v.unitmaps = {} end
+			tbl = v.unitmaps
+			break
+		end
+	end
+	for k, v in pairs(tbl) do
+		table.insert(states, { k, v })
+	end
+
+	local format_row = function(row, num)
+		local state = states[num]
+		local name = getglobal(row:GetName().."name")
+		local value = getglobal(row:GetName().."value")
+		name:SetText(state[1])
+		value:SetText(state[2])
+		row.state = state[1]
+	end
+
+	local frame = NurfedActionBarsPanelunitstatesscroll
+	FauxScrollFrame_Update(frame, #states, 10, 14)
+	for line = 1, 10 do
+		local offset = line + FauxScrollFrame_GetOffset(frame)
+		local row = getglobal("NurfedActionBarsPanelunitstates"..line)
+		if offset <= #states then
+			format_row(row, offset)
+			row:Show()
+		else
+			row:Hide()
+		end
+	end
+end
 function Nurfed_ScrollActionBars()
 	local bars = {}
 	--[[for k in pairs(NURFED_ACTIONBARS) do
@@ -1964,15 +2124,29 @@ function Nurfed_ScrollActionBars()
 	end
 end
 
-function Nurfed_ToggleStates()
+function Nurfed_ToggleStates(self)
 	local bar = NurfedActionBarsPanel.bar
-	local pbar = this:GetParent().bar
+	local pbar = self:GetParent().bar
 	if bar and bar == pbar and getglobal(bar):GetID() == 0 then
-		if this:GetChecked() then
+		if self:GetChecked() then
 			NurfedActionBarsPanelbar:Hide()
 			NurfedActionBarsPanelstates:Show()
 		else
 			NurfedActionBarsPanelstates:Hide()
+			NurfedActionBarsPanelbar:Show()
+		end
+	end
+end
+
+function Nurfed_ToggleUnitStates(self)
+	local bar = NurfedActionBarsPanel.bar
+	local pbar = self:GetParent().bar
+	if bar and bar == pbar and getglobal(bar):GetID() == 0 then
+		if self:GetChecked() then
+			NurfedActionBarsPanelbar:Hide()
+			NurfedActionBarsPanelunitstates:Show()
+		else
+			NurfedActionBarsPanelunitstates:Hide()
 			NurfedActionBarsPanelbar:Show()
 		end
 	end
@@ -2016,12 +2190,12 @@ function Nurfed_ActionBar_OnClick(button)
 	Nurfed_ScrollActionBars()
 end
 
-function Nurfed_DeleteState()
-	local state = this:GetParent().state
+function Nurfed_DeleteState(self)
+	local state = self:GetParent().state
 	local bar = NurfedActionBarsPanel.bar
 	local hdr = getglobal(bar)
-	for i in ipairs(NURFED_ACTIONBARS) do
-		if NURFED_ACTIONBARS[i].name == bar then
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		if v.name == bar then
 			NURFED_ACTIONBARS[i].statemaps[state] = nil
 			break
 		end
@@ -2029,6 +2203,21 @@ function Nurfed_DeleteState()
 	hdr:SetAttribute("statemap-"..state, nil)
 	Nurfed:updatebar(hdr)
 	Nurfed_ScrollActionBarsStates()
+end
+
+function Nurfed_DeleteUnitState(self)
+	local state = self:GetParent().state
+	local bar = NurfedActionBarsPanel.bar
+	local hdr = getglobal(bar)
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		if v.name == bar then
+			NURFED_ACTIONBARS[i].unitmaps[state] = nil
+			break
+		end
+	end
+	--hdr:SetAttribute("statemap-"..state, nil)
+	Nurfed:updatebar(hdr)
+	Nurfed_ScrollActionBarsUnitStates()
 end
 
 function Nurfed_DeleteBar()

@@ -155,6 +155,9 @@ onshow = function(self)
 			end
 		end
 	end
+	if self.nohitrect then
+		self:SetHitRectInsets(0, 0, 0, 0)
+	end
 	-- anchoring the value editbox of a slider in the template apparently does not
 	-- move it...at all.  It is still getting anchored to the left/right
 	-- even when the anchor to pos is not set to RIGHT at all
@@ -409,7 +412,54 @@ local templates = {
 				NormalTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Up",
 				PushedTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Down",
 				HighlightTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Highlight",
-				OnClick = function() Nurfed_DeleteState() end,
+				OnClick = function(self) Nurfed_DeleteState(self) end,
+				OnEnter = function(self)
+					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+					GameTooltip:AddLine(DELETE, 1, 0, 0)
+					GameTooltip:Show()
+				end,
+				OnLeave = function() GameTooltip:Hide() end,
+			},
+			name = {
+				type = "FontString",
+				layer = "ARTWORK",
+				size = { 102, 14 },
+				Anchor = { "LEFT", "$parentdelete", "RIGHT", 5, 0 },
+				FontObject = "GameFontNormalSmall",
+				JustifyH = "LEFT",
+				TextColor = { 1, 1, 1 },
+			},
+			value = {
+				type = "FontString",
+				layer = "ARTWORK",
+				size = { 50, 14 },
+				Anchor = { "LEFT", "$parentname", "RIGHT", 5, 0 },
+				FontObject = "GameFontNormalSmall",
+				JustifyH = "RIGHT",
+				TextColor = { 1, 1, 1 },
+			},
+			HighlightTexture = {
+				type = "Texture",
+				layer = "BACKGROUND",
+				Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
+				BlendMode = "ADD",
+				Anchor = "all",
+			},
+		},
+	},
+	nrf_unitstates = {
+		type = "Button",
+		size = { 175, 14 },
+		children = {
+			delete = {
+				type = "Button",
+				layer = "ARTWORK",
+				size = { 14, 14 },
+				Anchor = { "LEFT", "$parent", "LEFT", 0, 0 },
+				NormalTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Up",
+				PushedTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Down",
+				HighlightTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Highlight",
+				OnClick = function(self) Nurfed_DeleteUnitState(self) end,
 				OnEnter = function(self)
 					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 					GameTooltip:AddLine(DELETE, 1, 0, 0)
@@ -473,11 +523,29 @@ local templates = {
 				Anchor = { "LEFT", "$parentname", "RIGHT", 5, 0 },
 				OnEnter = function(self)
 					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-					GameTooltip:AddLine("Show States", 1, 1, 0)
+					GameTooltip:AddLine(L["Show States"], 1, 1, 0)
 					GameTooltip:Show()
 				end,
 				OnLeave = function() GameTooltip:Hide() end,
-				OnClick = function() Nurfed_ToggleStates() end,
+				OnClick = function(self) Nurfed_ToggleStates(self) end,
+			},
+			unitstates = {
+				template = "nrf_check",
+				size = { 16, 16 },
+				Anchor = { "LEFT", "$parentname", "RIGHT", -5, 0 },
+				OnShow = function(self)
+					if GetGuildInfo("player") ~= "Nurfed" then
+						self:Hide()
+					end
+					self:SetHitRectInsets(0, 0, 0, 0)
+				end,
+				OnEnter = function(self)
+					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+					GameTooltip:AddLine(L["Show Unit States"], 1, 1, 0)
+					GameTooltip:Show()
+				end,
+				OnLeave = function() GameTooltip:Hide() end,
+				OnClick = function(self) Nurfed_ToggleUnitStates(self) end,
 			},
 			delete = {
 				type = "Button",
