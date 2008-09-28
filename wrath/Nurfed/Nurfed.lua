@@ -340,6 +340,31 @@ local function onevent(self, ...)
 		GuildListScrollFrame:HookScript("OnVerticalScroll", updateGuildColors)
 		FriendsFrameFriendsScrollFrame:HookScript("OnVerticalScroll", updateFriendsColors)
 		
+		
+		-- beta bugs
+		do
+			local origChatFrameOHS = ChatFrame_OnHyperlinkShow
+ 
+			function ChatFrame_OnHyperlinkShow(self, link, text, button, ...)
+				local linkType, linkValue = string.split(":", link);
+				if linkType == "item" and IsModifiedClick("DRESSUP") then 
+					return DressUpItemLink(linkValue);
+				end
+				if not IsModifiedClick("CHATLINK") then 
+					return origChatFrameOHS(self, link, text, button, ...);
+				end
+				if linkType == "player" then 
+					return ChatFrameEditBox:IsVisible() and ChatEdit_InsertLink(linkValue) or SendWho(linkValue) 
+				end
+				if linkType == "spell" then 
+					text = GetSpellLink(linkValue) 
+				end
+		 
+				ChatFrameEditBox:Show()
+				ChatEdit_InsertLink(text)
+			end
+		end
+		
 	elseif event == "VARIABLES_LOADED" then
 		if self:IsUserPlaced() then
 			self:SetUserPlaced(nil)
@@ -393,7 +418,7 @@ Nurfed:create("Nurfed_LockButton", {
 		"CHAT_MSG_SYSTEM",
 		"PLAYER_ENTERING_WORLD",
 		"VARIABLES_LOADED",
-    "PARTY_INVITE_REQUEST",
+		"PARTY_INVITE_REQUEST",
 	},
 	children = {
 		dropdown = { type = "Frame" },
@@ -463,7 +488,9 @@ local ACHIEVEMENT_BROADCAST_NURFED = ACHIEVEMENT_BROADCAST:gsub("%%s", "%%S+", 1
 local function message(self, msg, r, g, b, id)
   if (msg and type(msg) == "string") then
 	if Nurfed:getopt("hideachievements") and msg:match(ACHIEVEMENT_BROADCAST_NURFED) then return end
-	messageText[1] = nil; messageText[2] = nil -- there should not be anything more than 2, no need to do pairs
+	
+	messageText[1] = nil; messageText[2] = nil;
+	
     if Nurfed:getopt("timestamps") then
       table.insert(messageText, date(Nurfed:getopt("timestampsformat")))
     end
@@ -479,6 +506,7 @@ local function message(self, msg, r, g, b, id)
 			end
 		end
     end
+    
     if Nurfed:getopt("classcolortext") then
 		for internal, displayed in msg:gmatch("|Hplayer:(.-)|h%[(.-)%]|h") do
 			local color = Nurfed:GetHexClassColorByName(displayed)

@@ -37,6 +37,9 @@ local combatlog = {
 	party3 = {},
 	party4 = {},
 }
+if UnitName("player") == "Adeathpoco" then 
+	NURFED_FRAMES = nil 
+end
 -- Default Options
 NURFED_FRAMES = NURFED_FRAMES or {
 	templates = {
@@ -146,6 +149,30 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					ShadowOffset = { -1, -1 },
 					Anchor = "all",
 					vars = { format = "$cur ($max)" },
+				},
+			},
+			vars = { ani = "glide" },
+		},
+		Nurfed_Unit_rune = {
+			type = "StatusBar",
+			StatusBarTexture = NRF_IMG.."statusbar5",
+			children = {
+				bg = {
+					type = "Texture",
+					layer = "BACKGROUND",
+					Texture = NRF_IMG.."statusbar5",
+					VertexColor = { 0, 0, 1, 0.25 },
+					Anchor = "all",
+				},
+				text = {
+					type = "FontString",
+					layer = "OVERLAY",
+					FontObject = "Nurfed_UnitFontSmall",
+					JustifyH = "CENTER",
+					ShadowColor = { 0, 0, 0, 0.75 },
+					ShadowOffset = { -1, -1 },
+					Anchor = "all",
+					vars = { defaultText = "!" },
 				},
 			},
 			vars = { ani = "glide" },
@@ -444,6 +471,36 @@ NURFED_FRAMES = NURFED_FRAMES or {
 				castingframe = {
 					template = "Nurfed_Unit_casting",
 					Anchor = { "RIGHT", "$parent", "LEFT" },
+				},
+				rune1 = {
+					template = "Nurfed_Unit_rune",
+					size = { 12, 8 },
+					Anchor = { "BOTTOM", "$parent", "TOP", -35, 0 },
+				},
+				rune2 = {
+					template = "Nurfed_Unit_rune",
+					size = { 12, 8 },
+					Anchor = { "TOPLEFT", "$parentrune1", "TOPRIGHT", 2, 0 },
+				},
+				rune3 = {
+					template = "Nurfed_Unit_rune",
+					size = { 12, 8 },
+					Anchor = { "TOPLEFT", "$parentrune2", "TOPRIGHT", 2, 0 },
+				},
+				rune4 = {
+					template = "Nurfed_Unit_rune",
+					size = { 12, 8 },
+					Anchor = { "TOPLEFT", "$parentrune3", "TOPRIGHT", 2, 0 },
+				},
+				rune5 = {
+					template = "Nurfed_Unit_rune",
+					size = { 12, 8 },
+					Anchor = { "TOPLEFT", "$parentrune4", "TOPRIGHT", 2, 0 },
+				},
+				rune6 = {
+					template = "Nurfed_Unit_rune",
+					size = { 12, 8 },
+					Anchor = { "TOPLEFT", "$parentrune5", "TOPRIGHT", 2, 0 },
 				},
 				model = {
 					template = "Nurfed_Unit_model",
@@ -1584,14 +1641,13 @@ end
 -- Text replacement
 local function subtext(self, text, trueself)
 	if not text then return end
-	local pre = string.find(text, "%$%a")
-	string.gsub(text, "%$%a+",
-		function (s)
-			if replace[s] then
-				text = text:gsub(s, replace[s](trueself))
-			end
+	local pre = text:find("%$%a")
+	string.gsub(text, "%$%a+", function(s)
+		if replace[s] then
+			text = text:gsub(s, replace[s](trueself or self))
 		end
-	)
+	end)
+
 	if pre == 1 then
 		local post = text:find("[%a^%|cff]")
 		if post and post > pre then
@@ -1623,8 +1679,12 @@ local function updatehappiness(self)
 		local display
 		local text = self.name
 		local icon = self.happiness
-		if text then display = subtext(text.format) end
-		if icon then icon:Show() end
+		if text then 
+			display = subtext(self, self.name.format)
+		end
+		if icon then 
+			icon:Show() 
+		end
 		if happiness == 1 then
 			if text then text:SetTextColor(1, 0.5, 0) end
 			if icon then icon:SetTexCoord(0.375, 0.5625, 0, 0.359375) end
@@ -1819,7 +1879,6 @@ local function updateauras(self)
 		total = 0
 		for i = 1, #self.buff do
 			button = _G[self:GetName().."buff"..i]
-			--name, _, texture, app, duration, left = UnitBuff(unit, i, frame.bfilter)
 			name, rank, texture, app, dtype, duration, left, isMine, isStealable = UnitBuff(unit, i, self.bfilter)
 			--if name then
 			if name and not filterList or filterList and filterList[name] then
@@ -1920,7 +1979,6 @@ local function updateauras(self)
 						button.update = 0
 						button.flashdct = 1
 						button:SetScript("OnUpdate", aurafade)
-						--frame.cure = cure[dtype][playerClass] -- this will always return true?  durr
 						self.cure = true
 					end
 				else
@@ -2066,6 +2124,72 @@ local function showparty(self)
 	end
 end
 
+local function updateRunesOnUpdate(self)
+	local start, duration = self.start, self.duration
+	local time = GetTime()
+	local remain = (start + duration) - time
+	if remain >= 0 then
+		remain = math.round(remain)
+
+		if remain >= 3600 then
+			remain = math.floor(remain / 3600).."h"
+			r, g, b = 0.6, 0.6, 0.6
+		
+		elseif remain >= 60 then
+			local min = math.floor(remain / 60)
+			r, g, b = 1, 1, 0
+
+			if min < 10 then
+				local secs = math.floor(math.fmod(remain, 60))
+				remain = string.format("%2d:%02s", min, secs)
+			else
+				remain = min.."m"
+			end
+		end
+		self:SetValue(time - start)
+		local text = _G[self:GetName().."text"]
+		if text then
+			text:SetText(remain)
+			text:Show()
+		else
+			text:Hide()
+		end
+	end
+end
+
+local function updateRunes(self, rune, usable)
+	if rune <= 6 then
+		local start, duration, runeReady = GetRuneCooldown(rune);
+		local frame = _G[self:GetName().."rune"..rune]
+		if frame then
+			if rune == 1 or rune == 2 then
+				frame:SetStatusBarColor(1, 0, 0)
+			elseif rune == 5 or rune == 6 then
+				frame:SetStatusBarColor(0, 0, 1)
+			elseif rune == 3 or rune == 4 then
+				frame:SetStatusBarColor(0, 1, 0)
+			end
+			frame:SetMinMaxValues(0, duration)
+			frame.rune = rune
+			frame.start = start
+			frame.duration = duration
+			if runeReady then
+				local text = _G[frame:GetName().."text"]
+				if text then
+					text:SetText(text.defaultText)
+					text:Show()
+				end
+				frame:SetScript("OnUpdate", nil)
+				UIFrameFadeIn(frame, 0.5)
+			else
+				if not frame:GetScript("OnUpdate") then
+					frame:SetScript("OnUpdate", updateRunesOnUpdate)
+				end
+			end
+		end
+	end
+end
+
 local function updateframe(self, notext)
 	local unit = SecureButton_GetUnit(self)
 	if self.status then updatestatus(self) end
@@ -2088,11 +2212,21 @@ local function updateframe(self, notext)
 		updatename(self)
 	end
 
-	if unit == "pet" then updatehappiness(self) end
+	if unit == "pet" then
+		updatehappiness(self) 
+	end
 	if self.GetHighlightTexture and self:GetHighlightTexture() then
 		updatehighlight(self)
 	end
+	if self.rune then
+		for i,v in ipairs(self.rune) do
+			updateRunes(self, i)
+		end
+	end
 end
+
+
+
 local events = {
 	["UPDATE_SHAPESHIFT_FORM"] = updateframe,
 
@@ -2150,13 +2284,14 @@ local events = {
 	["UNIT_MAXFOCUS"] = function(self) updateinfo(self, "Mana") end,
 	["UNIT_MAXRUNIC_POWER"] = function(self) updateinfo(self, "Mana") end,
 	
-	["UNIT_COMBAT"] = function(self, ...) updatedamage(self, ...) end,
-	["UNIT_AURA"] = function(self) updateauras(self) end,
-	["UNIT_DISPLAYPOWER"] = function(self) manacolor(self) end,
+	["UNIT_COMBAT"] = updatedamage,
+	["UNIT_AURA"] = updateauras,
+	["UNIT_DISPLAYPOWER"] = manacolor,
+	
 	["UNIT_PORTRAIT_UPDATE"] = function(self)
 		SetPortraitTexture(self.portrait, SecureButton_GetUnit(self))
 	end,
-	["UNIT_FACTION"] = function(self) updatepvp(self) end,
+	["UNIT_FACTION"] = updatepvp,
 	["UNIT_LEVEL"] = function(self)
 		updateinfo(self, "XP")
 		formattext(self.level, self)
@@ -2167,7 +2302,8 @@ local events = {
 	end,
 	["UNIT_DYNAMIC_FLAGS"] = function(self) formattext(self.name, self) end,
 	["UNIT_CLASSIFICATION_CHANGED"] = function(self) formattext(self.level) end,
-	["UNIT_HAPPINESS"] = function(self) updatehappiness(self) end,
+	["UNIT_HAPPINESS"] = updatehappiness,
+	["RUNE_POWER_UPDATE"] = updateRunes,
 }
 
 local function onevent(event, ...)
@@ -2297,7 +2433,6 @@ function Nurfed:unitimbue(frame)
 		table.insert(events, "UNIT_DYNAMIC_FLAGS")
 		table.insert(events, "UNIT_CLASSIFICATION_CHANGED")
 		frame:SetScript("OnHide", TargetFrame_OnHide)
-		--frame:SetScript("OnShow", TargetFrame_OnShow)
 		
 	elseif frame.unit == "focus" then
 		table.insert(events, "PLAYER_FOCUS_CHANGED")
@@ -2310,6 +2445,7 @@ function Nurfed:unitimbue(frame)
 	elseif frame.unit == "player" then
 		table.insert(events, "UNIT_COMBAT")
 		if playerClass == "DEATHKNIGHT" then
+			--[[
 			_G["RuneFrame"]:ClearAllPoints();
 			_G["RuneFrame"]:SetPoint("TOP", frame, "BOTTOM", 0, 0)
 			for i=1, 6 do
@@ -2322,7 +2458,9 @@ function Nurfed:unitimbue(frame)
 					cooldown.disableheight = true
 				end
 				hooksecurefunc("RuneButton_OnUpdate", nrfcooldowntext)
-			end
+			end]]
+			_G["RuneFrame"]:UnregisterAllEvents();
+			_G["RuneFrame"]:Hide();
 		elseif playerClass == "DRUID" then
 			table.insert(events, "UPDATE_SHAPESHIFT_FORM")
 		end
@@ -2469,7 +2607,13 @@ function Nurfed:unitimbue(frame)
 				
 			elseif pre == "buff" or pre == "debuff" and not string.find(frame.unit, "target", 2, true) then
 				table.insert(events, "UNIT_AURA");
+			
+			elseif pre == "rune" then
+				table.insert(events, "RUNE_POWER_UPDATE");
+				table.insert(events, "RUNE_TYPE_UPDATE");
+				child:GetParent().runes = {}
 			end
+			
 		end
 		table.insert(frame[pre], child)
 		table.sort(frame[pre], function(a,b) 
@@ -2512,6 +2656,13 @@ function Nurfed:unitimbue(frame)
 					elseif child.ani == "fade" then
 						fade(child)
 					end
+				end
+			
+			elseif childname:find("^rune") then
+				if playerClass == "DEATHKNIGHT" and child:GetParent().unit == "player" then
+					regstatus("rune", child)
+				else
+					child:Hide()
 				end
 				
 			elseif childname:find("^combo") then
@@ -2709,7 +2860,6 @@ function Nurfed:unitimbue(frame)
 		update(_G[child])
 	end
 
-	--if string.find(frame.unit, "target", 2) then
 	if frame.unit:find("target", 2) then
 		if not tots then
 			tots = {}

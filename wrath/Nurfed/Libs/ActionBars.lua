@@ -932,7 +932,6 @@ function Nurfed:updatebar(hdr)
 						newstate = newstate ~= "none" and newstate or nil
 						unit = newstate
 						self:SetAttribute("unit", newstate)
-						print(self:GetAttribute("unit"), self:GetAttribute("useunit"), ":::", newstate)
 						control:ChildUpdate(stateid, newstate)]]
 					)
 	RegisterStateDriver(hdr, "unit", unitdriver)
@@ -1114,15 +1113,17 @@ Nurfed:createtemp("actionbar", {
 			OnDragStart = function(self) self:GetParent():StartMoving() end,
 			OnDragStop = function(self)
 				local parent = self:GetParent()
+				local saved
 				parent:StopMovingOrSizing()
 				for i,v in ipairs(NURFED_ACTIONBARS) do
 					if v.name == parent:GetName() then
 						v.Point = { parent:GetPoint() }
+						saved = true
 						break
 					end
 				end
 				parent:SetUserPlaced(true)
-						
+				
 				local top = self:GetTop()
 				local screen = GetScreenHeight() / 2
 				if top and screen then
@@ -1132,6 +1133,9 @@ Nurfed:createtemp("actionbar", {
 					else  
 						self:SetPoint("BOTTOMLEFT", parent, "TOPLEFT")
 					end
+				end
+				if not saved then
+					NURFED_SAVED[parent:GetName()] = { parent:GetPoint() }
 				end
 			end,
 			OnShow = function(self)
@@ -1165,6 +1169,7 @@ local oldBarSettings = {
 }
 local lastFarsight
 function nrf_updatePetBarControl(self)
+	do return end
 	if UnitHasVehicleUI("player") then return end
 	if lastFarsight then return end
 	local count = 0
@@ -1371,9 +1376,12 @@ local function createbars(bars)
 		bar = Nurfed:create("Nurfed_"..k, "actionbar")
 		if bar then
 			bar:SetHeight(v)
-			if not bar:IsUserPlaced() then
+			if NURFED_SAVED[bar:GetName()] then
+				bar:SetPoint(unpack(NURFED_SAVED[bar:GetName()]))
+			elseif not bar:IsUserPlaced() then
 				bar:SetPoint("CENTER")
 			end
+			
 			if k == "petbar" then
 				bar:SetAttribute("unit", "pet")
 			end
@@ -1589,6 +1597,15 @@ function nrf_mainmenu()
 
 		ShapeshiftBar_Update = function() end
 		MainMenuBar:Hide()
+		if not MainMenuBar.nrfScriptSet then
+			if MainMenuBar:GetScript("OnShow") then
+				MainMenuBar.nrfScriptSet = true
+				MainMenuBar:HookScript("OnShow", nrf_mainmenu)
+			else
+				MainMenuBar.nrfScriptSet = true
+				MainMenuBar:SetScript("OnShow", nrf_mainmenu)
+			end
+		end
 	end
 end
 
@@ -1600,8 +1617,6 @@ hooksecurefunc("PickupCompanion", function(type, pos)
 		nrfCompanionSlot = pos
 	end
 end)
---hooksecurefunc(MainMenuBar, "OnShow", nrf_mainmenu)
-MainMenuBar:HookScript("OnShow", nrf_mainmenu)
 
 ------------------------- default settings shit....kthxdie?
 function Nurfed_CreateDefaultActionBar(type)

@@ -104,92 +104,6 @@ function util:mergetable(target, source)
 	return target
 end
 
-local classLst = {}
---## TODO: Convert to Metatable usage!
-function util:GetClassByName(name)
-	if name and not classLst[name] then
-		local i, fname, class
-		local numfriends = GetNumFriends()
-		if numfriends > 0 then
-			i=1
-			while i <= numfriends do
-				fname, _, class, _, connected = GetFriendInfo(i)
-				if fname and connected  then
-					class = class == "Death Knight" and "DeathKnight" or class
-					classLst[fname] = string.upper(class)
-				end
-				i=i+1
-			end
-		end
-		
-		local numGuildMembers = GetNumGuildMembers(true)
-		if numGuildMembers > 0 then
-			i=1
-			while i <= numGuildMembers do
-				fname, _, _, _, class = GetGuildRosterInfo(i)
-				if fname and class then
-					class = class == "Death Knight" and "DeathKnight" or class
-					classLst[fname] = string.upper(class)
-				end
-				i=i+1
-			end
-		end
-		
-		if GetNumPartyMembers() > 0 then
-			i=1
-			while i <= 5 do
-				local fname, class = UnitName("party"..i), UnitClass("party"..i)
-				if fname and class then
-					class = class == "Death Knight" and "DeathKnight" or class
-					classLst[fname] = string.upper(class)
-				end
-				i=i+1
-			end
-		end
-		
-		if UnitInRaid("player") then
-			i=1
-			local numraid = GetNumRaidMembers()
-			while i <= numraid do
-				local fname, class = UnitName("raid"..i), UnitClass("raid"..i)
-				if fname and class then
-					class = class == "Death Knight" and "DeathKnight" or class
-					classLst[fname] = string.upper(class)
-				end
-				i=i+1
-			end
-		end
-	end
-	return name and classLst[name] or nil
-end
-
-function util:AddUnitClassByUnit(unit)
-	if unit and UnitExists(unit) and UnitIsPlayer(unit) then
-		local name = UnitName(unit)
-		if not classLst[name] then
-			local class = UnitClass(unit)
-			classLst[UnitName(unit)] = class
-		end
-	end
-end
-
-function util:GetUnitClassByUnit(unit)
-	return unit and UnitExists(unit) and classLst[UnitName(unit)] or nil
-end
-	
-function util:GetHexClassColorByName(name)
-	if not name then return end
-	name = self:GetClassByName(name)
-	return name and RAID_CLASS_COLORS[name] and RAID_CLASS_COLORS[name].hex or nil
-end
-
-function util:GetRGBClassColorByName(name)
-	if not name then return end
-	local class = self:GetClassByName(name)
-	if class then
-		return RAID_CLASS_COLORS[class].r, RAID_CLASS_COLORS[class].g, RAID_CLASS_COLORS[class].b
-	end
-end
 local basicSerialize = function(o)
 	if type(o) == "number" or type(o) == "boolean" then
 		return tostring(o)
@@ -386,11 +300,6 @@ function util:getunitstat(unit, stat, tstat, ttype)
 			end
 		end
 	else
-		--[[
-		--curr = _G["Unit"..stat](unit)
-		curr = _G["UnitPower"](unit, stat)
-		--max = _G["Unit"..stat.."Max"](unit)
-		max = _G["UnitPower"..stat.."Max"](unit)]]
 		stat = "dMana" and ttype or stat
 		if stat == "Mana" then
 			local powertype = tstat or UnitPowerType(unit)
@@ -436,7 +345,7 @@ function util:getunitstat(unit, stat, tstat, ttype)
 			b = 0.0	
 
 		elseif color == "pitbull" then
-			local powertype = UnitPowerType(unit)
+			local powertype = tstat or UnitPowerType(unit)
 			if powertype == 0 then r, g, b = unpack(colorLst.mana)
 			elseif powertype == 1 then r, g, b = unpack(colorLst.rage)
 			elseif powertype == 2 then r, g, b = unpack(colorLst.focus)
@@ -501,7 +410,7 @@ function util:getunitstat(unit, stat, tstat, ttype)
 		elseif color == "class" then
 			local eclass = select(2, UnitClass(unit))
 			if eclass then
-				--eclass = eclass == "Death Knight" and "DeathKnight" or eclass
+				eclass = eclass == "Death Knight" and "DeathKnight" or eclass
 				r = RAID_CLASS_COLORS[eclass].r
 				g = RAID_CLASS_COLORS[eclass].g
 				b = RAID_CLASS_COLORS[eclass].b
@@ -545,7 +454,7 @@ function util:getclassicon(unit, isclass)
 	else
 		if UnitIsPlayer(unit) or UnitCreatureType(unit) == "Humanoid" then
 			local eclass = select(2, UnitClass(unit))
-			--eclass = eclass == "Death Knight" and "DeathKnight" or eclass
+			eclass = eclass == "Death Knight" and "DeathKnight" or eclass
 			coords = class[eclass]
 		else
 			coords = class["PETS"]
@@ -1023,10 +932,102 @@ local addonmsg = function(event, ...)
 end
 
 ----------------------------------------------------------------
+-- Addon Color Settings
+--## TODO: Convert to Metatable usage!
+local classLst = {}
+function util:GetClassByName(name)
+	if name and not classLst[name] then
+		local i, fname, class
+		local numfriends = GetNumFriends()
+		if name == UnitName("player") then
+			classLst[name] = select(2, UnitClass("player"))
+		end
+		if numfriends > 0 then
+			i=1
+			while i <= numfriends do
+				fname, _, class, _, connected = GetFriendInfo(i)
+				if fname and connected  then
+					class = class == "Death Knight" and "DeathKnight" or class
+					classLst[fname] = string.upper(class)
+				end
+				i=i+1
+			end
+		end
+		
+		local numGuildMembers = GetNumGuildMembers(true)
+		if numGuildMembers > 0 then
+			i=1
+			while i <= numGuildMembers do
+				fname, _, _, _, class = GetGuildRosterInfo(i)
+				if fname and class then
+					class = class == "Death Knight" and "DeathKnight" or class
+					classLst[fname] = string.upper(class)
+				end
+				i=i+1
+			end
+		end
+		
+		if GetNumPartyMembers() > 0 then
+			i=1
+			while i <= 5 do
+				local fname, class = UnitName("party"..i), select(2, UnitClass("party"..i))
+				if fname and class then
+					class = class == "Death Knight" and "DeathKnight" or class
+					classLst[fname] = string.upper(class)
+				end
+				i=i+1
+			end
+		end
+		
+		if UnitInRaid("player") then
+			i=1
+			local numraid = GetNumRaidMembers()
+			while i <= numraid do
+				local fname, class = UnitName("raid"..i), select(2, UnitClass("raid"..i))
+				if fname and class then
+					class = class == "Death Knight" and "DeathKnight" or class
+					classLst[fname] = string.upper(class)
+				end
+				i=i+1
+			end
+		end
+	end
+	return name and classLst[name] or nil
+end
+
+function util:AddUnitClassByUnit(unit)
+	if unit and UnitExists(unit) and UnitIsPlayer(unit) then
+		local name = UnitName(unit)
+		if not classLst[name] then
+			local class = UnitClass(unit)
+			classLst[UnitName(unit)] = class
+		end
+	end
+end
+
+function util:GetUnitClassByUnit(unit)
+	return unit and UnitExists(unit) and classLst[UnitName(unit)] or nil
+end
+	
+function util:GetHexClassColorByName(name)
+	if not name then return end
+	name = self:GetClassByName(name)
+	return name and RAID_CLASS_COLORS[name] and RAID_CLASS_COLORS[name].hex or nil
+end
+
+function util:GetRGBClassColorByName(name)
+	if not name then return end
+	local class = self:GetClassByName(name)
+	if class then
+		return RAID_CLASS_COLORS[class].r, RAID_CLASS_COLORS[class].g, RAID_CLASS_COLORS[class].b
+	end
+end
+
+----------------------------------------------------------------
 -- Addon versioning system 
 -- TODO: Find a better way to track this, ie: fix the svn to update the toc file anytime a commit is made
 do
-local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver, nrfcl_ver, nrfcl_rev
+	local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver, nrfcl_ver, nrfcl_rev
 	-- no opt = Core, 1 = Options, 2 = Arena, 3 = Combat Log
 	function util:setver(ver, opt)
 		ver = ver:gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1")
@@ -1067,7 +1068,7 @@ local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver, nrfcl_ver, nrfcl
 	end
 
 	function util:setrev(rev, opt)
-		rev = rev:gsub("%$", ""):gsub("%s$", "", 1)
+		rev = rev:gsub("%$", ""):gsub("%s$", "", 1):gsub("^%S+%:", "", 1)
 		rev = tonumber(rev)
 		if opt then
 			if opt == 1 then
