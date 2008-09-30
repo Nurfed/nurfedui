@@ -1404,6 +1404,14 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 			end
 		end
 	end
+	createbars()
+end)
+
+Nurfed:regevent("PLAYER_LOGIN", function()
+	for i,v in ipairs(NURFED_ACTIONBARS) do
+		Nurfed:updatehks(v.name)
+	end
+	isloaded = true
 	if not companionList then
 		companionList = {}
 		for i=1, GetNumCompanions("MOUNT") do
@@ -1415,14 +1423,6 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 			companionList[name] = id
 		end
 	end
-	createbars()
-end)
-
-Nurfed:regevent("PLAYER_LOGIN", function()
-	for i,v in ipairs(NURFED_ACTIONBARS) do
-		Nurfed:updatehks(v.name)
-	end
-	isloaded = true
 	Nurfed:sendevent("UPDATE_BINDINGS")
 	SaveBindings(GetCurrentBindingSet())
 end)

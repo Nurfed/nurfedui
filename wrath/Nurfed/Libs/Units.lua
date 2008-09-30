@@ -863,6 +863,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 		Nurfed_party2 = { template = "Nurfed_Party", vars = { unit = "party2" } },
 		Nurfed_party3 = { template = "Nurfed_Party", vars = { unit = "party3" } },
 		Nurfed_party4 = { template = "Nurfed_Party", vars = { unit = "party4" } },
+		Nurfed_raid1 = { template = "Nurfed_Party", vars = { unit = "raid1" } },
 	},
 }
 
@@ -2471,7 +2472,7 @@ function Nurfed:unitimbue(frame)
 		
 	elseif frame.unit:find("^raid") then
 		frame.isRaid = true
-		FriendsDropDown.initialize = UnitPopup_ShowMenu(_G[UIDROPDOWNMENU_OPEN_MENU], "RAID", frame.unit, UnitName(frame.unit), frame:GetID())
+		FriendsDropDown.initialize = function() UnitPopup_ShowMenu(_G[UIDROPDOWNMENU_OPEN_MENU], "RAID", frame.unit, UnitName(frame.unit), frame:GetID()) end
 		FriendsDropDown.displayMode = "MENU"
 		dropdown = FriendsDropDown
 	else

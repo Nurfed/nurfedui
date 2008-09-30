@@ -19,7 +19,6 @@ local util = _G["Nurfed"]
 if util and util.version >= version then
 	return
 end
-
 -- Add library to environment
 util = {}
 _G["Nurfed"] = util
