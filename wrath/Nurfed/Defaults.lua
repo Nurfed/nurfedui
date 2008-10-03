@@ -44,14 +44,6 @@ end
 ]]
 NURFED_DEFAULT["changehpbg"] = false
 NURFED_DEFAULT["changempbg"] = false
--- localizing settings = bad :(
---[[
-NURFED_DEFAULT[MANA] = { 0.00, 0.00, 1.00 }
-NURFED_DEFAULT[RAGE_POINTS] = { 1.00, 0.00, 0.00 }
-NURFED_DEFAULT[FOCUS_POINTS] = { 1.00, 0.50, 0.25 }
-NURFED_DEFAULT[ENERGY_POINTS] = { 1.00, 1.00, 0.00 }
-NURFED_DEFAULT[HAPPINESS_POINTS] = { 0.00, 1.00, 1.00 }
-]]
 NURFED_DEFAULT["mana"] = { 0.00, 0.00, 1.00 }
 NURFED_DEFAULT["rage"] = { 1.00, 0.00, 0.00 }
 NURFED_DEFAULT["focus"] = { 1.00, 0.50, 0.25 }
@@ -85,6 +77,10 @@ NURFED_DEFAULT["possessbarshow"] = 1
 NURFED_DEFAULT["possessbarscale"] = 1
 NURFED_DEFAULT["possessbarvert"] = false
 NURFED_DEFAULT["possessbaroffset"] = 3
+NURFED_DEFAULT["vehiclemenubarshow"] = 1
+NURFED_DEFAULT["vehiclemenubarscale"] = 1
+NURFED_DEFAULT["vehiclemenubarvert"] = false
+NURFED_DEFAULT["vehiclemenubaroffset"] = 3
 NURFED_DEFAULT["microshow"] = false
 NURFED_DEFAULT["microscale"] = 1
 NURFED_DEFAULT["microvert"] = false

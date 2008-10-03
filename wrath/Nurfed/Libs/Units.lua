@@ -427,6 +427,112 @@ NURFED_FRAMES = NURFED_FRAMES or {
 			},
 			vars = { aurawidth = 176 },
 		},
+			Nurfed_Raid = {
+			type = "Button",
+			uitemp = "SecureUnitButtonTemplate",
+			--uitemp = "SecurePartyHeaderTemplate",
+			size = { 180, 41 },
+			FrameStrata = "LOW",
+			ClampedToScreen = true,
+			Backdrop = { bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = true, tileSize = 16, edgeSize = 16, insets = { left = 5, right = 5, top = 5, bottom = 5 }, },
+			BackdropColor = { 0, 0, 0, 0.75 },
+			Movable = true,
+			Mouse = true,
+			children = {
+				hp = {
+					template = "Nurfed_Unit_hp",
+					size = { 147, 12 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 14 },
+				},
+				mp = {
+					template = "Nurfed_Unit_mp",
+					size = { 147, 8 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 5 },
+				},
+				castingframe = {
+					template = "Nurfed_Unit_casting",
+					Anchor = { "RIGHT", "$parent", "LEFT" },
+				},
+				buff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parent", "BOTTOMLEFT", 4, 2 } },
+				buff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff1", "RIGHT", 0, 0 } },
+				buff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff2", "RIGHT", 0, 0 } },
+				buff4 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff3", "RIGHT", 0, 0 } },
+				buff5 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff4", "RIGHT", 0, 0 } },
+				buff6 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff5", "RIGHT", 0, 0 } },
+				buff7 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff6", "RIGHT", 0, 0 } },
+				buff8 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff7", "RIGHT", 0, 0 } },
+				buff9 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff8", "RIGHT", 0, 0 } },
+				buff10 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff9", "RIGHT", 0, 0 } },
+				buff11 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff10", "RIGHT", 0, 0 } },
+				buff12 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff11", "RIGHT", 0, 0 } },
+				buff13 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff12", "RIGHT", 0, 0 } },
+				buff14 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff13", "RIGHT", 0, 0 } },
+				buff15 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff14", "RIGHT", 0, 0 } },
+				buff16 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff15", "RIGHT", 0, 0 } },
+				debuff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parent", "TOPRIGHT", -3, -2 } },
+				debuff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff1", "RIGHT", 1, 0 } },
+				debuff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff2", "RIGHT", 1, 0 } },
+				debuff4 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff3", "RIGHT", 1, 0 } },
+				classicon = {
+					type = "Texture",
+					size = { 23, 23 },
+					layer = "OVERLAY",
+					Texture = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Classes",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 5, -4 },
+				},
+				highlight = {
+					type = "Texture",
+					size = { 130, 12 },
+					layer = "ARTWORK",
+					Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
+					BlendMode = "ADD",
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -5, -4 },
+					Hide = true,
+				},
+				leader = {
+					type = "Texture",
+					size = { 12, 13 },
+					layer = "OVERLAY",
+					Texture = "Interface\\GroupFrame\\UI-Group-LeaderIcon",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 5, -25 },
+				},
+				master = {
+					type = "Texture",
+					size = { 11, 11 },
+					layer = "OVERLAY",
+					Texture = "Interface\\GroupFrame\\UI-Group-MasterLooter",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 16, -26 },
+				},
+				pvp = {
+					type = "Texture",
+					size = { 20, 20 },
+					layer = "OVERLAY",
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 4, -4 },
+				},
+				name = {
+					type = "FontString",
+					size = { 140, 10 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_UnitFont",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 28, -4 },
+					vars = { format = "$name" },
+				},
+				hpperc = {
+					type = "FontString",
+					layer = "OVERLAY",
+					FontObject = "Nurfed_UnitFontOutline",
+					JustifyH = "RIGHT",
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -15, -5 },
+					vars = { format = "$perc" },
+				},
+				pet = {
+					template = "Nurfed_Unit_mini",
+					Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMRIGHT", -4, 2 },
+				},
+			},
+			vars = { aurawidth = 176 },
+		},
 	},
 	frames = {
 		Nurfed_player = {
@@ -863,7 +969,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 		Nurfed_party2 = { template = "Nurfed_Party", vars = { unit = "party2" } },
 		Nurfed_party3 = { template = "Nurfed_Party", vars = { unit = "party3" } },
 		Nurfed_party4 = { template = "Nurfed_Party", vars = { unit = "party4" } },
-		Nurfed_raid1 = { template = "Nurfed_Party", vars = { unit = "raid1" } },
+		Nurfed_raid1 = { template = "Nurfed_Raid", vars = { unit = "raid1" } },
 	},
 }
 
@@ -2305,6 +2411,8 @@ local events = {
 	["UNIT_CLASSIFICATION_CHANGED"] = function(self) formattext(self.level) end,
 	["UNIT_HAPPINESS"] = updatehappiness,
 	["RUNE_POWER_UPDATE"] = updateRunes,
+	["UNIT_ENTERED_VEHICLE"] = updateframe,
+	["UNIT_EXITED_VEHICLE"] = updateframe,
 }
 
 local function onevent(event, ...)
@@ -2443,6 +2551,9 @@ function Nurfed:unitimbue(frame)
 			frame.punit = "player"
 		end
 		table.insert(events, "UNIT_PET")
+		table.insert(events, "UNIT_EXITED_VEHICLE")
+		table.insert(events, "UNIT_ENTERED_VEHICLE")
+		
 	elseif frame.unit == "player" then
 		table.insert(events, "UNIT_COMBAT")
 		if playerClass == "DEATHKNIGHT" then

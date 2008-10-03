@@ -715,7 +715,7 @@ end
 frame:SetScript("OnEvent", onevent)
 
 function util:sendevent(event, ...)
-	onevent(frame, event, ...)
+	return onevent(frame, event, ...)
 end
 
 ----------------------------------------------------------------

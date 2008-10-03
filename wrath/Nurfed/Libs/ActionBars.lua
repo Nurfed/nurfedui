@@ -72,6 +72,20 @@ NURFED_TALENTBARS = NURFED_TALENTBARS or {}
 
 ----------------------------------------------------------------
 -- Button functions
+local function updateCompanionList()
+	if not companionList then
+		companionList = {}
+	end
+	for i=1, GetNumCompanions("MOUNT") do
+		local _, name, id = GetCompanionInfo("MOUNT", i)
+		companionList[name] = id
+	end
+	for i=1, GetNumCompanions("CRITTER") do
+		local _, name, id = GetCompanionInfo("CRITTER", i)
+		companionList[name] = id
+	end
+end
+
 local function updateitem(btn)
 	if btn.spell then
 		local count = _G[btn:GetName().."Count"]
@@ -307,6 +321,9 @@ local function btnenter(self)
 						GameTooltipTextRight1:Show()
 					end
 				else
+					if not companionList then
+						updateCompanionList()
+					end
 					if companionList and companionList[self.spell] then
 						GameTooltip:SetHyperlink("spell:"..companionList[self.spell])
 					end
@@ -1268,12 +1285,66 @@ local barevents = {
 	["UPDATE_BONUS_ACTIONBAR"] = function(self)
 		nrf_updatePetBarControl(self)
 	end,
-	["UNIT_ENTERED_VEHICLE"] = function(self) end,
-	["UNIT_EXITED_VEHICLE"] = function(self)
-		Nurfed:schedule(1, function() nrf_mainmenu() end)
-	end,
 }
-
+Nurfed:regevent("PLAYER_LOGIN", function(self)
+	MainMenuBar_ToVehicleArt = function(self)	-- replace this function so the shit, doesn't hit the fan
+		MainMenuBar.state = "vehicle";
+		
+		MultiBarLeft:Hide();
+		MultiBarRight:Hide();
+		MultiBarBottomLeft:Hide();
+		MultiBarBottomRight:Hide();
+		
+		MainMenuBar:Hide();
+		--VehicleMenuBar:SetPoint(MainMenuBar_GetAnimPos(VehicleMenuBar, 1))
+		--VehicleMenuBar_SetSkin(VehicleMenuBar.skin, IsVehicleAimAngleAdjustable());
+		--VehicleMenuBar:Show();
+		PossessBar_Update(true);
+		ShowBonusActionBar(true);	--Now, when we are switching to vehicle art we will ALWAYS be using the BonusActionBar
+		UIParent_ManageFramePositions();	--This is called in PossessBar_Update, but it doesn't actually do anything but change an attribute, so it is worth keeping
+		--SetUpAnimation(VehicleMenuBar, AnimDataTable.MenuBar_Slide, nil, true);
+		Nurfed_vehiclemenubar:Show()
+			VehicleMenuBar_SetSkin()
+			local btn = getglobal("VehicleMenuBarLeaveButton")
+			btn:SetParent(Nurfed_vehiclemenubar)
+			btn:ClearAllPoints();
+			btn:SetPoint("TOPRIGHT", getglobal("VehicleMenuBarActionButton1"), "TOPLEFT", -4, 0)
+			btn:SetWidth(60)
+			btn:SetHeight(60)
+	end
+	hooksecurefunc("MainMenuBar_ToPlayerArt", function() Nurfed_vehiclemenubar:Hide() end)
+	if UnitHasVehicleUI("player") then
+		MainMenuBar_ToVehicleArt()
+	end
+end)
+--[[
+Nurfed:regevent("UNIT_ENTERED_VEHICLE", function(self, unit) 
+	do return end
+	if unit == "player" then
+		debug("entered vehicle", unit)
+		getglobal("VehicleMenuBar"):Hide()
+		Nurfed:schedule(0.5, function()
+			Nurfed_vehiclemenubar:Show()
+			local btn = getglobal("VehicleMenuBarLeaveButton")
+			btn:SetParent(Nurfed_vehiclemenubar)
+			btn:ClearAllPoints();
+			btn:SetPoint("TOPRIGHT", getglobal("VehicleMenuBarActionButton1"), "TOPLEFT", -4, 0)
+			btn:SetWidth(60)
+			btn:SetHeight(60)
+			getglobal("VehicleMenuBar"):Hide()
+		end)
+	end
+end)
+Nurfed:regevent("UNIT_EXITED_VEHICLE", function(self, unit)
+	do return end
+	if unit == "player" then
+		debug("exited vehicle")
+		Nurfed:schedule(0.5, function()
+			Nurfed_vehiclemenubar:Hide()
+		end)
+	end
+end)
+]]
 local function barevent(event, ...)
 	for i,v in ipairs(NURFED_ACTIONBARS) do
 		barevents[event](_G[v.name])
@@ -1292,6 +1363,7 @@ local blizzbars = {
 	["stance"] = 36,
 	["petbar"] = 30,
 	["possessbar"] = 30,
+	["vehiclemenubar"] = 60,
 }
 
 function nrf_updatemainbar(bar)
@@ -1326,6 +1398,17 @@ function nrf_updatemainbar(bar)
 				btn:SetPoint("TOP", "PossessButton"..(i-1), "BOTTOM", 0, offset)
 			else
 				btn:SetPoint("LEFT", "PossessButton"..(i-1), "RIGHT", offset, 0)
+			end
+		end
+	
+	elseif bar == Nurfed_vehiclemenubar then
+		for i=2, 6 do
+			local btn = _G["VehicleMenuBarActionButton"..i]
+			btn:ClearAllPoints();
+			if vert then
+				btn:SetPoint("TOP", "VehicleMenuBarActionButton"..(i-1), "BOTTOM", 0, offset)
+			else
+				btn:SetPoint("LEFT", "VehicleMenuBarActionButton"..(i-1), "RIGHT", offset, 0)
 			end
 		end
 		
@@ -1388,6 +1471,20 @@ local function createbars(bars)
 			if k == "possessbar" then
 				bar:SetAttribute("unit", "player")
 			end
+			--[[
+			if k == "vehiclemenubar" and false then
+				bar:SetScript("OnShow", function()
+					getglobal("VehicleMenuBar"):Hide()
+				end)
+				if UnitHasVehicleUI("player") then
+					--UIFrameFadeIn(bar, 0)
+					bar:Hide()
+					bar:Show()
+				else
+					--UIFrameFadeOut(bar, 0)
+					bar:Hide()
+				end
+			end]]
 			_G["Nurfed_"..k.."dragtext"]:SetText("Nurfed_"..k)
 		end
 	end
@@ -1412,17 +1509,7 @@ Nurfed:regevent("PLAYER_LOGIN", function()
 		Nurfed:updatehks(v.name)
 	end
 	isloaded = true
-	if not companionList then
-		companionList = {}
-		for i=1, GetNumCompanions("MOUNT") do
-			local _, name, id = GetCompanionInfo("MOUNT", i)
-			companionList[name] = id
-		end
-		for i=1, GetNumCompanions("CRITTER") do
-			local _, name, id = GetCompanionInfo("CRITTER", i)
-			companionList[name] = id
-		end
-	end
+	updateCompanionList()
 	Nurfed:sendevent("UPDATE_BINDINGS")
 	SaveBindings(GetCurrentBindingSet())
 end)
@@ -1434,12 +1521,14 @@ Nurfed:regevent("NURFED_LOCK", function()
 		Nurfed_stancedrag:Hide()
 		Nurfed_petbardrag:Hide()
 		Nurfed_possessbardrag:Hide()
+		Nurfed_vehiclemenubardrag:Hide()
 	else
 		Nurfed_bagsdrag:Show()
 		Nurfed_microdrag:Show()
 		Nurfed_stancedrag:Show()
 		Nurfed_petbardrag:Show()
 		Nurfed_possessbardrag:Show()
+		Nurfed_vehiclemenubardrag:Show()
 	end
 end)
 
@@ -1589,20 +1678,37 @@ function nrf_mainmenu()
 			end
 			_G["PossessButton"..i.."NormalTexture"]:Hide()
 		end
+		for i=1,6 do
+			local btn = _G["VehicleMenuBarActionButton"..i]
+			local cooldown = _G["VehicleMenuBarActionButton"..i.."Cooldown"]
+			if not cooldown.text then
+				cooldown.text = cooldown:CreateFontString(nil, "OVERLAY")
+				cooldown.text:SetPoint("CENTER")
+				cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", 36, "OUTLINE")
+			end
+			btn:SetScript("OnUpdate", nrfcooldowntext)
+			btn:SetParent(Nurfed_vehiclemenubar)
+			if i == 1 then
+				btn:ClearAllPoints()
+				btn:SetPoint("BOTTOMLEFT")
+			end
+		end
+		
+		
 		nrf_updatemainbar("bags")
 		nrf_updatemainbar("micro")
 		nrf_updatemainbar("stance")
 		nrf_updatemainbar("petbar")
 		nrf_updatemainbar("possessbar")
-
+		nrf_updatemainbar("vehiclemenubar")
 		ShapeshiftBar_Update = function() end
 		MainMenuBar:Hide()
 		if not MainMenuBar.nrfScriptSet then
+			MainMenuBar.nrfScriptSet = true
+			MainMenuBar.nrfScriptSet = true
 			if MainMenuBar:GetScript("OnShow") then
-				MainMenuBar.nrfScriptSet = true
 				MainMenuBar:HookScript("OnShow", nrf_mainmenu)
 			else
-				MainMenuBar.nrfScriptSet = true
 				MainMenuBar:SetScript("OnShow", nrf_mainmenu)
 			end
 		end
