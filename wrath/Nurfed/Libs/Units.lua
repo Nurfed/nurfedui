@@ -814,6 +814,15 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -63, -12 },
 					vars = { format = "$perc" },
 				},
+				threat = {
+					type = "FontString",
+					size = { 100, 8 },
+					layer = "OVERLAY",
+					Font = { NRF_FONT.."framd.ttf", 9, "NONE" },
+					JustifyH = "RIGHT",
+					Anchor = { "BOTTOMRIGHT", "$parenthpperc", "TOPRIGHT", 15, 0 },
+					vars = { format = "$threat-$tperc", threatUnit = "player" },
+				},
 				combo = {
 					type = "FontString",
 					layer = "OVERLAY",
@@ -832,7 +841,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					Hide = true,
 				},
 			},
-			vars = { unit = "target", aurawidth = 176, aurasize = 17, enablePredictedStats = true },
+			vars = { unit = "target", aurawidth = 176, aurasize = 17, enablePredictedStats = true, },
 		},
 		Nurfed_pet = {
 			type = "Button",
@@ -1023,7 +1032,43 @@ local replace = {
 	["$rname"] = function(self, t) return GetPVPRankInfo(UnitPVPRank(self.unit)) or "" end,
 	["$rnum"] = function(self, t) return select(2, GetPVPRankInfo(UnitPVPRank(self.unit))) or "" end,
 	["$race"] = function(self, t) return UnitRace(self.unit) or "" end,
-	["$threat"] = function(self, t) return UnitThreatSituation(self.threatRelativeTo, self.unit) end,
+	["$threat"] = function(self, t)
+		if not self.threatUnit or not self.unit then return end
+		local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation(self.threatUnit, self.unit)
+		local string = ""
+		if threatValue then
+			if isTanking then
+				string = "|cffff0000"
+			else
+				string = "|cff00ff00"
+			end
+			threatValue = threatValue / 100 -- get the real number....	
+			if threatValue > 1000000 then
+				threatValue = string.format("%2.1fm", threatValue / 1000000)
+			elseif threatValue > 1000 then
+				threatValue = string.format("%2.1fk", threatValue / 1000)
+			else
+				threatValue = string.format("%2.0f", threatValue)
+			end
+			string = string..threatValue.."|r"
+		end
+		return string
+	end,
+	["$tperc"] = function(self, t)
+		if not self.threatUnit or not self.unit then return end
+		local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation(self.threatUnit, self.unit)
+		local string = ""
+		if scaledPercent then
+			if isTanking then
+				string = "|cffff0000"
+			else
+				string = "|cff00ff00"
+			end
+			scaledPercent = string.format("%2.2f", scaledPercent)
+			string = string..scaledPercent.."|r"
+		end
+		return string
+	end,
 	["$name"] = function(self, t)
 		local name = UnitName(self.unit)
 		local color
@@ -1746,12 +1791,12 @@ end
 
 ----------------------------------------------------------------
 -- Text replacement
-local function subtext(self, text, trueself)
+local function subtext(self, text)
 	if not text then return end
 	local pre = text:find("%$%a")
 	string.gsub(text, "%$%a+", function(s)
 		if replace[s] then
-			text = text:gsub(s, replace[s](trueself or self))
+			text = text:gsub(s, replace[s](self))
 		end
 	end)
 
@@ -1766,7 +1811,7 @@ end
 
 local function formattext(self, trueself)
 	if self and self.format then
-		local display = subtext(self, self.format, trueself)
+		local display = subtext(trueself or self, self.format)
 		self:SetText(display)
 	end
 end
@@ -2297,6 +2342,10 @@ local function updateRunes(self, rune, usable)
 	end
 end
 
+local function updateThreat(self, unit)
+	if not self.threat or unit ~= self.threat.unit then return end
+	formattext(self.threat)
+end
 local function updateframe(self, notext)
 	local unit = SecureButton_GetUnit(self)
 	if self.status then updatestatus(self) end
@@ -2314,6 +2363,7 @@ local function updateframe(self, notext)
 	if self.master then updatemaster(self) end
 	if self.raidtarget then updateraid(self) end
 	if self.rank then updaterank(self) end
+	if self.threat then formattext(self.threat) end
 	if not notext then
 		if self.text then updatetext(self) end
 		updatename(self)
@@ -2352,6 +2402,9 @@ local events = {
 	["UPDATE_FACTION"] = function(self) updateinfo(self, "XP") end,
 	["UPDATE_EXHAUSTION"] = function(self) updateinfo(self, "XP") end,
 	["PLAYER_GUILD_UPDATE"] = function(self) formattext(self.guild, self) end,
+	["UNIT_THREAT_LIST_UPDATE"] = updateThreat,
+	["UNIT_THREAT_SITUATION_UPDATE"] = updateThreat,
+	
 	["RAID_TARGET_UPDATE"] = updateraid,
 	
 	["PARTY_MEMBERS_CHANGED"] = function(self)
@@ -2557,20 +2610,6 @@ function Nurfed:unitimbue(frame)
 	elseif frame.unit == "player" then
 		table.insert(events, "UNIT_COMBAT")
 		if playerClass == "DEATHKNIGHT" then
-			--[[
-			_G["RuneFrame"]:ClearAllPoints();
-			_G["RuneFrame"]:SetPoint("TOP", frame, "BOTTOM", 0, 0)
-			for i=1, 6 do
-				local btn = _G["RuneButtonIndividual"..i]
-				local cooldown = _G["RuneButtonIndividual"..i.."Cooldown"]
-				if not cooldown.text then
-					cooldown.text = cooldown:CreateFontString(nil, "OVERLAY")
-					cooldown.text:SetPoint("CENTER")
-					cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
-					cooldown.disableheight = true
-				end
-				hooksecurefunc("RuneButton_OnUpdate", nrfcooldowntext)
-			end]]
 			_G["RuneFrame"]:UnregisterAllEvents();
 			_G["RuneFrame"]:Hide();
 		elseif playerClass == "DRUID" then
@@ -2593,6 +2632,7 @@ function Nurfed:unitimbue(frame)
 	if dropdown then
 		menufunc = function() ToggleDropDownMenu(1, nil, dropdown, "cursor") end
 	end
+	
 	SecureUnitButton_OnLoad(frame, frame.unit, menufunc)
 	if found == 1 then
 		table.insert(partyframes, frame)
@@ -2792,6 +2832,7 @@ function Nurfed:unitimbue(frame)
 				
 			elseif objtype == "FontString" then
 				if child.format then
+					local noreg
 					string.gsub(child.format, "%$%a+",
 						function(s)
 							if s == "$guild" then
@@ -2810,15 +2851,22 @@ function Nurfed:unitimbue(frame)
 								frame.name = child
 								
 							elseif s == "$loot" then
-								frame.loot = child
 								table.insert(events, "PARTY_MEMBERS_CHANGED")
 								table.insert(events, "PARTY_LOOT_METHOD_CHANGED")
-							elseif s == "$threat" then
-								table.insert(events, "THREAT_STATUS_UPDATE")
+								frame.loot = child
+								
+							elseif s == "$threat" or s == "$tperc" then
+								table.insert(events, "UNIT_THREAT_LIST_UPDATE")
+								table.insert(events, "UNIT_THREAT_SITUATION_UPDATE")
+								frame.threat = child
+								frame.threat.unit = frame.unit
+								noreg = true
 							end
 						end
 					)
-					regstatus("text", child)
+					if not noreg then
+						regstatus("text", child)
+					end
 				elseif childname == "group" then
 					table.insert(events, "RAID_ROSTER_UPDATE")
 					table.insert(events, "PARTY_MEMBERS_CHANGED")

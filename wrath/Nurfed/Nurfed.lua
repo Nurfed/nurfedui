@@ -393,8 +393,11 @@ local function onevent(self, ...)
 		if NURFED_FRAMES.frames then
 			for k, v in pairs(NURFED_FRAMES.frames) do
 				local f = Nurfed:create(k, v)
+				f:ClearAllPoints()
 				if not v.Point then 
 					f:SetPoint("CENTER", UIParent, "CENTER") 
+				else
+					f:SetPoint(unpack(v.Point))
 				end
 				Nurfed:unitimbue(f)
 			end

@@ -1,7 +1,6 @@
 ﻿------------------------------------------
 --    Nurfed Core Library
 ------------------------------------------
--- remove this before push, its nice to have for beta though.  :)
 hooksecurefunc("QuestLog_UpdateQuestDetails", function()
 	local text = QuestLogQuestDescription:GetText()
 	text = text:gsub("north", "|cff3333ff%1|r")
@@ -111,7 +110,7 @@ local basicSerialize = function(o)
 	end
 end
 
-function save(name, value, out, indent)
+local function save(name, value, out, indent)
 	indent = indent or 0
 	local iname = string.rep(" ", indent)..name
 	if type(value) == "number" or type(value) == "string" or type(value) == "boolean" then
