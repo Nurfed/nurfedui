@@ -707,7 +707,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 		Nurfed_target = {
 			type = "Button",
 			uitemp = "SecureUnitButtonTemplate",
-			size = { 180, 50 },
+			size = { 180, 59 },
 			FrameStrata = "LOW",
 			ClampedToScreen = true,
 			Backdrop = {
@@ -725,21 +725,66 @@ NURFED_FRAMES = NURFED_FRAMES or {
 				hp = {
 					template = "Nurfed_Unit_hp",
 					size = { 130, 13 },
-					Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 5, 15 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 5, -22 },
 				},
 				mp = {
 					template = "Nurfed_Unit_mp",
 					size = { 130, 10 },
-					Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 5, 5 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 5, -35.5 },
 				},
 				castingframe = {
 					template = "Nurfed_Unit_casting",
 					Anchor = { "RIGHT", "$parent", "LEFT" },
 				},
+				threat = {
+					--template = "Nurfed_Unit_threat",
+					type = "StatusBar",
+					StatusBarTexture = NRF_IMG.."statusbar5",
+					size = { 170, 8 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 5 },
+					children = {
+						bg = {
+							type = "Texture",
+							layer = "BACKGROUND",
+							Texture = NRF_IMG.."statusbar5",
+							VertexColor = { 0, 0, 1, 0.25 },
+							Anchor = "all",
+						},
+						text = {
+							type = "FontString",
+							layer = "OVERLAY",
+							FontObject = "Nurfed_UnitFontSmall",
+							JustifyH = "CENTER",
+							ShadowColor = { 0, 0, 0, 0.75 },
+							ShadowOffset = { -1, -1 },
+							Anchor = "all",
+							vars = { format = "$cur" },
+						},
+						text2 = {
+							type = "FontString",
+							layer = "OVERLAY",
+							FontObject = "Nurfed_UnitFontSmall",
+							JustifyH = "RIGHT",
+							ShadowColor = { 0, 0, 0, 0.75 },
+							ShadowOffset = { -1, -1 },
+							Anchor = "all",
+							vars = { format = "$perc" },
+						}
+					},
+					vars = { threatUnit = "player", ani = "glide" },
+				},
 				model = {
 					template = "Nurfed_Unit_model",
 					size = { 40, 40 },
-					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -4, 5 },
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -4, -6 },
+					
+				},
+				rank = {
+					type = "Texture",
+					size = { 17, 17 },
+					layer = "OVERLAY",
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -23, -4 },
+					Hide = true,
 				},
 				target = { template = "Nurfed_Unit_mini", Anchor = { "TOPLEFT", "$parent", "TOPRIGHT", -4, -3 } },
 				targettarget = { template = "Nurfed_Unit_mini", Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMRIGHT", -4, 3 } },
@@ -798,6 +843,36 @@ NURFED_FRAMES = NURFED_FRAMES or {
 				},
 				level = {
 					type = "FontString",
+						size = { 90, 8 },
+					layer = "OVERLAY",
+					--FontObject = "Nurfed_UnitFont",
+					FontObject = "Nurfed_UnitFontSmall",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parentname", "BOTTOMLEFT", 0, 0 },
+					vars = { format = "$level $class" }
+				},
+				hpperc = {
+					type = "FontString",
+					size = { 100, 9 },
+					layer = "OVERLAY",
+					--Font = { NRF_FONT.."framd.ttf", 9, "NONE" },
+					FontObject = "Nurfed_UnitFontSmall",
+					JustifyH = "RIGHT",
+					Anchor = { "BOTTOMRIGHT", "$parenthp", "TOPRIGHT", 0, 0 },
+					vars = { format = "$perc" },
+				},
+				--[[
+				name = {
+					type = "FontString",
+					size = { 110, 9 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_UnitFont",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 5, -4 },
+					vars = { format = "$name $guild" },
+				},
+				level = {
+					type = "FontString",
 					size = { 90, 8 },
 					layer = "OVERLAY",
 					FontObject = "Nurfed_UnitFontSmall",
@@ -820,13 +895,13 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					layer = "OVERLAY",
 					Font = { NRF_FONT.."framd.ttf", 9, "NONE" },
 					JustifyH = "RIGHT",
-					Anchor = { "BOTTOMRIGHT", "$parenthpperc", "TOPRIGHT", 15, 0 },
+					Anchor = { "BOTTOMLEFT", "$parenthpperc", "TOPRIGHT", 15, 0 },
 					vars = { format = "$threat-$tperc", threatUnit = "player" },
-				},
+				},]]
 				combo = {
 					type = "FontString",
 					layer = "OVERLAY",
-					Font = {NRF_FONT.."framd.ttf", 22, "OUTLINE" },
+					Font = { NRF_FONT.."framd.ttf", 22, "OUTLINE" },
 					TextHeight = 22,
 					JustifyH = "RIGHT",
 					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMLEFT", 2, 3 },
@@ -1207,6 +1282,19 @@ local function auratip(self)
 	end
 end
 
+local function ntinsert(tbl, val)
+	if not tbl or type(tbl) ~= "table" then return end
+	local add = true
+	for i,v in pairs(tbl) do
+		if i == val or v == val then
+			add = false
+			break
+		end
+	end
+	if add then
+		table.insert(tbl, val)
+	end	
+end
 ----------------------------------------------------------------
 -- StatusBar animations
 local function glide(self, e)
@@ -1635,10 +1723,22 @@ end
 local function updateinfo(self, stat, tstat)
 	if not stat or not self[stat] then return end
 	local unit = SecureButton_GetUnit(self)
-	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb = Nurfed:getunitstat(unit, stat, tstat and 0, tstat and "Mana")
+	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb, isTanking, state, scaledPercent, rawPercent, threatValue, rest;
+	if stat ~= "Threat" then
+		curr, max, missing, perc, r, g, b, bgr, bgg, bgb = Nurfed:getunitstat(unit, stat, tstat and 0, tstat and "Mana")
+	else
+		isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation(self[stat][1].threatUnit, unit)
+		if not scaledPercent then
+			for _, child in ipairs(self[stat]) do
+				child:Hide()
+			end
+			return
+		end
+		scaledPercent = string.format("%2.2f", scaledPercent)
+	end
+		
 	local maxtext, missingtext = max, missing
-	local rest
-
+	
 	if stat == "XP" then
 		local name = GetWatchedFactionInfo()
 		if name then
@@ -1646,6 +1746,17 @@ local function updateinfo(self, stat, tstat)
 		else
 			rest = GetXPExhaustion() or ""
 		end
+	elseif stat == "Threat" then
+		if isTanking then
+			max = threatValue
+		else
+			max = select(5, UnitDetailedThreatSituation(unit.."target", unit))
+		end	
+		perc = scaledPercent
+		curr = threatValue
+		curr = curr / 100 -- get the real number....
+		max = max / 100
+		r, g, b = GetThreatStatusColor(state)
 	else
 		if max >= 1000000 then
 			maxtext = format("%.2fm", max/1000000)
@@ -1684,6 +1795,23 @@ local function updateinfo(self, stat, tstat)
 				end
 			elseif objtype == "FontString" then
 				local text
+				local curr, max, maxtext = curr, max, maxtext
+				if stat == "Threat" then
+					if curr > 1000000 then
+						curr = string.format("%2.1fm", curr / 1000000)
+					elseif curr > 1000 then
+						curr = string.format("%2.1fk", curr / 1000)
+					else
+						curr = string.format("%2.0f", curr)
+					end
+					if max > 1000000 then
+						maxtext = string.format("%2.1fm", max / 1000000)
+					elseif max > 1000 then
+						maxtext = string.format("%2.1fk", max / 1000)
+					else
+						max = string.format("%2.0f", max)
+					end
+				end
 				if not UnitIsConnected(unit) and stat == "Health" then
 					text = PLAYER_OFFLINE
 				elseif UnitIsGhost(unit) and stat == "Health" then
@@ -1695,7 +1823,8 @@ local function updateinfo(self, stat, tstat)
 					text = text:gsub("$cur", curr)
 					text = text:gsub("$max", maxtext)
 					text = text:gsub("$perc", perc.."%%")
-					if missingtext ~= 0 then
+					
+					if missingtext and missingtext ~= 0 then
 						text = text:gsub("$miss", "|cffcc1111"..missingtext.."|r")
 					else
 						text = text:gsub("$miss", "")
@@ -2343,14 +2472,15 @@ local function updateRunes(self, rune, usable)
 end
 
 local function updateThreat(self, unit)
-	if not self.threat or unit ~= self.threat.unit then return end
-	formattext(self.threat)
+	updateinfo(self, "Threat")
 end
+
 local function updateframe(self, notext)
 	local unit = SecureButton_GetUnit(self)
 	if self.status then updatestatus(self) end
 	if self.Health then updateinfo(self, "Health") end
 	if self.XP then updateinfo(self, "XP") end
+	if self.Threat then updateinfo(self, "Threat") end
 	if self.combo then updatecombo(self) end
 	if self.Mana then 
 		self.powerType = UnitPowerType(unit)
@@ -2651,121 +2781,142 @@ function Nurfed:unitimbue(frame)
 			frame[pre] = {}
 			if not frame.unit and frame:GetParent().unit then frame.unit = frame:GetParent().unit end
 			if pre == "Health" then
-				local add = true
 				if GetCVarBool("predictedHealth") and frame.enablePredictedStats then
 					predictedStatsUpdateFrame:SetScript("OnUpdate", predictstats)
 					frame.predictedHealth = true
-					for i,v in ipairs(predictedStatsTable) do
-						if v == frame then
-							add = false
-							break
-						end
-					end
-					if add then
-						table.insert(predictedStatsTable, frame)
-					end
+					ntinsert(predictedStatsTable, frame)
 				else
-					table.insert(events, "UNIT_HEALTH")
+					--table.insert(events, "UNIT_HEALTH")
+					ntinsert(events, "UNIT_HEALTH")
 				end
-				table.insert(events, "UNIT_MAXHEALTH")
+				--table.insert(events, "UNIT_MAXHEALTH")
+				ntinsert(events, "UNIT_MAXHEALTH")
+			
+			elseif pre == "Threat" then
+				ntinsert(events, "UNIT_THREAT_LIST_UPDATE")
+				ntinsert(events, "UNIT_THREAT_SITUATION_UPDATE")
+			
 			elseif pre == "dMana" then
 				if GetCVarBool("predictedPower") and frame.enablePredictedStats then
 					predictedStatsUpdateFrame:SetScript("OnUpdate", predictstats)
 					frame.predictedPower = true
-					for i,v in ipairs(predictedStatsTable) do
-						if v == frame then
-							add = false
-							break
-						end
-					end
-					if add then
-						table.insert(predictedStatsTable, frame)
-					end
+					ntinsert(predictedStatsTable, frame)
 				else
-					table.insert(events, "UNIT_MANA")
-					table.insert(events, "UNIT_RAGE")
-					table.insert(events, "UNIT_FOCUS")
-					table.insert(events, "UNIT_ENERGY")
-					table.insert(events, "UNIT_HAPPINESS")
-					table.insert(events, "UNIT_RUNIC_POWER")
+					--table.insert(events, "UNIT_MANA")
+					--table.insert(events, "UNIT_RAGE")
+					--table.insert(events, "UNIT_FOCUS")
+					--table.insert(events, "UNIT_ENERGY")
+					--table.insert(events, "UNIT_HAPPINESS")
+					--table.insert(events, "UNIT_RUNIC_POWER")
+					ntinsert(events, "UNIT_MANA")
+					ntinsert(events, "UNIT_RAGE")
+					ntinsert(events, "UNIT_FOCUS")
+					ntinsert(events, "UNIT_ENERGY")
+					ntinsert(events, "UNIT_HAPPINESS")
+					ntinsert(events, "UNIT_RUNIC_POWER")
 				end
-				if child.hideFrame then
-					child:SetScript("OnShow", function(self)
-						UIFrameFadeOut(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
-					end)
-					child:SetScript("OnHide", function(self)
-						UIFrameFadeIn(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
-					end)
-					if UnitPowerType(frame.unit) ~= 0 then
-						child:Show()
-						UIFrameFadeOut(_G[frame:GetName()..child.hideFrame], 0.15)
-					else
-						child:Hide()
-						UIFrameFadeIn(_G[frame:GetName()..child.hideFrame], 0.15)
-					end
-				end
-				table.insert(events, "UNIT_MAXMANA");
-				table.insert(events, "UNIT_MAXRAGE");
-				table.insert(events, "UNIT_MAXFOCUS");
-				table.insert(events, "UNIT_MAXENERGY");
-				table.insert(events, "UNIT_MAXHAPPINESS");
-				table.insert(events, "UNIT_MAXRUNIC_POWER");
-				table.insert(events, "UNIT_DISPLAYPOWER");
+				--table.insert(events, "UNIT_MAXMANA");
+				--table.insert(events, "UNIT_MAXRAGE");
+				--table.insert(events, "UNIT_MAXFOCUS");
+				--table.insert(events, "UNIT_MAXENERGY");
+				--table.insert(events, "UNIT_MAXHAPPINESS");
+				--table.insert(events, "UNIT_MAXRUNIC_POWER");
+				--table.insert(events, "UNIT_DISPLAYPOWER");
+				ntinsert(events, "UNIT_MAXMANA");
+				ntinsert(events, "UNIT_MAXRAGE");
+				ntinsert(events, "UNIT_MAXFOCUS");
+				ntinsert(events, "UNIT_MAXENERGY");
+				ntinsert(events, "UNIT_MAXHAPPINESS");
+				ntinsert(events, "UNIT_MAXRUNIC_POWER");
+				ntinsert(events, "UNIT_DISPLAYPOWER");
 			elseif pre == "Mana" then
 				if GetCVarBool("predictedPower") and frame.enablePredictedStats then
 					predictedStatsUpdateFrame:SetScript("OnUpdate", predictstats)
 					frame.predictedPower = true
 					frame.powerType = UnitPowerType(frame.unit)
-					for i,v in ipairs(predictedStatsTable) do
-						if v == frame then
-							add = false
-							break
-						end
-					end
-					if add then
-						table.insert(predictedStatsTable, frame)
-					end
+					ntinsert(predictedStatsTable, frame)
 				else
-					table.insert(events, "UNIT_MANA");
-					table.insert(events, "UNIT_RAGE");
-					table.insert(events, "UNIT_FOCUS");
-					table.insert(events, "UNIT_ENERGY");
-					table.insert(events, "UNIT_HAPPINESS");
-					table.insert(events, "UNIT_RUNIC_POWER");
+					--table.insert(events, "UNIT_MANA");
+					--table.insert(events, "UNIT_RAGE");
+					--table.insert(events, "UNIT_FOCUS");
+					--table.insert(events, "UNIT_ENERGY");
+					--table.insert(events, "UNIT_HAPPINESS");
+					--table.insert(events, "UNIT_RUNIC_POWER");
+					
+					ntinsert(events, "UNIT_MANA");
+					ntinsert(events, "UNIT_RAGE");
+					ntinsert(events, "UNIT_FOCUS");
+					ntinsert(events, "UNIT_ENERGY");
+					ntinsert(events, "UNIT_HAPPINESS");
+					ntinsert(events, "UNIT_RUNIC_POWER");
 				end
-				table.insert(events, "UNIT_MAXMANA");
-				table.insert(events, "UNIT_MAXRAGE");
-				table.insert(events, "UNIT_MAXFOCUS");
-				table.insert(events, "UNIT_MAXENERGY");
-				table.insert(events, "UNIT_MAXHAPPINESS");
-				table.insert(events, "UNIT_MAXRUNIC_POWER");
-				table.insert(events, "UNIT_DISPLAYPOWER");
+				--table.insert(events, "UNIT_MAXMANA");
+				--table.insert(events, "UNIT_MAXRAGE");
+				--table.insert(events, "UNIT_MAXFOCUS");
+				--table.insert(events, "UNIT_MAXENERGY");
+				--table.insert(events, "UNIT_MAXHAPPINESS");
+				--table.insert(events, "UNIT_MAXRUNIC_POWER");
+				--table.insert(events, "UNIT_DISPLAYPOWER");
+				
+				ntinsert(events, "UNIT_MAXMANA");
+				ntinsert(events, "UNIT_MAXRAGE");
+				ntinsert(events, "UNIT_MAXFOCUS");
+				ntinsert(events, "UNIT_MAXENERGY");
+				ntinsert(events, "UNIT_MAXHAPPINESS");
+				ntinsert(events, "UNIT_MAXRUNIC_POWER");
+				ntinsert(events, "UNIT_DISPLAYPOWER");
 				
 			elseif pre == "XP" then
 				if frame.unit == "player" then
-					table.insert(events, "PLAYER_XP_UPDATE");
-					table.insert(events, "PLAYER_LEVEL_UP");
-					table.insert(events, "UPDATE_EXHAUSTION");
-					table.insert(events, "UPDATE_FACTION");
+					--table.insert(events, "PLAYER_XP_UPDATE");
+					--table.insert(events, "PLAYER_LEVEL_UP");
+					--table.insert(events, "UPDATE_EXHAUSTION");
+					--table.insert(events, "UPDATE_FACTION");
+					
+					ntinsert(events, "PLAYER_XP_UPDATE");
+					ntinsert(events, "PLAYER_LEVEL_UP");
+					ntinsert(events, "UPDATE_EXHAUSTION");
+					ntinsert(events, "UPDATE_FACTION");
+					
 				elseif frame.unit == "pet" then
-					table.insert(events, "UNIT_PET_EXPERIENCE");
+					--table.insert(events, "UNIT_PET_EXPERIENCE");
+					ntinsert(events, "UNIT_PET_EXPERIENCE");
 				end
 				
 			elseif pre == "combo" then
-				table.insert(events, "UNIT_COMBO_POINTS");
+				--table.insert(events, "UNIT_COMBO_POINTS");
+				ntinsert(events, "UNIT_COMBO_POINTS");
 				
 			elseif pre == "feedback" then
-				table.insert(events, "UNIT_COMBAT");
+				--table.insert(events, "UNIT_COMBAT");
+				ntinsert(events, "UNIT_COMBAT");
 				
 			elseif pre == "buff" or pre == "debuff" and not string.find(frame.unit, "target", 2, true) then
-				table.insert(events, "UNIT_AURA");
+				--table.insert(events, "UNIT_AURA");
+				ntinsert(events, "UNIT_AURA");
 			
 			elseif pre == "rune" then
-				table.insert(events, "RUNE_POWER_UPDATE");
-				table.insert(events, "RUNE_TYPE_UPDATE");
+				--table.insert(events, "RUNE_POWER_UPDATE");
+				--table.insert(events, "RUNE_TYPE_UPDATE");
+				ntinsert(events, "RUNE_POWER_UPDATE");
+				ntinsert(events, "RUNE_TYPE_UPDATE");
 				child:GetParent().runes = {}
 			end
-			
+			if child.hideFrame then
+				child:SetScript("OnShow", function(self)
+					UIFrameFadeOut(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
+				end)
+				child:SetScript("OnHide", function(self)
+					UIFrameFadeIn(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
+				end)
+				if UnitPowerType(frame.unit) ~= 0 then
+					child:Show()
+					UIFrameFadeOut(_G[frame:GetName()..child.hideFrame], 0.15)
+				else
+					child:Hide()
+					UIFrameFadeIn(_G[frame:GetName()..child.hideFrame], 0.15)
+				end
+			end			
 		end
 		table.insert(frame[pre], child)
 		table.sort(frame[pre], function(a,b) 
@@ -2782,15 +2933,13 @@ function Nurfed:unitimbue(frame)
 		if not childname:find("^target") and not childname:find("^pet") then
 			
 			local pre = childname:sub(1, 2)
-			if pre == "hp" or pre == "mp" or pre == "xp" or pre == "dr" then
+			if pre == "hp" or pre == "mp" or pre == "xp" or pre == "dr" or pre == "th" then
 				if pre == "hp" then
 					pre = "Health"
-				elseif pre == "mp" then
-					pre = "Mana"
-				elseif pre == "xp" then
-					pre = "XP"
-				elseif pre == "dr" then
-					pre = "dMana"
+				elseif pre == "mp" then pre = "Mana"
+				elseif pre == "xp" then pre = "XP"
+				elseif pre == "dr" then pre = "dMana"
+				elseif pre == "th" then pre = "Threat"
 				end
 				if pre == "dMana" and child:GetParent().unit == "player" and playerClass ~= "DRUID" then 
 					child:Hide()
@@ -2832,7 +2981,6 @@ function Nurfed:unitimbue(frame)
 				
 			elseif objtype == "FontString" then
 				if child.format then
-					local noreg
 					string.gsub(child.format, "%$%a+",
 						function(s)
 							if s == "$guild" then
@@ -2854,19 +3002,11 @@ function Nurfed:unitimbue(frame)
 								table.insert(events, "PARTY_MEMBERS_CHANGED")
 								table.insert(events, "PARTY_LOOT_METHOD_CHANGED")
 								frame.loot = child
-								
-							elseif s == "$threat" or s == "$tperc" then
-								table.insert(events, "UNIT_THREAT_LIST_UPDATE")
-								table.insert(events, "UNIT_THREAT_SITUATION_UPDATE")
-								frame.threat = child
-								frame.threat.unit = frame.unit
-								noreg = true
 							end
 						end
 					)
-					if not noreg then
-						regstatus("text", child)
-					end
+					regstatus("text", child)
+					
 				elseif childname == "group" then
 					table.insert(events, "RAID_ROSTER_UPDATE")
 					table.insert(events, "PARTY_MEMBERS_CHANGED")
@@ -3000,6 +3140,21 @@ function Nurfed:unitimbue(frame)
 					end
 					child:SetScript("OnEvent", castevent)
 					child:SetScript("OnUpdate", castupdate)
+					if child.hideFrame then
+						child:SetScript("OnShow", function(self)
+							UIFrameFadeOut(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
+						end)
+						child:SetScript("OnHide", function(self)
+							UIFrameFadeIn(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
+						end)
+						if UnitPowerType(frame.unit) ~= 0 then
+							child:Show()
+							UIFrameFadeOut(_G[frame:GetName()..child.hideFrame], 0.15)
+						else
+							child:Hide()
+							UIFrameFadeIn(_G[frame:GetName()..child.hideFrame], 0.15)
+						end
+					end
 				end
 			end
 			

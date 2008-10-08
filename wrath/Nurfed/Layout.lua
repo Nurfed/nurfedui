@@ -33,7 +33,7 @@ if (not Nurfed_UnitsLayout) then
 
 	Nurfed_UnitsLayout = {};
 
-	Nurfed_UnitsLayout.Name = "aX Unit Frames v2 (Pitbull)";
+	Nurfed_UnitsLayout.Name = "Nurfed Unit Frames v3.0";
 	Nurfed_UnitsLayout.Author = "Apoco";
 
 	--Frame Templates
@@ -495,6 +495,7 @@ if (not Nurfed_UnitsLayout) then
 					size = { 280, 4 },
 					template = "Nurfed_Unit_castingtarget",
 					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
+					vars = { hideFrame = "xp", },
 				},
 				mptext = {
 					type = "FontString",
@@ -558,12 +559,12 @@ if (not Nurfed_UnitsLayout) then
 					Texture = NRF_IMG.."HalH",
 					VertexColor = { 0, 0, 1, 0.25 },
 					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
-				},
+				},]]
 				xp = {
 					size = { 280, 4 },
 					template = "Nurfed_Unit_xp",
 					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
-				},]]
+				},
 				feedbackheal = {
 					type = "MessageFrame",
 					layer = "OVERLAY",
@@ -589,7 +590,7 @@ if (not Nurfed_UnitsLayout) then
 					vars = { damage = true },
 				},
 			},
-			vars = { unit = "player" },
+			vars = { unit = "player", enablePredictedStats = true, },
 		},
 
 		target = {
@@ -642,6 +643,45 @@ if (not Nurfed_UnitsLayout) then
 					template = "Nurfed_Unit_castingtarget",
 					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
 				},
+				threat = {
+					--template = "Nurfed_Unit_threat",
+					type = "StatusBar",
+					StatusBarTexture = NRF_IMG.."statusbar5",
+					size = { 170, 8 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 5 },
+					children = {
+						bg = {
+							type = "Texture",
+							layer = "BACKGROUND",
+							Texture = NRF_IMG.."statusbar5",
+							VertexColor = { 0, 0, 1, 0.25 },
+							Anchor = "all",
+						},
+						text = {
+							type = "FontString",
+							layer = "OVERLAY",
+							FontObject = "Nurfed_UnitFontSmall",
+							JustifyH = "CENTER",
+							ShadowColor = { 0, 0, 0, 0.75 },
+							ShadowOffset = { -1, -1 },
+							Anchor = "all",
+							vars = { format = "$cur" },
+						},
+						text2 = {
+							type = "FontString",
+							layer = "OVERLAY",
+							FontObject = "Nurfed_UnitFontSmall",
+							JustifyH = "RIGHT",
+							ShadowColor = { 0, 0, 0, 0.75 },
+							ShadowOffset = { -1, -1 },
+							Anchor = "all",
+							vars = { format = "$perc" },
+						}
+					},
+					vars = { threatUnit = "player", ani = "glide", },
+					Hide = true,
+				},
+
 				name = {
 					type = "FontString",
 					layer = "OVERLAY",
@@ -709,6 +749,7 @@ if (not Nurfed_UnitsLayout) then
 					TextHeight = 22,
 					JustifyH = "RIGHT",
 					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMLEFT", -2, 0 },
+					vars = { unit1 = "player", unit2 = "target", },
 				},
 				raidtarget = {
 					type = "Texture",
@@ -727,7 +768,7 @@ if (not Nurfed_UnitsLayout) then
 					vars = { format = "$miss$cur/$max | $perc" },
 				},
 			},
-			vars = { unit = "target", debuffwidth = 176, buffwidth = 176 },
+			vars = { unit = "target", debuffwidth = 176, buffwidth = 176, enablePredictedStats = true, },
 		},
 		
 		targettarget = {
@@ -776,7 +817,8 @@ if (not Nurfed_UnitsLayout) then
 			},
 			vars = { unit = "targettarget" },
 		},
-   	pet = {
+   		
+   		pet = {
 			type = "Button",
 			uitemp = "SecureUnitButtonTemplate",
 			size = { 160, 14 },
@@ -831,7 +873,7 @@ if (not Nurfed_UnitsLayout) then
 				debuff8 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff7", "RIGHT", 0, 0 } },
 				debuff9 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff8", "RIGHT", 0, 0 } },
 			},
-			vars = { unit = "pet", debuffwidth = 140, buffwidth = 140 },
+			vars = { unit = "pet", debuffwidth = 140, buffwidth = 140, enablePredictedStats = true, },
 		},
 		focus = {
 			type = "Button",
