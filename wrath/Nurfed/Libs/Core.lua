@@ -142,7 +142,7 @@ end
 
 function util:getopt(opt)
 	local val = NURFED_SAVED[opt]
-	if val == nil then
+	if type(val) == "nil" or val == nil then
 		val = NURFED_DEFAULT[opt]
 	end
 	return val

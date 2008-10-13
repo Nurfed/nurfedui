@@ -274,6 +274,8 @@ local function seticon(btn)
 					end
 					if Nurfed:getopt("macrotext") then
 						text:SetText(spell)
+					else
+						text:SetText("")
 					end
 				end
 			end
@@ -338,7 +340,10 @@ local function btnenter(self)
 		elseif self.type == "macro" and GetMacroBody(self.spell) then
 			local action = SecureCmdOptionParse(GetMacroBody(self.spell))
 			if action then
-				if GetItemInfo(action) then
+				if companionList and companionList[action] then
+					GameTooltip:SetHyperlink("spell:"..companionList[action])
+				
+				elseif GetItemInfo(action) then
 					GameTooltip:SetHyperlink(select(2, GetItemInfo(action)))
 				else
 					local id = Nurfed:getspell(action)
@@ -454,8 +459,6 @@ local function btnreceivedrag(self)
 				value = "-heal"..value
 			end
 		end
-		
-		--value = value ~= "*" and value.."*" or value
 		self:SetAttribute("*type"..value, cursor)
 		--TODO: Rewrite this so it clears values cleaner
 		if cursor == "spell" then
@@ -482,6 +485,7 @@ local function btnreceivedrag(self)
 			self:SetAttribute("*itemid"..value, arg1)
 			self:SetAttribute("*macro"..value, nil)
 			self:SetAttribute("*macroID"..value, nil)
+			
 		elseif cursor == "macro" then
 			self:SetAttribute("*spell"..value, nil)
 			self:SetAttribute("*item"..value, nil)
@@ -505,7 +509,14 @@ local function btnreceivedrag(self)
 				else
 					local id = Nurfed:getspell(oldspell)
 					if id then
-						PickupSpell(id, BOOKTYPE_SPELL)
+						--PickupSpell(id, BOOKTYPE_SPELL)
+						--if we just use PickupSpell, it doesn't always seem to work.  Possibly a blizz bug, until a fix
+						-- is found, use this.  nrf:sched(time, func) time == 0, func() done on next frame (0.001 second~)
+						Nurfed:schedule(0, function() 
+							if not GetCursorInfo() then 
+								PickupSpell(id, BOOKTYPE_SPELL) 
+							end 
+						end)
 					end
 				end
 			elseif oldtype == "item" then
@@ -539,7 +550,8 @@ local function getbtn(hdr)
 		btn = table.remove(dead)
 	else
 		local new = #live + 1
-		btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate ActionButtonTemplate")
+		--btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate ActionButtonTemplate")
+		btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate, ActionButtonTemplate")
 		btn:RegisterForClicks("AnyUp")
 		btn:RegisterForDrag("LeftButton")
 
@@ -554,18 +566,19 @@ local function getbtn(hdr)
 		
 		btn:SetScript("PreClick", function(self)
 			if GetCursorInfo() and not InCombatLockdown() then
-				self:SetScript("OnClick", nil)
+				self.unwrapped = true
+				hdr:UnwrapScript(self, "OnClick")
+				hdr:WrapScript(self, "OnClick", [[ return false ]])
 				btnreceivedrag(self)
 			end
 		end)
 		
 		btn:SetScript("PostClick", function(self)
 			self:SetChecked(nil)
-			if not self:GetScript("OnClick") then
-				self:GetParent():SetAttribute("addchild", self)
-				local oldstate = self:GetParent():GetAttribute("state")
-				self:GetParent():SetAttribute("state", nil)
-				self:GetParent():SetAttribute("state", oldstate)
+			if self.unwrapped then
+				hdr:UnwrapScript(self, "OnClick")
+				hdr:WrapScript(self, "OnClick", [[ return state ]])
+				self.unwrapped = nil
 			end
 		end)
 		
@@ -581,6 +594,7 @@ local function getbtn(hdr)
 	end
 	table.insert(live, btn)
 	btn:SetScript("OnAttributeChanged", saveattrib)
+	hdr:UnwrapScript(btn, "OnClick")
 	hdr:WrapScript(btn, "OnClick", [[ return state ]])
 	return btn
 end
@@ -667,6 +681,11 @@ local btnevents = {
 						_G[btn:GetName().."HotKey"]:SetText(nil)
 						_G[btn:GetName().."HotKey"]:Hide()
 					end
+					if Nurfed:getopt("macrotext") and btn.type == "macro" then
+						_G[btn:GetName().."Name"]:SetText(btn.spell)
+					else
+						_G[btn:GetName().."Name"]:SetText(nil)
+					end
 				end
 			end
 		end
@@ -731,9 +750,34 @@ for event, _ in pairs(btnevents) do
 	Nurfed:regevent(event, btnevent);
 end
 
+local optColorNoMana, optColorNotUsable, optColorNoRange, optColorBaseColor = {}, {}, {}, {}
+function NurfedActionBarsUpdateColors()
+	-- recycle the tables, don't recreate it
+	--for i in ipairs(optColorNoMana) do optColorNoMana[i] = nil end
+	--for i in ipairs(optColorNotUsable) do optColorNotUsable[i] = nil end
+	--for i in ipairs(optColorNoRange) do optColorNoRange[i] = nil end
+	--for i in ipairs(optColorBaseColor) do optColorBaseColor[i] = nil end
+	for i,v in ipairs(Nurfed:getopt("actionbarnomana")) do
+		optColorNoMana[i] = v
+	end
+	--optColorNoMana = Nurfed:getopt("actionbarnomana")
+	for i,v in ipairs(Nurfed:getopt("actionbarnotusable")) do
+		optColorNotUsable[i] = v
+	end
+	--optColorNotUsable = Nurfed:getopt("actionbarnotusable")
+	for i,v in ipairs(Nurfed:getopt("actionbarnorange")) do
+		optColorNoRange[i] = v
+	end
+	--optColorNoRange = Nurfed:getopt("actionbarnorange")
+	for i,v in ipairs(Nurfed:getopt("actionbarbasecolor")) do
+		optColorBaseColor[i] = v
+	end
+	--optColorBaseColor = Nurfed:getopt("actionbarbasecolor")
+end
+
 local function btnupdate()
 	for _, btn in ipairs(live) do
-		local r, g, b = 1, 1, 1;
+		local r, g, b = optColorBaseColor[1], optColorBaseColor[2], optColorBaseColor[3]--1, 1, 1;
 		local unit = SecureButton_GetUnit(btn);
 		if btn.type == "spell" then
 			if IsCurrentSpell(btn.spell) or UnitCastingInfo("player") == btn.spell then
@@ -750,25 +794,25 @@ local function btnupdate()
 			else
 				if companionList[btn.spell] then
 					if UnitAffectingCombat("player") then
-						r, g, b = 0.4, 0.4, 0.4;
+						r, g, b = optColorNotUsable[1], optColorNotUsable[2], optColorNotUsable[3] --0.4, 0.4, 0.4;
 					end
 				else
 					local usable, nomana = IsUsableSpell(btn.spell);
 					if nomana then
-						r, g, b = 0.5, 0.5, 1;
+						r, g, b = optColorNoMana[1], optColorNoMana[2], optColorNoMana[3] --0.5, 0.5, 1;
 					elseif not usable then
-						r, g, b = 0.4, 0.4, 0.4;
+						r, g, b = optColorNotUsable[1], optColorNotUsable[2], optColorNotUsable[3] --0.4, 0.4, 0.4;
 					elseif SpellHasRange(btn.spell) and IsSpellInRange(btn.spell, unit) == 0 then
-						r, g, b = 1, 0, 0;
+						r, g, b = optColorNoRange[1], optColorNoRange[2], optColorNoRange[3]--1, 0, 0;
 					end
 				end
 			end
 	
 		elseif btn.type == "item" then
 			if not IsUsableItem(btn.spell) then
-				r, g, b = 0.4, 0.4, 0.4;
+				r, g, b = optColorNotUsable[1], optColorNotUsable[2], optColorNotUsable[3] --0.4, 0.4, 0.4;
 			elseif ItemHasRange(btn.spell) and IsItemInRange(btn.spell, unit) == 0 then
-				r, g, b = 1, 0, 0;
+				r, g, b = optColorNoRange[1], optColorNoRange[2], optColorNoRange[3]--1, 0, 0;
 			end
 			
 		elseif btn.type == "macro" then
@@ -776,19 +820,25 @@ local function btnupdate()
 			local spell, rank = GetMacroSpell(btn.spell);
 			if item then
 				if not IsUsableItem(item) then
-					r, g, b = 0.4, 0.4, 0.4;
+					r, g, b = optColorNotUsable[1], optColorNotUsable[2], optColorNotUsable[3] --0.4, 0.4, 0.4;
 				elseif ItemHasRange(item) and IsItemInRange(item, unit) == 0 then
-					r, g, b = 1, 0, 0;
+					r, g, b = optColorNoRange[1], optColorNoRange[2], optColorNoRange[3]--1, 0, 0;
 				end
 			
 			elseif spell then
-				local usable, nomana = IsUsableSpell(spell);
-				if nomana then
-					r, g, b = 0.5, 0.5, 1;
-				elseif not usable then
-					r, g, b = 0.4, 0.4, 0.4;
-				elseif SpellHasRange(spell) and IsSpellInRange(spell, unit) == 0 then
-					r, g, b = 1, 0, 0;
+				if companionList and companionList[spell] then
+					if InCombatLockdown() then
+						r, g, b = optColorNotUsable[1], optColorNotUsable[2], optColorNotUsable[3] --0.4, 0.4, 0.4;
+					end
+				else
+					local usable, nomana = IsUsableSpell(spell);
+					if nomana then
+						r, g, b = optColorNoMana[1], optColorNoMana[2], optColorNoMana[3] --0.5, 0.5, 1;
+					elseif not usable then
+						r, g, b = optColorNotUsable[1], optColorNotUsable[2], optColorNotUsable[3] --0.4, 0.4, 0.4;
+					elseif SpellHasRange(spell) and IsSpellInRange(spell, unit) == 0 then
+						r, g, b = optColorNoRange[1], optColorNoRange[2], optColorNoRange[3]--1, 0, 0;
+					end
 				end
 			end
 
@@ -1351,6 +1401,7 @@ Nurfed:regevent("PLAYER_LOGIN", function()
 	updateCompanionList()
 	Nurfed:sendevent("UPDATE_BINDINGS")
 	SaveBindings(GetCurrentBindingSet())
+	NurfedActionBarsUpdateColors()
 end)
 Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
 	-- vehicle bar stuff
