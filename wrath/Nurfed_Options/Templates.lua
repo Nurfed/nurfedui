@@ -155,6 +155,13 @@ onshow = function(self)
 			end
 		end
 	end
+	if point and point:find("LEFT") and objtype ~= "EditBox" then
+		if not value then
+			if text:GetText() ~= "" then
+				self:SetHitRectInsets(0, -text:GetWidth(), 0, 0)
+			end
+		end
+	end
 	if self.nohitrect then
 		self:SetHitRectInsets(0, 0, 0, 0)
 	end
@@ -245,11 +252,9 @@ saveopt = function(self)
 
 	if self.option then
 		local opt = self.option
-		debug(value)
 		if type(NURFED_DEFAULT[opt]) == "boolean" then
 			value = value == 1 and true or false
 		end
-		debug(value)
 		if value == NURFED_DEFAULT[opt] then
 			NURFED_SAVED[opt] = nil
 		else
@@ -300,7 +305,6 @@ local templates = {
 	},
 	nrf_slider = {
 		type = "Slider",
-		--uitemp = "InterfaceOptionsSliderTemplate",
 		uitemp = "OptionsSliderTemplate",
 		children = {
 			value = {
