@@ -1,4 +1,4 @@
---Coldfury's Modified Tknp Layout.
+-- Apoco's Modified Unit Frames (Nurfed Unit Frames v3.0)
 ----------------------------------------------------------------------------------------
 --	Text Format Vars
 --		(HP/MP text and status bars)
