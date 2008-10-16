@@ -265,7 +265,7 @@ local updateeditor = function(self)
 		NurfedFramesPanelEditorvars:SetText(table.concat(text, "\n"))
 		]]
 	else
-		hidemethods()
+		hidemethods(self)
 		NurfedFramesPanelEditorcreate:Show()
 		--NurfedFramesPanelEditorvars:SetText("")
 		UIDropDownMenu_ClearAll(NurfedFramesPanelEditormethods)
@@ -449,7 +449,7 @@ local frameupdate = function(self, edit, nosave)
 			end
 		end
 		if not nosave then
-			saveframe()
+			saveframe(self)
 		end
 	end
 end
@@ -901,7 +901,7 @@ local layout = {
 							Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
 							Text = "...",
 							ID = 2,
-							OnClick = function(self) framedrop() end,
+							OnClick = function(self) framedrop(self) end,
 						},
 					},
 					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, 0 },
@@ -917,7 +917,7 @@ local layout = {
 							Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
 							Text = "...",
 							ID = 3,
-							OnClick = function(self) framedrop() end,
+							OnClick = function(self) framedrop(self) end,
 						},
 					},
 					Anchor = { "TOP", "$parentbgFile", "BOTTOM", 0, -9 },
@@ -1056,7 +1056,7 @@ local layout = {
 							Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
 							Text = "...",
 							ID = 1,
-							OnClick = function(self) framedrop() end,
+							OnClick = function(self) framedrop(self) end,
 						},
 					},
 					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, 0 },
@@ -1081,7 +1081,7 @@ local layout = {
 							Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
 							Text = "...",
 							ID = 1,
-							OnClick = function(self) framedrop() end,
+							OnClick = function(self) framedrop(self) end,
 						},
 					},
 					Anchor = { "TOPLEFT", "$parent2", "BOTTOMLEFT", 0, -9 },
@@ -1326,7 +1326,7 @@ local layout = {
 					Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
 					Text = "...",
 					ID = 4,
-					OnClick = function(self) framedrop() end,
+					OnClick = function(self) framedrop(self) end,
 				},
 			},
 			Anchor = { "TOPLEFT", "$parentmethods", "BOTTOMLEFT", 20, -8 },
@@ -1343,7 +1343,7 @@ local layout = {
 			template = "nrf_button",
 			Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 5 },
 			Text = "Import Layout",
-			OnClick = function(self) import() end,
+			OnClick = function(self) import(self) end,
 			Hide = true,
 		},
 		delete = {
@@ -1360,7 +1360,7 @@ local layout = {
 			template = "nrf_button",
 			Anchor = { "LEFT", "$parentdelete", "RIGHT", 10, 0 },
 			Text = CREATE,
-			OnClick = function(self) framecreate() end,
+			OnClick = function(self) framecreate(self) end,
 		},
 		--[[
 		vars = {
@@ -1381,8 +1381,8 @@ function Nurfed_ExpandFrame(self)
 	else
 		NurfedFramesPanelFrames[frame] = true
 	end
-	popframes()
-	Nurfed_ScrollFrames()
+	popframes(self)
+	Nurfed_ScrollFrames(self)
 end
 
 frame = Nurfed:create("NurfedFramesPanelEditor", layout, NurfedFramesPanel)
@@ -1392,7 +1392,7 @@ layout = nil
 StaticPopupDialogs["NRF_DELETE"] = {
 	button1 = TEXT(ACCEPT),
 	button2 = TEXT(CANCEL),
-	OnAccept = function(self) delete() end,
+	OnAccept = function(self) delete(self) end,
 	timeout = 10,
 	whileDead = 1,
 	hideOnEscape = 1,
@@ -1437,9 +1437,9 @@ StaticPopupDialogs["NRF_CREATE"] = {
 	end,
 	OnHide = function(self)
 		NurfedFramesPanelFrames.data = nil
-		popframes()
-		Nurfed_ScrollFrames()
-		updateeditor()
+		popframes(self)
+		Nurfed_ScrollFrames(self)
+		updateeditor(self)
 	end,
 	EditBoxOnEnterPressed = function(self)
 		local editBox = getglobal(self:GetParent():GetName().."EditBox")

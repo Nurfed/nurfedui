@@ -566,6 +566,7 @@ do
 		end
 	end
 end
+Nurfed_ImportLayout = import;
 local panels = {
   -- Chat Panel
 	{
