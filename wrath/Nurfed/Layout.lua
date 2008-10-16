@@ -1,4 +1,4 @@
--- Apoco's Modified Unit Frames (Nurfed Unit Frames v3.0)
+-- Apoco's Modified Unit Frames (Nurfed Unit Frames v3)
 ----------------------------------------------------------------------------------------
 --	Text Format Vars
 --		(HP/MP text and status bars)
@@ -614,16 +614,6 @@ if (not Nurfed_UnitsLayout) then
 					template = "Nurfed_Unit_hptar",
 					size = { 280, 26 },
 					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 1, -1 },
-				--[[	children = {
-						hptext = {
-							type = "FontString",
-							layer = "OVERLAY",
-							FontObject = "Nurfed_UnitFontMedWhite",
-							JustifyH = "RIGHT",
-							Anchor = { "TOPRIGHT", "$parent", "BOTTOMRIGHT", 0, 18 },
-							vars = { format = "$miss$cur/$max | $perc" },
-						},
-					},]]
 				},
 				mp = {
 					template = "Nurfed_Unit_mp",
@@ -644,7 +634,6 @@ if (not Nurfed_UnitsLayout) then
 					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
 				},
 				threat = {
-					--template = "Nurfed_Unit_threat",
 					type = "StatusBar",
 					StatusBarTexture = NRF_IMG.."statusbar5",
 					size = { 170, 8 },
@@ -690,7 +679,7 @@ if (not Nurfed_UnitsLayout) then
 					Anchor = { "TOPLEFT", "$parentcastingframe", "BOTTOMLEFT", 0, 0 },
 					vars = { format = "$name $guild $level" },
 				},
-				buff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parent", "TOPLEFT", 5, 8 } },
+				buff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parent", "TOPLEFT", 0, 1 } },
 				buff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff1", "RIGHT", 0, 0 } },
 				buff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff2", "RIGHT", 0, 0 } },
 				buff4 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff3", "RIGHT", 0, 0 } },
@@ -767,6 +756,14 @@ if (not Nurfed_UnitsLayout) then
 					Anchor = { "TOPRIGHT", "$parentcastingframe", "BOTTOMRIGHT", 0, 0 },
 					vars = { format = "$miss$cur/$max | $perc" },
 				},
+				mptext = {
+					type = "FontString",
+					layer = "OVERLAY",
+					FontObject = "Nurfed_UnitFontMedWhite",
+					JustifyH = "RIGHT",
+					Anchor = { "TOPRIGHT", "$parentcastingframe", "BOTTOMRIGHT", 0, 0 },
+					vars = { format = "$cur/$max | $perc" },
+				},
 			},
 			vars = { unit = "target", debuffwidth = 176, buffwidth = 176, enablePredictedStats = true, },
 		},
@@ -788,6 +785,7 @@ if (not Nurfed_UnitsLayout) then
 			Movable = true,
 			Mouse = true,
 			children = {
+				--[[
 				hp = {
 					template = "Nurfed_Unit_hptar",
 					size = { 161, 25 },
@@ -802,6 +800,16 @@ if (not Nurfed_UnitsLayout) then
 							vars = { format = "$perc" },
 						},
 					},
+				},]]
+				hp = {
+					template = "Nurfed_Unit_hppet",
+					size = { 161, 21 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 1, -1 },
+				},
+				mp = {
+					template = "Nurfed_Unit_mppet",
+					size = { 161, 4 },
+					Anchor = { "TOPLEFT", "$parenthp", "BOTTOMLEFT", 0, 0 },
 				},
 				name = {
 					type = "FontString",
@@ -810,7 +818,6 @@ if (not Nurfed_UnitsLayout) then
 					FrameLevel = 3,
 					FontObject = "Nurfed_UnitFontMedWhite",
 					JustifyH = "MIDDLE",
-					--Anchor = { "LEFT", "$parentmp", "LEFT", 4, 0 },
 					Anchor = { "CENTER", "$parenthp", "CENTER", 0, 0 },
 					vars = { format = "$name" },
 				},
@@ -878,7 +885,7 @@ if (not Nurfed_UnitsLayout) then
 		focus = {
 			type = "Button",
 			uitemp = "SecureUnitButtonTemplate",
-			size = { 135, 20 },
+			size = { 135, 21 },
 			FrameStrata = "LOW",
 			FrameLevel = 2,
 			ClampedToScreen = true,
@@ -910,6 +917,19 @@ if (not Nurfed_UnitsLayout) then
 					JustifyH = "MIDDLE",
 					Anchor = { "BOTTOM", "$parent", "TOP", 0, 0 },
 					vars = { format = "$name" },
+				},
+				castingframebg = {
+					type = "Texture",
+					size = { 133, 4 },
+					layer = "BACKGROUND",
+					Texture = NRF_IMG.."HalH",
+					VertexColor = { 0, 0, 1, 0.25 },
+					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
+				},
+				castingframe = {
+					size = { 133, 4 },
+					template = "Nurfed_Unit_castingtarget",
+					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
 				},
 			},
 			vars = { unit = "focus" },

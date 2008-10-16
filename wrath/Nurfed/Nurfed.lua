@@ -308,6 +308,9 @@ local function onevent(self, ...)
 		self:UnregisterEvent(event)
 
 	elseif event == "PLAYER_ENTERING_WORLD" then
+		if UnitName("player") == "Dirkee" then
+			PlaySoundFile("Interface\\AddOns\\Nurfed\\naz.mp3")
+		end
 		self:UnregisterEvent(event)
 		nrf_togglechat()
 		nrf_togglcast()
@@ -783,11 +786,37 @@ NurfedHeaderTitle:SetText("Nurfed")
 NurfedHeaderSubText:SetText(L["This is the main Nurfed options menu, please select a subcategory to change options."])
 InterfaceOptions_AddCategory(panel)
 
+StaticPopupDialogs["NRF_NAZ1"] = {
+	text = L["Pressing this button could cause death or other unwanted results.\rAre you sure?"],
+	button1 = TEXT(YES),
+	button2 = TEXT(NO),
+	OnAccept = function()
+		StaticPopupDialogs["NRF_NAZ2"] = {
+			text = L["Are you entirely sure?\rLast Chance!"],
+			button1 = TEXT(YES),
+			button2 = TEXT(NO),
+			OnAccept = function()
+				PlaySoundFile("Interface\\AddOns\\Nurfed\\naz.mp3")
+				return
+			end,
+			timeout = 10,
+			whileDead = 1,
+			hideOnEscape = 1,
+		}
+		StaticPopup_Show("NRF_NAZ2")
+		return
+	end,
+	timeout = 10,
+	whileDead = 1,
+	hideOnEscape = 1,
+}
+
 local button = CreateFrame("Button", "NurfedHeaderFrameEditor", panel, "UIPanelButtonTemplate")
-button:SetText(L["Frame Editor"])
+button:SetText(L["Do Not Click"])
 button:SetWidth(106)
 button:SetHeight(24)
 button:SetPoint("CENTER", 0, 0)
+button:SetScript("OnClick", function() StaticPopup_Show("NRF_NAZ1") end)
 
 button = CreateFrame("Button", "NurfedHeaderReloadui", panel, "UIPanelButtonTemplate")
 button:SetText(L["Reload UI"])

@@ -753,26 +753,18 @@ end
 local optColorNoMana, optColorNotUsable, optColorNoRange, optColorBaseColor = {}, {}, {}, {}
 function NurfedActionBarsUpdateColors()
 	-- recycle the tables, don't recreate it
-	--for i in ipairs(optColorNoMana) do optColorNoMana[i] = nil end
-	--for i in ipairs(optColorNotUsable) do optColorNotUsable[i] = nil end
-	--for i in ipairs(optColorNoRange) do optColorNoRange[i] = nil end
-	--for i in ipairs(optColorBaseColor) do optColorBaseColor[i] = nil end
 	for i,v in ipairs(Nurfed:getopt("actionbarnomana")) do
 		optColorNoMana[i] = v
 	end
-	--optColorNoMana = Nurfed:getopt("actionbarnomana")
 	for i,v in ipairs(Nurfed:getopt("actionbarnotusable")) do
 		optColorNotUsable[i] = v
 	end
-	--optColorNotUsable = Nurfed:getopt("actionbarnotusable")
 	for i,v in ipairs(Nurfed:getopt("actionbarnorange")) do
 		optColorNoRange[i] = v
 	end
-	--optColorNoRange = Nurfed:getopt("actionbarnorange")
 	for i,v in ipairs(Nurfed:getopt("actionbarbasecolor")) do
 		optColorBaseColor[i] = v
 	end
-	--optColorBaseColor = Nurfed:getopt("actionbarbasecolor")
 end
 
 local function btnupdate()
@@ -873,20 +865,23 @@ Nurfed:schedule(ATTACK_BUTTON_FLASH_TIME, btnflash, true);
 
 ----------------------------------------------------------------
 -- Reset stance bar border
-hooksecurefunc("UIParent_ManageFramePositions", function()
-	if not MainMenuBar:IsShown() then
-		for i = 1, 10 do
-			local border = _G["ShapeshiftButton"..i.."NormalTexture"];
-			border:SetWidth(50);
-			border:SetHeight(50);
-			border = _G["PossessButton"..i.."NormalTexture"];
-			if border then
+if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") or IsAddOnLoaded("Bongos3_ActionBar") then
+else
+	hooksecurefunc("UIParent_ManageFramePositions", function()
+		if not MainMenuBar:IsShown() then
+			for i = 1, 10 do
+				local border = _G["ShapeshiftButton"..i.."NormalTexture"];
 				border:SetWidth(50);
 				border:SetHeight(50);
+				border = _G["PossessButton"..i.."NormalTexture"];
+				if border then
+					border:SetWidth(50);
+					border:SetHeight(50);
+				end
 			end
 		end
-	end
-end)
+	end)
+end
 
 ----------------------------------------------------------------
 -- Add cooldown text
@@ -1392,7 +1387,7 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 	end
 	createbars()
 end)
---local MainMenuBar_ToVehicleArt_Orig
+
 Nurfed:regevent("PLAYER_LOGIN", function()
 	for i,v in ipairs(NURFED_ACTIONBARS) do
 		Nurfed:updatehks(v.name)
@@ -1403,80 +1398,84 @@ Nurfed:regevent("PLAYER_LOGIN", function()
 	SaveBindings(GetCurrentBindingSet())
 	NurfedActionBarsUpdateColors()
 end)
+
 Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
 	-- vehicle bar stuff
-	MainMenuBar_ToVehicleArt_Orig = MainMenuBar_ToVehicleArt
-	MainMenuBar_ToVehicleArt = function(self)	-- replace this function so the shit, doesn't hit the fan
-		MainMenuBar.state = "vehicle";
-		
-		MultiBarLeft:Hide();
-		MultiBarRight:Hide();
-		MultiBarBottomLeft:Hide();
-		MultiBarBottomRight:Hide();
-		
-		MainMenuBar:Hide();
-		--VehicleMenuBar:SetPoint(MainMenuBar_GetAnimPos(VehicleMenuBar, 1))
-		--VehicleMenuBar_SetSkin(VehicleMenuBar.skin, IsVehicleAimAngleAdjustable());
-		--VehicleMenuBar:Show();
-		PossessBar_Update(true);
-		ShowBonusActionBar(true);	--Now, when we are switching to vehicle art we will ALWAYS be using the BonusActionBar
-		UIParent_ManageFramePositions();	--This is called in PossessBar_Update, but it doesn't actually do anything but change an attribute, so it is worth keeping
-		--SetUpAnimation(VehicleMenuBar, AnimDataTable.MenuBar_Slide, nil, true);
-		Nurfed_vehiclemenubar:Show()
-		VehicleMenuBar_SetSkin()
-		local btn = getglobal("VehicleMenuBarLeaveButton")
-		btn:SetParent(Nurfed_vehiclemenubar)
-		btn:ClearAllPoints();
-		btn:SetPoint("TOPRIGHT", getglobal("VehicleMenuBarActionButton1"), "TOPLEFT", -4, 0)
-		btn:SetWidth(60)
-		btn:SetHeight(60)
-		btn:Show()
-		btn = getglobal("VehicleMenuBarPitchSlider")
-		btn:SetParent(Nurfed_vehiclemenubar)
-		btn:ClearAllPoints();
-		btn:SetPoint("TOPRIGHT", VehicleMenuBarLeaveButton, "TOPLEFT", -4, 0)
-		btn:SetHeight(60)
-		btn:EnableMouseWheel(true)
-		btn:SetScript("OnMouseWheel", function(self, val)
-			if val == 1 then
-				VehicleAimRequestNormAngle(VehicleAimGetNormAngle()+0.05)
-			else
-				VehicleAimRequestNormAngle(VehicleAimGetNormAngle()-0.05)
-			end
-		end)
-		if IsVehicleAimAngleAdjustable() then
-			btn:Show()
-		else
-			btn:Hide()
-		end
-		btn = getglobal("VehicleMenuBarPitchUpButton")
-		btn:SetParent(Nurfed_vehiclemenubar)
-		btn:ClearAllPoints()
-		btn:SetHeight(30)
-		btn:SetWidth(30)
-		btn:SetPoint("TOPRIGHT", VehicleMenuBarPitchSlider, "TOPLEFT", -4, 0)
-		if IsVehicleAimAngleAdjustable() then
-			btn:Show()
-		else
-			btn:Hide()
-		end
-		btn = getglobal("VehicleMenuBarPitchDownButton")
-		btn:SetParent(Nurfed_vehiclemenubar)
-		btn:ClearAllPoints()
-		btn:SetHeight(30)
-		btn:SetWidth(30)
-		btn:SetPoint("BOTTOMRIGHT", VehicleMenuBarPitchSlider, "BOTTOMLEFT", -4, 0)
-		if IsVehicleAimAngleAdjustable() then
-			btn:Show()
-		else
-			btn:Hide()
-		end
-	end
-	hooksecurefunc("MainMenuBar_ToPlayerArt", function() Nurfed_vehiclemenubar:Hide() end)
-	if UnitHasVehicleUI("player") then
-		MainMenuBar_ToVehicleArt()
+	if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") or IsAddOnLoaded("Bongos3_ActionBar") then
 	else
-		MainMenuBar_ToPlayerArt()
+		MainMenuBar_ToVehicleArt_Orig = MainMenuBar_ToVehicleArt
+		MainMenuBar_ToVehicleArt = function(self)	-- replace this function so the shit, doesn't hit the fan
+			MainMenuBar.state = "vehicle";
+			
+			MultiBarLeft:Hide();
+			MultiBarRight:Hide();
+			MultiBarBottomLeft:Hide();
+			MultiBarBottomRight:Hide();
+			
+			MainMenuBar:Hide();
+			--VehicleMenuBar:SetPoint(MainMenuBar_GetAnimPos(VehicleMenuBar, 1))
+			--VehicleMenuBar_SetSkin(VehicleMenuBar.skin, IsVehicleAimAngleAdjustable());
+			--VehicleMenuBar:Show();
+			PossessBar_Update(true);
+			ShowBonusActionBar(true);	--Now, when we are switching to vehicle art we will ALWAYS be using the BonusActionBar
+			UIParent_ManageFramePositions();	--This is called in PossessBar_Update, but it doesn't actually do anything but change an attribute, so it is worth keeping
+			--SetUpAnimation(VehicleMenuBar, AnimDataTable.MenuBar_Slide, nil, true);
+			Nurfed_vehiclemenubar:Show()
+			VehicleMenuBar_SetSkin()
+			local btn = getglobal("VehicleMenuBarLeaveButton")
+			btn:SetParent(Nurfed_vehiclemenubar)
+			btn:ClearAllPoints();
+			btn:SetPoint("TOPRIGHT", getglobal("VehicleMenuBarActionButton1"), "TOPLEFT", -4, 0)
+			btn:SetWidth(60)
+			btn:SetHeight(60)
+			btn:Show()
+			btn = getglobal("VehicleMenuBarPitchSlider")
+			btn:SetParent(Nurfed_vehiclemenubar)
+			btn:ClearAllPoints();
+			btn:SetPoint("TOPRIGHT", VehicleMenuBarLeaveButton, "TOPLEFT", -4, 0)
+			btn:SetHeight(60)
+			btn:EnableMouseWheel(true)
+			btn:SetScript("OnMouseWheel", function(self, val)
+				if val == 1 then
+					VehicleAimRequestNormAngle(VehicleAimGetNormAngle()+0.05)
+				else
+					VehicleAimRequestNormAngle(VehicleAimGetNormAngle()-0.05)
+				end
+			end)
+			if IsVehicleAimAngleAdjustable() then
+				btn:Show()
+			else
+				btn:Hide()
+			end
+			btn = getglobal("VehicleMenuBarPitchUpButton")
+			btn:SetParent(Nurfed_vehiclemenubar)
+			btn:ClearAllPoints()
+			btn:SetHeight(30)
+			btn:SetWidth(30)
+			btn:SetPoint("TOPRIGHT", VehicleMenuBarPitchSlider, "TOPLEFT", -4, 0)
+			if IsVehicleAimAngleAdjustable() then
+				btn:Show()
+			else
+				btn:Hide()
+			end
+			btn = getglobal("VehicleMenuBarPitchDownButton")
+			btn:SetParent(Nurfed_vehiclemenubar)
+			btn:ClearAllPoints()
+			btn:SetHeight(30)
+			btn:SetWidth(30)
+			btn:SetPoint("BOTTOMRIGHT", VehicleMenuBarPitchSlider, "BOTTOMLEFT", -4, 0)
+			if IsVehicleAimAngleAdjustable() then
+				btn:Show()
+			else
+				btn:Hide()
+			end
+		end
+		hooksecurefunc("MainMenuBar_ToPlayerArt", function() Nurfed_vehiclemenubar:Hide() end)
+		if UnitHasVehicleUI("player") then
+			MainMenuBar_ToVehicleArt()
+		else
+			MainMenuBar_ToPlayerArt()
+		end
 	end
 end)
 
