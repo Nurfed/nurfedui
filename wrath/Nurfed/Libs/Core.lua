@@ -1025,7 +1025,7 @@ end
 -- Addon versioning system 
 -- TODO: Find a better way to track this, ie: fix the svn to update the toc file anytime a commit is made
 do
-	local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver, nrfcl_ver, nrfcl_rev
+	local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver, nrfcl_ver, nrfcl_rev, nrfrm_ver, nrfrm_rev
 	-- no opt = Core, 1 = Options, 2 = Arena, 3 = Combat Log
 	function util:setver(ver, opt)
 		ver = ver:gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1")
@@ -1044,6 +1044,10 @@ do
 				if not nrfcl_ver or ver > nrfcl_ver then
 					nrfcl_ver = ver
 				end
+			elseif opt == 4 then
+				if not nrfrm_ver or ver > nrfrm_ver then
+					nrfrm_ver = ver
+				end
 			end
 		else
 			if not nrf_ver or ver > nrf_ver then
@@ -1060,6 +1064,8 @@ do
 				return nrfa_ver or "Not Installed"
 			elseif opt == 3 then
 				return nrfcl_ver or "Not Installed"
+			elseif opt == 4 then
+				return nrfrm_ver or "Not Installed"
 			end
 		end
 		return nrf_ver or "Unknown"
@@ -1081,6 +1087,10 @@ do
 				if not nrfcl_rev or rev > nrfcl_rev then
 					nrfcl_rev = rev
 				end
+			elseif opt == r then
+				if not nrfrm_rev or rev > nrfrm_rev then
+					nrfrm_rev = rev
+				end
 			end
 		else
 			if not nrf_rev or rev > nrf_rev then
@@ -1097,6 +1107,8 @@ do
 				return nrfa_rev or 0
 			elseif opt == 3 then
 				return nrfcl_rev or 0
+			elseif opt == 4 then
+				return nrfrm_rev or 0
 			end
 		end
 		return nrf_rev or 0

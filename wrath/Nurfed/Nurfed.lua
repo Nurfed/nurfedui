@@ -778,7 +778,7 @@ Nurfed:createtemp("uipanel", {
 local panel = Nurfed:create("NurfedHeader", "uipanel")
 panel:SetScript("OnShow", function(self)
     LoadAddOn("Nurfed_Options")
-    NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")\r|cffddeeffCombatLog Version:|r "..Nurfed:getver(3).."("..Nurfed:getrev(3)..")")
+    NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")\r|cffddeeffCombatLog Version:|r "..Nurfed:getver(3).."("..Nurfed:getrev(3)..")\r|cffddeeffRaidMod Version:|r "..Nurfed:getver(4).."("..Nurfed:getrev(4)..")")
     self:SetScript("OnShow", nil)
 end)
 panel.name = "Nurfed"

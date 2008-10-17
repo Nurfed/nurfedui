@@ -1088,6 +1088,7 @@ local damage = {
 	[4] = { (255/255), (0/255), (0/255) },-- 4 - fire
 	[8] = { (0/255), (102/255), (0/255) }, -- 8 - nature
 	[16] = { (0/255), (102/255), (255/255) }, -- 16 - frost
+	[24] = { (255/255), (76/255), (178/255) }, -- 24 - Shadow + fire (corehound)
 	[32] = { (202/255), (76/255), (217/255) },-- 32 - shadow
 	[40] = { (202/255), (178/255), (217/255) }, -- 40 - nature + shadow? lol?
 	[64] = { (153/255), (204/255), (255/255) }, -- 64 - arcane
@@ -1982,11 +1983,11 @@ local function updatehappiness(self)
 	end
 end
 
-local function updatecombo(self, unit)
+local function updatecombo(self, unit, force)
 	if self.combo then
 		local comboPoints
 		for _, child in ipairs(self.combo) do
-			if child.unit1 ~= unit then return end
+			if child.unit1 ~= unit and not force then return end
 			comboPoints = GetComboPoints(unit, child.unit2)
 			if comboPoints > 0 then
 				local objtype = child:GetObjectType()
@@ -2481,7 +2482,7 @@ local function updateframe(self, notext)
 	if self.Health then updateinfo(self, "Health") end
 	if self.XP then updateinfo(self, "XP") end
 	if self.Threat then updateinfo(self, "Threat") end
-	if self.combo then updatecombo(self) end
+	if self.combo then updatecombo(self, "player", true) end
 	if self.Mana then 
 		self.powerType = UnitPowerType(unit)
 		manacolor(self) 
