@@ -276,6 +276,16 @@ local templates = {
 		uitemp = "OptionsCheckButtonTemplate",
 		OnShow = onshow,
 		OnClick = saveopt,
+		OnEnter = function(self)
+			if self.hint then
+				GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT", 0, -10)
+				GameTooltip:ClearLines()
+				GameTooltip:AddLine(L["Hint:"], nil, nil, nil, true)
+				GameTooltip:AddLine(self.hint, nil, nil, nil, true)
+				GameTooltip:Show()
+			end
+		end,
+		OnLeave = function() GameTooltip:Hide() end,
 	},
 	nrf_button = {
 		type = "Button",
@@ -347,14 +357,34 @@ local templates = {
 		end,
 		OnMouseWheel = function(self, change)
 			local value = self:GetValue()
-			if change > 0  then
-				value = value + (self.bigStep or self.step)
+			local newValue
+			if IsShiftKeyDown() then
+				newValue = self.step
 			else
-				value = value - (self.bigStep or self.step)
+				if self.bigStep then
+					newValue = self.bigStep
+				else
+					newValue = self.step
+				end
+			end
+			if change > 0  then
+				--value = value + (self.bigStep or self.step)
+				value = value + newValue
+			else
+				--value = value - (self.bigStep or self.step)
+				value = value - newValue
 			end
 			self:SetValue(value)
 			saveopt(self)
 		end,
+		OnEnter = function(self)
+			GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT", 0, -10)
+			GameTooltip:ClearLines()
+			GameTooltip:AddLine(L["Hint:"], nil, nil, nil, true)
+			GameTooltip:AddLine(self.hint or L["Hold SHIFT when you scroll for smaller ranges."], nil, nil, nil, true)
+			GameTooltip:Show()
+		end,
+		OnLeave = function() GameTooltip:Hide() end,
 	},
 	nrf_editbox = {
 		type = "EditBox",

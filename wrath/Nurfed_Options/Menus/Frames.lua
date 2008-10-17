@@ -449,7 +449,7 @@ local frameupdate = function(self, edit, nosave)
 			end
 		end
 		if not nosave then
-			saveframe(self)
+			saveframe(frame)
 		end
 	end
 end
@@ -1294,12 +1294,20 @@ local layout = {
 		slider = {
 			type = "Slider",
 			uitemp = "OptionsSliderTemplate",
-			Anchor = { "TOPLEFT", "$parent/s", "BOTTOMLEFT", 20, -8 },
+			Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 20, -72 },
 			children = {
 				value = {
 					template = "nrf_editbox",
+					FontObject = "GameFontNormalSmall",
 					size = { 35, 18 },
-					Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
+					Anchor = { "TOP", "$parent", "BOTTOM", 0, 0 },
+					Backdrop = {
+						bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+						tile = true,
+						tileSize = 16,
+						insets = { left = 3, right = 3, top = 3, bottom = 3 },
+					},
+					BackdropColor = { 0, 0, 0.2, 0.75 },
 					OnTextChanged = function(self)
 						local value = tonumber(self:GetText())
 						local min, max = self:GetParent():GetMinMaxValues()
@@ -1312,8 +1320,33 @@ local layout = {
 					OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				},
 			},
-			OnMouseUp = function(self) frameupdate(self) end,
+			OnShow = function(self) self:SetFrameLevel(30); self:EnableMouseWheel(true); end,
+			OnMouseUp = function(self) 
+				local editbox = _G[self:GetName().."value"]
+				editbox:SetCursorPosition(0)
+				editbox:ClearFocus()
+				frameupdate(self) 
+			end,
 			OnValueChanged = function(self) Nurfed_Options_sliderOnValueChanged(self) end,
+			OnMouseWheel = function(self, change)
+				local value = self:GetValue()
+				if change > 0  then
+					value = value + (IsShiftKeyDown() and 0.01 or .10)
+				else
+					value = value - (IsShiftKeyDown() and 0.01 or .10)
+				end
+				self:SetValue(value)
+				frameupdate(self)
+			end,
+			OnEnter = function(self)
+				GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT", 0, -10)
+				--GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR", -24, -24)
+				GameTooltip:ClearLines()
+				GameTooltip:AddLine("Hint:", nil, nil, nil, true)
+				GameTooltip:AddLine("Hold SHIFT when you scroll for smaller ranges.", nil, nil, nil, true)
+				GameTooltip:Show()
+			end,
+			OnLeave = function() GameTooltip:Hide() end,
 			Hide = true,
 		},
 		edit = {
