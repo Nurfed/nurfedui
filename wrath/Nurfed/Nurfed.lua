@@ -155,7 +155,7 @@ local function updateGuildColors()
 	end
 end
 
-local function onevent(self, ...)
+local function onevent(self, event, arg1, arg2, arg3)
 	if event == "CHAT_MSG_WHISPER" and Nurfed:getopt("autoinvite") then
 		if IsPartyLeader() or IsRaidLeader() or IsRaidOfficer() or (GetNumPartyMembers() == 0 and GetNumRaidMembers() == 0) then
 			local text = string.lower(arg1)
@@ -229,28 +229,28 @@ local function onevent(self, ...)
 				end
 			end
 		end
+		
 		if Nurfed:getopt("autosell") then
 			if isRepairing then
 				local timer = 1
 				sellFrame:Show()
 				sellFrame:SetScript("OnUpdate", function()
 					timer = timer + 1
-					if timer >= 45 then
+					if timer >= 15 then
 						if GetMoney() == startRepMoney then
 							timer = 0
 							return
 						else
 							sellFrame:SetScript("OnUpdate", nil)
 							Nurfed_LockButton:GetScript("OnEvent")(Nurfed_LockButton, "MERCHANT_SHOW")
-							sellFrame:Hide()
 						end
 					end
 				end)
 				return
 			end
 			
-		local soldNum, soldItems, sold, startMoney = 0, "", nil, GetMoney()
-		local soldLst = {}
+			local soldNum, soldItems, sold, startMoney = 0, "", nil, GetMoney()
+			local soldLst = {}
 			for bag=0,4,1 do
 				for slot=1, GetContainerNumSlots(bag), 1 do
 					if GetContainerItemLink(bag, slot) then
@@ -284,9 +284,12 @@ local function onevent(self, ...)
 				sellFrame:Show()
 				sellFrame:SetScript("OnUpdate", function()
 					timer=timer+1
-					if timer >= 45 then
+					debug("rwarzers")
+					if timer >= 15 then
+						debug("going 45")
 						local money = GetMoney() - startMoney
 						if money == 0 then 
+							debug("money is teh same!", money, startMoney)
 							timer = 0
 							return
 						end
