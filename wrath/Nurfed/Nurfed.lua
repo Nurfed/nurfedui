@@ -141,13 +141,15 @@ local function updateGuildColors()
 				for i=1, GUILDMEMBERS_TO_DISPLAY, 1 do
 					nameString = _G["GuildFrameGuildStatusButton"..i.."Name"]
 					color = RAID_CLASS_COLORS[string.upper(class)]
-					if nameString and nameString:GetText() == name then
-						nameString:SetTextColor(color.r, color.g, color.b)
-					end
-					nameString = _G["GuildFrameButton"..i.."Name"]
-					if nameString and nameString:GetText() == name then
-						nameString:SetTextColor(color.r, color.g, color.b)
-						break
+					if color then
+						if nameString and nameString:GetText() == name then
+							nameString:SetTextColor(color.r, color.g, color.b)
+						end
+						nameString = _G["GuildFrameButton"..i.."Name"]
+						if nameString and nameString:GetText() == name then
+							nameString:SetTextColor(color.r, color.g, color.b)
+							break
+						end
 					end
 				end
 			end

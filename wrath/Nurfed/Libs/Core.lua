@@ -1126,6 +1126,7 @@ end)
 -- debug function I jacked from my RBM mod.  <3
 -- used by apoco for beta, remove before final push
 function debug(...)
+	if not AceLibrary and not Rock and not LibStub then return end
 	local frame = ChatFrame3 or ChatFrame2
 	if AceLibrary and AceLibrary:HasInstance("AceConsole-2.0") then
 		AceLibrary("AceConsole-2.0"):CustomPrint(nil, nil, nil, frame, nil, true, ...)
