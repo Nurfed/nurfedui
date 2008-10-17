@@ -188,7 +188,7 @@ local function onevent(self, ...)
 				else
 					local result = { string.find(arg1, ingroup) }
 					if result[1] then
-						SendChatMessage(L["Drop group and resend '%d'"]:format(Nurfed:getopt("keyword")), "WHISPER", nil, result[3])
+						SendChatMessage(string.format(L["Drop group and resend '%d'"], Nurfed:getopt("keyword")), "WHISPER", nil, result[3])
 					end
 				end
 			end
@@ -249,7 +249,7 @@ local function onevent(self, ...)
 				return
 			end
 			
-			local soldNum, soldItems, sold, startMoney = 0, "", nil, GetMoney()
+		local soldNum, soldItems, sold, startMoney = 0, "", nil, GetMoney()
 		local soldLst = {}
 			for bag=0,4,1 do
 				for slot=1, GetContainerNumSlots(bag), 1 do
@@ -281,6 +281,7 @@ local function onevent(self, ...)
 					Nurfed:print("|cffffffffSold |r"..soldNum.." |cffffffffItems: |r"..soldItems)
 				end
 				local timer = 1
+				sellFrame:Show()
 				sellFrame:SetScript("OnUpdate", function()
 					timer=timer+1
 					if timer >= 45 then
@@ -343,30 +344,6 @@ local function onevent(self, ...)
 		GuildListScrollFrame:HookScript("OnVerticalScroll", updateGuildColors)
 		FriendsFrameFriendsScrollFrame:HookScript("OnVerticalScroll", updateFriendsColors)
 		
-		
-		-- beta bugs
-		do
-			local origChatFrameOHS = ChatFrame_OnHyperlinkShow
- 
-			function ChatFrame_OnHyperlinkShow(self, link, text, button, ...)
-				local linkType, linkValue = string.split(":", link);
-				if linkType == "item" and IsModifiedClick("DRESSUP") then 
-					return DressUpItemLink(linkValue);
-				end
-				if not IsModifiedClick("CHATLINK") then 
-					return origChatFrameOHS(self, link, text, button, ...);
-				end
-				if linkType == "player" then 
-					return ChatFrameEditBox:IsVisible() and ChatEdit_InsertLink(linkValue) or SendWho(linkValue) 
-				end
-				if linkType == "spell" then 
-					text = GetSpellLink(linkValue) 
-				end
-		 
-				ChatFrameEditBox:Show()
-				ChatEdit_InsertLink(text)
-			end
-		end
 		
 	elseif event == "VARIABLES_LOADED" then
 		if self:IsUserPlaced() then

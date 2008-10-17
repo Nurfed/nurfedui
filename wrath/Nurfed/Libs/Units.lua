@@ -1729,7 +1729,7 @@ local function updateinfo(self, stat, tstat)
 		curr, max, missing, perc, r, g, b, bgr, bgg, bgb = Nurfed:getunitstat(unit, stat, tstat and 0, tstat and "Mana")
 	else
 		isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation(self[stat][1].threatUnit, unit)
-		if not scaledPercent then
+		if not scaledPercent or not threatValue then
 			for _, child in ipairs(self[stat]) do
 				child:Hide()
 			end
