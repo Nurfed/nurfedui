@@ -286,12 +286,9 @@ local function onevent(self, event, arg1, arg2, arg3)
 				sellFrame:Show()
 				sellFrame:SetScript("OnUpdate", function()
 					timer=timer+1
-					debug("rwarzers")
 					if timer >= 15 then
-						debug("going 45")
 						local money = GetMoney() - startMoney
 						if money == 0 then 
-							debug("money is teh same!", money, startMoney)
 							timer = 0
 							return
 						end
@@ -470,42 +467,42 @@ local function OnMouseWheel(self, arg1)
 		end
 	end
 end
-
 local messageText = {}
 local ACHIEVEMENT_BROADCAST_NURFED = ACHIEVEMENT_BROADCAST:gsub("%%s", "%%S+", 1):gsub("%s%%s!", "")
 local function message(self, msg, r, g, b, id)
-  if (msg and type(msg) == "string") then
-	if Nurfed:getopt("hideachievements") and msg:match(ACHIEVEMENT_BROADCAST_NURFED) then return end
-	
-	messageText[1] = nil; messageText[2] = nil;
-	
-    if Nurfed:getopt("timestamps") then
-      table.insert(messageText, date(Nurfed:getopt("timestampsformat")))
-    end
-    if not Nurfed:getopt("chatprefix") then
-		local _, _, channel = msg:find("^%[(.-)%]")
-		if channel then
-			if channel:match("^%d%.%s") then
-				if not Nurfed:getopt("numchatprefix") then
-					msg = msg:gsub("%.%s%a+%]", "]", 1)
+	if (msg and type(msg) == "string") then
+		if Nurfed:getopt("hideachievements") and msg:match(ACHIEVEMENT_BROADCAST_NURFED) then return end
+		messageText[1] = nil; messageText[2] = nil;
+
+		if Nurfed:getopt("timestamps") then
+			table.insert(messageText, date(Nurfed:getopt("timestampsformat")))
+		end
+
+		if not Nurfed:getopt("chatprefix") then
+			local channel = msg:match("^|Hchannel:%S+|h%[(.-)%]")
+			if channel then
+				if channel:match("^%d%.%s") then
+					if not Nurfed:getopt("numchatprefix") then
+						msg = msg:gsub("%.%s%a+%]", "]", 1)
+					end
+
+				elseif not msg:match("^|Hchannel:%S+|h%[%d") then
+					msg = msg:gsub("%["..channel.."%]|h ", "", 1)
 				end
-			elseif not msg:match("^%[%d") then
-				msg = msg:gsub("%["..channel.."%] ", "", 1)
 			end
 		end
-    end
     
-    if Nurfed:getopt("classcolortext") then
-		for internal, displayed in msg:gmatch("|Hplayer:(.-)|h%[(.-)%]|h") do
-			local color = Nurfed:GetHexClassColorByName(displayed)
-			if color then
-				msg = msg:gsub("|Hplayer:"..internal.."|h%["..displayed.."%]|h", "|Hplayer:"..internal.."|h%["..color..displayed.."|r%]|h")
+		if Nurfed:getopt("classcolortext") then
+			for internal, displayed in msg:gmatch("|Hplayer:(.-)|h%[(.-)%]|h") do
+				local color = Nurfed:GetHexClassColorByName(displayed)
+				if color then
+					msg = msg:gsub("|Hplayer:"..internal.."|h%["..displayed.."%]|h", "|Hplayer:"..internal.."|h%["..color..displayed.."|r%]|h")
+				end
 			end
 		end
+		table.insert(messageText, msg)
+		self:O_AddMessage(table.concat(messageText, " "), r, g, b, id)
 	end
-    table.insert(messageText, msg)
-    self:O_AddMessage(table.concat(messageText, " "), r, g, b, id)
-  end
 end
 
 CastingBarFrame.O_onevent = CastingBarFrame:GetScript("OnEvent")

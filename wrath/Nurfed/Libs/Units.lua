@@ -1053,7 +1053,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 		Nurfed_party2 = { template = "Nurfed_Party", vars = { unit = "party2" } },
 		Nurfed_party3 = { template = "Nurfed_Party", vars = { unit = "party3" } },
 		Nurfed_party4 = { template = "Nurfed_Party", vars = { unit = "party4" } },
-		Nurfed_raid1 = { template = "Nurfed_Raid", vars = { unit = "raid1" } },
+		--Nurfed_raid1 = { template = "Nurfed_Raid", vars = { unit = "raid1" } },
 	},
 }
 
@@ -2098,21 +2098,27 @@ local function updatepvp(self)
 end
 
 local function cooldowntext(self)
-	if not Nurfed:getopt("cdaura") then return end
 	local cd = _G[self:GetName().."Cooldown"]
-	if cd.text and cd.cool then
-		local cdscale = cd:GetScale()
-		local r, g, b = 1, 0, 0
-		local remain = (cd.start + cd.duration) - GetTime()
-		if remain >= 0 then
-			remain = math.round(remain)
-			if remain >= 60 then
-				remain = math.floor(remain / 60)
-				r, g, b = 1, 1, 0
+	if Nurfed:getopt("cdaura") then
+		if cd.text and cd.cool then
+			local cdscale = cd:GetScale()
+			local r, g, b = 1, 0, 0
+			local remain = (cd.start + cd.duration) - GetTime()
+			if remain >= 0 then
+				remain = math.round(remain)
+				if remain >= 60 then
+					remain = math.floor(remain / 60)
+					r, g, b = 1, 1, 0
+				end
+				cd.text:SetText(remain)
+				cd.text:SetTextColor(r, g, b)
+			else
+				cd.text:SetText(nil)
+				cd.cool = nil
 			end
-			cd.text:SetText(remain)
-			cd.text:SetTextColor(r, g, b)
-		else
+		end
+	else
+		if cd.text and cd.cool then
 			cd.text:SetText(nil)
 			cd.cool = nil
 		end

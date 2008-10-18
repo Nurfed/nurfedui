@@ -865,7 +865,7 @@ Nurfed:schedule(ATTACK_BUTTON_FLASH_TIME, btnflash, true);
 
 ----------------------------------------------------------------
 -- Reset stance bar border
-if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") or IsAddOnLoaded("Bongos3_ActionBar") then
+if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") or IsAddOnLoaded("Bongos3_ActionBar") or IsAddOnLoaded("Dominos") then
 else
 	hooksecurefunc("UIParent_ManageFramePositions", function()
 		if not MainMenuBar:IsShown() then
@@ -1401,7 +1401,7 @@ end)
 
 Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
 	-- vehicle bar stuff
-	if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") or IsAddOnLoaded("Bongos3_ActionBar") then
+	if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") or IsAddOnLoaded("Bongos3_ActionBar") or IsAddOnLoaded("Dominos") then
 	else
 		MainMenuBar_ToVehicleArt_Orig = MainMenuBar_ToVehicleArt
 		MainMenuBar_ToVehicleArt = function(self)	-- replace this function so the shit, doesn't hit the fan
@@ -1501,7 +1501,7 @@ end)
 -- Toggle main action bar
 local old_ShapeshiftBar_Update = ShapeshiftBar_Update
 function nrf_mainmenu()
-	if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") or IsAddOnLoaded("Bongos3_ActionBar") then
+	if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") or IsAddOnLoaded("Bongos3_ActionBar") or IsAddOnLoaded("Dominos") then
 		return
 	end
 
