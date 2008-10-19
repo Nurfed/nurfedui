@@ -790,13 +790,101 @@ StaticPopupDialogs["NRF_NAZ1"] = {
 	hideOnEscape = 1,
 }
 
-local button = CreateFrame("Button", "NurfedHeaderFrameEditor", panel, "UIPanelButtonTemplate")
+local button = CreateFrame("Button", "NurfedHeaderDoNotClick", panel, "UIPanelButtonTemplate")
 button:SetText(L["Do Not Click"])
 button:SetWidth(106)
 button:SetHeight(24)
 button:SetPoint("CENTER", 0, 0)
 button:SetScript("OnClick", function() StaticPopup_Show("NRF_NAZ1") end)
 
+button = CreateFrame("Button", "NurfedHeaderResetUnitFrames", panel, "UIPanelButtonTemplate")
+button:SetText(L["Reset Unit Frames"])
+button:SetWidth(106)
+button:SetHeight(24)
+button:SetPoint("TOPLEFT",  25, -75)
+button:SetScript("OnClick", function() 
+	StaticPopupDialogs["NRF_RESETUF"] = {
+		text = L["Are you sure you want to reset your Unit Frames?"],
+		button1 = TEXT(YES),
+		button2 = TEXT(NO),
+		OnAccept = function()
+			NURFED_FRAMES = nil;
+			ReloadUI()
+			return
+		end,
+		timeout = 10,
+		whileDead = 1,
+		hideOnEscape = 1,
+	}
+	StaticPopup_Show("NRF_RESETUF")
+	return
+end)
+button = CreateFrame("Button", "NurfedHeaderDisableUnitFrames", panel, "UIPanelButtonTemplate")
+button:SetText(L["Disable Unit Frames"])
+button:SetWidth(106)
+button:SetHeight(24)
+button:SetPoint("TOPLEFT", NurfedHeaderResetUnitFrames, "BOTTOMLEFT", 0, -5)
+button:SetScript("OnClick", function() 
+	StaticPopupDialogs["NRF_DISABLEUF"] = {
+		text = L["Are you sure you want to disable your Unit Frames?"],
+		button1 = TEXT(YES),
+		button2 = TEXT(NO),
+		OnAccept = function()
+			NURFED_FRAMES = {};
+			ReloadUI()
+			return
+		end,
+		timeout = 10,
+		whileDead = 1,
+		hideOnEscape = 1,
+	}
+	StaticPopup_Show("NRF_DISABLEUF")
+	return
+end)
+button = CreateFrame("Button", "NurfedHeaderResetActionBars", panel, "UIPanelButtonTemplate")
+button:SetText(L["Reset Action Bars"])
+button:SetWidth(106)
+button:SetHeight(24)
+button:SetPoint("TOPLEFT", NurfedHeaderResetUnitFrames, "TOPRIGHT", 125, 0)
+button:SetScript("OnClick", function() 
+	StaticPopupDialogs["NRF_RESETAB"] = {
+		text = L["Are you sure you want to reset your Action Bars?"],
+		button1 = TEXT(YES),
+		button2 = TEXT(NO),
+		OnAccept = function()
+			NURFED_ACTIONBARS = nil;
+			ReloadUI()
+			return
+		end,
+		timeout = 10,
+		whileDead = 1,
+		hideOnEscape = 1,
+	}
+	StaticPopup_Show("NRF_RESETAB")
+	return
+end)
+button = CreateFrame("Button", "NurfedHeaderDisableActionBars", panel, "UIPanelButtonTemplate")
+button:SetText(L["Disable Action Bars"])
+button:SetWidth(106)
+button:SetHeight(24)
+button:SetPoint("TOPLEFT", NurfedHeaderResetActionBars, "BOTTOMLEFT", 0, -5)
+button:SetScript("OnClick", function() 
+	StaticPopupDialogs["NRF_DISABLEAB"] = {
+		text = L["Are you sure you want to disable your Action Bars?"],
+		button1 = TEXT(YES),
+		button2 = TEXT(NO),
+		OnAccept = function()
+			NURFED_ACTIONBARS = {};
+			ReloadUI()
+			return
+		end,
+		timeout = 10,
+		whileDead = 1,
+		hideOnEscape = 1,
+	}
+	StaticPopup_Show("NRF_DISABLEAB")
+	return
+end)
 button = CreateFrame("Button", "NurfedHeaderReloadui", panel, "UIPanelButtonTemplate")
 button:SetText(L["Reload UI"])
 button:SetWidth(86)

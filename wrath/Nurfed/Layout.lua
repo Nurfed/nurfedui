@@ -633,6 +633,15 @@ if (not Nurfed_UnitsLayout) then
 					template = "Nurfed_Unit_castingtarget",
 					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
 				},
+				hptext = {
+					type = "FontString",
+					layer = "OVERLAY",
+					FontObject = "Nurfed_UnitFontMedWhite",
+					JustifyH = "RIGHT",
+					Anchor = { "TOPRIGHT", "$parenthp", "TOPRIGHT", -2, -10 },
+					vars = { format = "$miss$cur/$max | $perc" },
+				},
+				--[[
 				threat = {
 					type = "StatusBar",
 					StatusBarTexture = NRF_IMG.."statusbar5",
@@ -670,7 +679,7 @@ if (not Nurfed_UnitsLayout) then
 					vars = { threatUnit = "player", ani = "glide", },
 					Hide = true,
 				},
-
+]]
 				name = {
 					type = "FontString",
 					layer = "OVERLAY",
@@ -748,14 +757,6 @@ if (not Nurfed_UnitsLayout) then
 					layer = "OVERLAY",
 					Anchor = { "BOTTOMRIGHT", "$parent", "TOPRIGHT", -5, 0 },
 					Hide = true,
-				},
-				hptext = {
-					type = "FontString",
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontMedWhite",
-					JustifyH = "RIGHT",
-					Anchor = { "TOPRIGHT", "$parentcastingframe", "BOTTOMRIGHT", 0, 0 },
-					vars = { format = "$miss$cur/$max | $perc" },
 				},
 				mptext = {
 					type = "FontString",

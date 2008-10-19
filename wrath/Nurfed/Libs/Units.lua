@@ -1753,6 +1753,12 @@ local function updateinfo(self, stat, tstat)
 		else
 			max = select(5, UnitDetailedThreatSituation(unit.."target", unit))
 		end	
+		if not max then 
+			for _, child in ipairs(self[stat]) do
+				child:Hide()
+			end
+			return 
+		end
 		perc = scaledPercent
 		curr = threatValue
 		curr = curr / 100 -- get the real number....
