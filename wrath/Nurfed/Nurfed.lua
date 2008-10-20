@@ -776,6 +776,7 @@ StaticPopupDialogs["NRF_NAZ1"] = {
 			button2 = TEXT(NO),
 			OnAccept = function()
 				PlaySoundFile("Interface\\AddOns\\Nurfed\\naz.mp3")
+				NURFED_FRAMES.frames.Nurfed_raid1 = nil
 				return
 			end,
 			timeout = 10,

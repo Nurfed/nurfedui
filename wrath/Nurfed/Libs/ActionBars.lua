@@ -1573,8 +1573,13 @@ function nrf_mainmenu()
 		KeyRingButton:SetParent(MainMenuBarBackpackButton)
 		KeyRingButton:ClearAllPoints()
 		KeyRingButton:SetPoint("LEFT", "MainMenuBarBackpackButton", "RIGHT", 2, 0)
+		KeyRingButton:SetHeight(CharacterBag1Slot:GetHeight())
 
 		MainMenuBarBackpackButton:SetParent(Nurfed_bags)
+		MainMenuBarBackpackButton:SetWidth(CharacterBag1Slot:GetWidth())
+		MainMenuBarBackpackButton:SetHeight(CharacterBag1Slot:GetHeight())
+		MainMenuBarBackpackButtonNormalTexture:SetHeight(CharacterBag1SlotNormalTexture:GetHeight())
+		MainMenuBarBackpackButtonNormalTexture:SetWidth(CharacterBag1SlotNormalTexture:GetWidth())
 		MainMenuBarBackpackButton:ClearAllPoints()
 		MainMenuBarBackpackButton:SetPoint("BOTTOMLEFT")
 
@@ -1591,7 +1596,6 @@ function nrf_mainmenu()
 		local children = { MainMenuBarArtFrame:GetChildren() }
 		for _, child in ipairs(children) do
 			local name = child:GetName()
-			--if (string.find(name, "MicroButton", 1, true)) then
 			if name:find("MicroButton", 1, true) then 
 				child:SetParent(Nurfed_micro)
 			end

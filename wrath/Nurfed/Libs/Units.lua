@@ -1092,6 +1092,7 @@ local damage = {
 	[32] = { (202/255), (76/255), (217/255) },-- 32 - shadow
 	[40] = { (202/255), (178/255), (217/255) }, -- 40 - nature + shadow? lol?
 	[64] = { (153/255), (204/255), (255/255) }, -- 64 - arcane
+	[127] = { (255/255), (100/255), (100/255) }, -- 127 - Used by Chaos Rain, unknown damage type
 }
 
 local classification = {
