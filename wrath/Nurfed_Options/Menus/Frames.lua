@@ -580,26 +580,28 @@ function Nurfed_ScrollFrames(self)
 		local level = framelist[num][2]
 		local icon = getglobal(row:GetName().."icon")
 		local name = getglobal(row:GetName().."name")
-		name:SetText(frame)
-		icon:Hide()
-		icon:ClearAllPoints()
-		icon:SetPoint("LEFT", row, "LEFT", 5 + (10 * level), 0)
-		if getglobal(frame).GetChildren then
-			icon:Show()
-			if NurfedFramesPanelFrames[frame] then
-				icon:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
-				icon:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-Down")
-			else
-				icon:SetNormalTexture("Interface\\Buttons\\UI-PlusButton-Up")
-				icon:SetPushedTexture("Interface\\Buttons\\UI-PlusButton-Down")
+		if getglobal(frame) then
+			name:SetText(frame)
+			icon:Hide()
+			icon:ClearAllPoints()
+			icon:SetPoint("LEFT", row, "LEFT", 5 + (10 * level), 0)
+			if getglobal(frame).GetChildren then
+				icon:Show()
+				if NurfedFramesPanelFrames[frame] then
+					icon:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
+					icon:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-Down")
+				else
+					icon:SetNormalTexture("Interface\\Buttons\\UI-PlusButton-Up")
+					icon:SetPushedTexture("Interface\\Buttons\\UI-PlusButton-Down")
+				end
 			end
-		end
 
-		row.frame = frame
-		if NurfedFramesPanelFrames.select == frame then
-			row:LockHighlight()
-		else
-			row:UnlockHighlight()
+			row.frame = frame
+			if NurfedFramesPanelFrames.select == frame then
+				row:LockHighlight()
+			else
+				row:UnlockHighlight()
+			end
 		end
 	end
 

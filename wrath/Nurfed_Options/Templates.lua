@@ -267,6 +267,9 @@ saveopt = function(self)
 	if self.func then
 		self.func(value)
 	end
+	if self.funcself then
+		self.funcself(self)
+	end
 end
 
 local templates = {
@@ -368,10 +371,8 @@ local templates = {
 				end
 			end
 			if change > 0  then
-				--value = value + (self.bigStep or self.step)
 				value = value + newValue
 			else
-				--value = value - (self.bigStep or self.step)
 				value = value - newValue
 			end
 			self:SetValue(value)
