@@ -2042,6 +2042,39 @@ for _, info in ipairs(panels) do
 	end
 end
 
+Nurfed_CustomConfig = Nurfed_CustomConfig or {}
+function Nurfed_CreateCustomConfig(name)
+	if Nurfed_CustomConfig[name] then
+		for _, info in ipairs(Nurfed_CustomConfig[name]) do
+			if not info.addon or IsAddOnLoaded(info.addon) then
+				local name = string.format("Nurfed%sPanel", info.name)
+				local panel = Nurfed:create(name, "uipanel")
+				panel.name = info.name
+				panel.parent = "Nurfed"
+				panel.default = function() end
+		    
+				getglobal(name.."Title"):SetText(info.name)
+				getglobal(name.."SubText"):SetText(info.subtext)
+
+				for opt, tbl in pairs(info.menu) do
+					Nurfed:create(name..opt, tbl, panel)
+				end
+				if name == "NurfedActionBarsPanel" then
+					panel.expand = {}
+					Nurfed_GenerateMenu("ActionBars", "nrf_actionbars_row", 19)
+					panel:SetScript("OnHide", function()
+						NurfedActionBarsPanelbuttondefault:SetParent(NurfedActionBarsPanelbutton)
+						NurfedActionBarsPanelbuttonhelp:SetParent(NurfedActionBarsPanelbutton)
+						NurfedActionBarsPanelbuttonharm:SetParent(NurfedActionBarsPanelbutton)
+					end)
+				end
+
+				InterfaceOptions_AddCategory(panel)
+			end
+		end
+	end
+end
+
 function Nurfed_ScrollActionBarsStates(self)
 	local states = {}
 	local bar = NurfedActionBarsPanel.bar
