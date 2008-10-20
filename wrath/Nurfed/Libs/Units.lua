@@ -3245,10 +3245,19 @@ end
 ----------------------------------------------------------------
 -- Add custom layouts to locals
 if Nurfed_Replace then
-	for k, v in Nurfed_Replace do
+	for k, v in pairs(Nurfed_Replace) do
 		replace[k] = v
 	end
 	Nurfed_Replace = nil
+end
+	-- used to force the import of vars for files that load after units.lua
+function Nurfed_ReplaceUnitVars()
+	if Nurfed_Replace then
+		for k, v in pairs(Nurfed_Replace) do
+			replace[k] = v
+		end
+		Nurfed_Replace = nil
+	end
 end
 Nurfed:setver("$Date$")
 Nurfed:setrev("$Rev$")
