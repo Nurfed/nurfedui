@@ -243,8 +243,8 @@ local updatebar = function(self)
 			value = self:GetText()
 		end
 		--NURFED_ACTIONBARS[bar][self.val] = value
-		for i in ipairs(NURFED_ACTIONBARS) do
-			if NURFED_ACTIONBARS[i].name == bar then
+		for i,v in ipairs(NURFED_ACTIONBARS) do
+			if v.name == bar then
 				NURFED_ACTIONBARS[i][self.val] = value
 				break
 			end
@@ -1233,7 +1233,7 @@ local panels = {
 								OnClick = function(self) Nurfed_DropMenu(self, visible) end,
 							},
 						},
-						OnEnterPressed = function(self) updatebar(self) end,
+						OnEnterPressed = updatebar,
 						vars = { val = "visible", default = "show" },
 					},
 					rows = {
@@ -1522,102 +1522,6 @@ local panels = {
 				},
 				Hide = true,
 			},
-			unitstates = {
-				type = "Frame",
-				size = { 230, 100 },
-				Anchor = { "TOPLEFT", "$parentadd", "BOTTOMRIGHT", 65, 25 },
-				children = {
-					state = {
-						template = "nrf_editbox",
-						size = { 125, 18 },
-						Anchor = { "TOPLEFT", 0, -7 },
-						children = {
-							drop = {
-								template = "nrf_button",
-								Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
-								Text = L["State"],
-								OnClick = function(self) Nurfed_DropMenu(self, unitstates) end,
-							},
-						},
-						OnTabPressed = function() NurfedActionBarsPanelunitstatesmap:SetFocus() end,
-						OnEnterPressed = addunitstate,
-					},
-					map = {
-						template = "nrf_editbox",
-						size = { 50, 18 },
-						children = {
-							add = {
-								template = "nrf_button",
-								Anchor = { "LEFT", "$parent", "RIGHT", 3, 0 },
-								Text = L["Unit Value"],
-								OnClick = addunitstate,
-							},
-						},
-						OnTabPressed = function() NurfedActionBarsPanelunitstatesstate:SetFocus() end,
-						OnEnterPressed = addunitstate,
-						Anchor = { "TOPLEFT", "$parentstate", "BOTTOMLEFT", 0, -5 },
-					},
-					scroll = {
-						type = "ScrollFrame",
-						size = { 170, 155 },
-						Anchor = { "TOPLEFT", "$parentmap", "BOTTOMLEFT", 0, 0 },
-						uitemp = "FauxScrollFrameTemplate",
-						OnVerticalScroll = function() FauxScrollFrame_OnVerticalScroll(14, Nurfed_ScrollActionBarsUnitStates) end,
-						OnShow = function(self) Nurfed_ScrollActionBarsUnitStates(self) end,
-					},
-					["1"] = {
-						template = "nrf_unitstates",
-						Anchor = { "TOPLEFT", "$parentscroll", "TOPLEFT", 0, -8 },
-						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
-					},
-					["2"] = {
-						template = "nrf_unitstates",
-						Anchor = { "TOPLEFT", "$parent1", "BOTTOMLEFT", 0, 0 },
-						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
-					},
-					["3"] = {
-						template = "nrf_unitstates",
-						Anchor = { "TOPLEFT", "$parent2", "BOTTOMLEFT", 0, 0 },
-						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
-					},
-					["4"] = {
-						template = "nrf_unitstates",
-						Anchor = { "TOPLEFT", "$parent3", "BOTTOMLEFT", 0, 0 },
-						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
-					},
-					["5"] = {
-						template = "nrf_unitstates",
-						Anchor = { "TOPLEFT", "$parent4", "BOTTOMLEFT", 0, 0 },
-						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
-					},
-					["6"] = {
-						template = "nrf_unitstates",
-						Anchor = { "TOPLEFT", "$parent5", "BOTTOMLEFT", 0, 0 },
-						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
-					},
-					["7"] = {
-						template = "nrf_unitstates",
-						Anchor = { "TOPLEFT", "$parent6", "BOTTOMLEFT", 0, 0 },
-						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
-					},
-					["8"] = {
-						template = "nrf_unitstates",
-						Anchor = { "TOPLEFT", "$parent7", "BOTTOMLEFT", 0, 0 },
-						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
-					},
-					["9"] = {
-						template = "nrf_unitstates",
-						Anchor = { "TOPLEFT", "$parent8", "BOTTOMLEFT", 0, 0 },
-						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
-					},
-					["10"] = {
-						template = "nrf_unitstates",
-						Anchor = { "TOPLEFT", "$parent9", "BOTTOMLEFT", 0, 0 },
-						OnClick = function(self) NurfedActionBarsPanelunitstatesstate:SetText(self.state) end,
-					},
-				},
-				Hide = true,
-			},
 		},
 	},
   -- Units Panel
@@ -1654,6 +1558,32 @@ local panels = {
 				template = "nrf_check",
 				Point = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", -2, 10 },
 				vars = { text = L["Old De|Buff Durations"], option = "olddebuffstyle", page = 1, hint = L["Toggle Pre-3.0 De|Buff Duration Showing"], },
+			},
+			slider1 = {
+				template = "nrf_slider",
+				Point = { "TOPRIGHT", "$parentcheck1point2", "BOTTOMRIGHT", 0, -25 },
+				vars = {
+					text = L["Combat Log Length"],
+					option = "combatloglength",
+					low = 0,
+					high = 500,
+					min = 0,
+					max = 500,
+					step = 1,
+					bigStep = 50,
+					format = "%.0f",
+					page = 1,
+				},
+			},
+			check1point3 = {
+				template = "nrf_check",
+				Point = { "TOPRIGHT", "$parentslider1", "BOTTOMRIGHT", 0, -20 },
+				vars = { text = L["Short Numbers"], option = "useshortnumbers", page = 1, hint = L["Toggle trimming large hp/mp numbers with abbreviated text."], },
+			},
+			check1point4 = {
+				template = "nrf_check",
+				Point = { "TOPRIGHT", "$parentcheck1point3", "BOTTOMRIGHT", 0, -5 },
+				vars = { text = L["Big Debuffs"], option = "usebigdebuffs", page = 1, hint = L["Toggle enlarging your debuffs versus others"], },
 			},
 			check2 = {
 				template = "nrf_check",

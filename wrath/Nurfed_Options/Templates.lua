@@ -21,7 +21,12 @@ do	-- keep local dropmenu local...rofl?
 			func = function(self) btn:SetText(self.value) btn.alt(btn) end
 		elseif self:GetParent():GetObjectType() == "EditBox" then
 			func = function(self)
-				btn:GetParent():SetText(self.value) 
+				local parent = btn:GetParent()
+				parent:SetText(self.value)
+				if parent:GetScript("OnEnterPressed") then
+					parent:GetScript("OnEnterPressed")(parent)
+				end
+				--btn:GetParent():SetText(self.value)
 			end
 		else
 			func = function(self) btn:SetText(self.value) saveopt(btn) end
@@ -198,6 +203,9 @@ onshow = function(self)
 		value.option = self.option
 		value.val = self.val
 		value.func = self.func
+		if self.orientation then
+			self:SetOrientation(self.orientation)
+		end
 	elseif objtype == "EditBox" then
 		if type(opt) == "table" then
 			local text = ""
@@ -482,53 +490,6 @@ local templates = {
 			},
 		},
 	},
-	nrf_unitstates = {
-		type = "Button",
-		size = { 175, 14 },
-		children = {
-			delete = {
-				type = "Button",
-				layer = "ARTWORK",
-				size = { 14, 14 },
-				Anchor = { "LEFT", "$parent", "LEFT", 0, 0 },
-				NormalTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Up",
-				PushedTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Down",
-				HighlightTexture = "Interface\\Buttons\\UI-GroupLoot-Pass-Highlight",
-				OnClick = function(self) Nurfed_DeleteUnitState(self) end,
-				OnEnter = function(self)
-					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-					GameTooltip:AddLine(DELETE, 1, 0, 0)
-					GameTooltip:Show()
-				end,
-				OnLeave = function() GameTooltip:Hide() end,
-			},
-			name = {
-				type = "FontString",
-				layer = "ARTWORK",
-				size = { 102, 14 },
-				Anchor = { "LEFT", "$parentdelete", "RIGHT", 5, 0 },
-				FontObject = "GameFontNormalSmall",
-				JustifyH = "LEFT",
-				TextColor = { 1, 1, 1 },
-			},
-			value = {
-				type = "FontString",
-				layer = "ARTWORK",
-				size = { 50, 14 },
-				Anchor = { "LEFT", "$parentname", "RIGHT", 5, 0 },
-				FontObject = "GameFontNormalSmall",
-				JustifyH = "RIGHT",
-				TextColor = { 1, 1, 1 },
-			},
-			HighlightTexture = {
-				type = "Texture",
-				layer = "BACKGROUND",
-				Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
-				BlendMode = "ADD",
-				Anchor = "all",
-			},
-		},
-	},
 	nrf_actionbars_row = {
 		type = "Button",
 		size = { 150, 14 },
@@ -563,24 +524,6 @@ local templates = {
 				end,
 				OnLeave = function() GameTooltip:Hide() end,
 				OnClick = function(self) Nurfed_ToggleStates(self) end,
-			},
-			unitstates = {
-				template = "nrf_check",
-				size = { 16, 16 },
-				Anchor = { "LEFT", "$parentname", "RIGHT", -5, 0 },
-				OnShow = function(self)
-					if GetGuildInfo("player") ~= "Nurfed" then
-						self:Hide()
-					end
-					self:SetHitRectInsets(0, 0, 0, 0)
-				end,
-				OnEnter = function(self)
-					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-					GameTooltip:AddLine(L["Show Unit States"], 1, 1, 0)
-					GameTooltip:Show()
-				end,
-				OnLeave = function() GameTooltip:Hide() end,
-				OnClick = function(self) Nurfed_ToggleUnitStates(self) end,
 			},
 			delete = {
 				type = "Button",
