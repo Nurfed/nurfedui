@@ -1077,9 +1077,6 @@ local cure = {
 		["SHAMAN"] = true,
 		["PALADIN"] = true,
 	},
-	["Enrage"] = {
-		["HUNTER"] = true,
-	},
 }
 
 local damage = {
@@ -1994,7 +1991,11 @@ local function updatecombo(self, unit, force)
 	if self.combo then
 		local comboPoints
 		for _, child in ipairs(self.combo) do
-			if child.unit1 ~= unit and not force then return end
+			if not force then -- if we aren't forcing the update (target changed), then check the unit
+				if child.unit1 ~= unit then 
+					return -- not proper unit, dont update info kthx
+				end
+			end
 			comboPoints = GetComboPoints(unit, child.unit2)
 			if comboPoints > 0 then
 				local objtype = child:GetObjectType()
@@ -2006,6 +2007,7 @@ local function updatecombo(self, unit, force)
 						child:SetTextColor(1, 0, 0)
 					end
 					child:Show()
+					
 				elseif objtype == "StatusBar" then
 					child:SetMinMaxValues(0, 5)
 					child:SetValue(comboPoints)
@@ -2165,9 +2167,13 @@ local function updateauras(self)
 	local unit = SecureButton_GetUnit(self)
 	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd, isMine, isStealable
 	local isFriend, filterList, check
+	local showdur = Nurfed:getopt("showdurationlist")
+	local oldBuffs = Nurfed:getopt("olddebuffstyle")
+	
 	isFriend = UnitIsFriend("player", unit)
 	if self.buff then
 		filterList = Nurfed:getopt("bufffilterlist")
+		
 		for name in pairs(filterList) do check = true; break; end
 		filterList = check and filterList or nil
 		
@@ -2195,7 +2201,11 @@ local function updateauras(self)
 				--button:SetScript("OnUpdate", cooldowntext)
 				cd = _G[button:GetName().."Cooldown"]
 				if duration and duration > 0 then
-					CooldownFrame_SetTimer(cd, left - duration, duration, 1)
+					if not oldBuffs or oldBuffs and isMine then
+						CooldownFrame_SetTimer(cd, left - duration, duration, 1)
+					else
+						cd:Hide()
+					end
 				else
 					cd:Hide()
 				end
@@ -2205,8 +2215,7 @@ local function updateauras(self)
 						button.update = 0
 						button.flashdct = 1
 						button:SetScript("OnUpdate", aurafade)
-						--frame.cure = cure[dtype][playerClass] -- this will always return true?  durr
-						self.cure = true
+						self.cure = cure[dtype][playerClass]
 					end
 				else
 					button:SetScript("OnUpdate", cooldowntext)
@@ -2241,7 +2250,7 @@ local function updateauras(self)
 			local filter = self.dfilter
 			if (unit == "target" or unit == "focus") and not isFriend then filter = nil end
 
-			name, rank, texture, app, dtype, duration, left = UnitDebuff(unit, i, filter)
+			name, rank, texture, app, dtype, duration, left, isMine = UnitDebuff(unit, i, filter)
 			if (name and (isFriend or not filterList)) or name and filterList and filterList[name] then
 				total = total + 1
 				-- reset to button position if we are using a filtering list.
@@ -2264,7 +2273,11 @@ local function updateauras(self)
 
 				cd = _G[button:GetName().."Cooldown"]
 				if duration and duration > 0 then
-					CooldownFrame_SetTimer(cd, left - duration, duration, 1)
+					if not oldBuffs or oldBuffs and isMine then
+						CooldownFrame_SetTimer(cd, left - duration, duration, 1)
+					else
+						cd:Hide()
+					end
 				else
 					cd:Hide()
 				end
@@ -2731,33 +2744,33 @@ function Nurfed:unitimbue(frame)
 		frame.isParty = true
 		frame:SetID(tonumber(id))
 		frame:SetScript("OnAttributeChanged", showparty)
-		table.insert(events, "UNIT_COMBAT")
-		table.insert(events, "PARTY_MEMBERS_CHANGED")
+		ntinsert(events, "UNIT_COMBAT")
+		ntinsert(events, "PARTY_MEMBERS_CHANGED")
 		
 	elseif frame.unit == "target" then
-		table.insert(events, "PLAYER_TARGET_CHANGED")
-		table.insert(events, "UNIT_DYNAMIC_FLAGS")
-		table.insert(events, "UNIT_CLASSIFICATION_CHANGED")
+		ntinsert(events, "PLAYER_TARGET_CHANGED")
+		ntinsert(events, "UNIT_DYNAMIC_FLAGS")
+		ntinsert(events, "UNIT_CLASSIFICATION_CHANGED")
 		frame:SetScript("OnHide", TargetFrame_OnHide)
 		
 	elseif frame.unit == "focus" then
-		table.insert(events, "PLAYER_FOCUS_CHANGED")
+		ntinsert(events, "PLAYER_FOCUS_CHANGED")
 		
 	elseif string.find(frame.unit, "pet", 1, true) then
 		if frame.unit == "pet" then
 			frame.punit = "player"
 		end
-		table.insert(events, "UNIT_PET")
-		table.insert(events, "UNIT_EXITED_VEHICLE")
-		table.insert(events, "UNIT_ENTERED_VEHICLE")
+		ntinsert(events, "UNIT_PET")
+		ntinsert(events, "UNIT_EXITED_VEHICLE")
+		ntinsert(events, "UNIT_ENTERED_VEHICLE")
 		
 	elseif frame.unit == "player" then
-		table.insert(events, "UNIT_COMBAT")
+		ntinsert(events, "UNIT_COMBAT")
 		if playerClass == "DEATHKNIGHT" then
 			_G["RuneFrame"]:UnregisterAllEvents();
 			_G["RuneFrame"]:Hide();
 		elseif playerClass == "DRUID" then
-			table.insert(events, "UPDATE_SHAPESHIFT_FORM")
+			ntinsert(events, "UPDATE_SHAPESHIFT_FORM")
 		end
 	end
 
@@ -2800,10 +2813,8 @@ function Nurfed:unitimbue(frame)
 					frame.predictedHealth = true
 					ntinsert(predictedStatsTable, frame)
 				else
-					--table.insert(events, "UNIT_HEALTH")
 					ntinsert(events, "UNIT_HEALTH")
 				end
-				--table.insert(events, "UNIT_MAXHEALTH")
 				ntinsert(events, "UNIT_MAXHEALTH")
 			
 			elseif pre == "Threat" then
@@ -2816,12 +2827,6 @@ function Nurfed:unitimbue(frame)
 					frame.predictedPower = true
 					ntinsert(predictedStatsTable, frame)
 				else
-					--table.insert(events, "UNIT_MANA")
-					--table.insert(events, "UNIT_RAGE")
-					--table.insert(events, "UNIT_FOCUS")
-					--table.insert(events, "UNIT_ENERGY")
-					--table.insert(events, "UNIT_HAPPINESS")
-					--table.insert(events, "UNIT_RUNIC_POWER")
 					ntinsert(events, "UNIT_MANA")
 					ntinsert(events, "UNIT_RAGE")
 					ntinsert(events, "UNIT_FOCUS")
@@ -2829,13 +2834,6 @@ function Nurfed:unitimbue(frame)
 					ntinsert(events, "UNIT_HAPPINESS")
 					ntinsert(events, "UNIT_RUNIC_POWER")
 				end
-				--table.insert(events, "UNIT_MAXMANA");
-				--table.insert(events, "UNIT_MAXRAGE");
-				--table.insert(events, "UNIT_MAXFOCUS");
-				--table.insert(events, "UNIT_MAXENERGY");
-				--table.insert(events, "UNIT_MAXHAPPINESS");
-				--table.insert(events, "UNIT_MAXRUNIC_POWER");
-				--table.insert(events, "UNIT_DISPLAYPOWER");
 				ntinsert(events, "UNIT_MAXMANA");
 				ntinsert(events, "UNIT_MAXRAGE");
 				ntinsert(events, "UNIT_MAXFOCUS");
@@ -2850,13 +2848,6 @@ function Nurfed:unitimbue(frame)
 					frame.powerType = UnitPowerType(frame.unit)
 					ntinsert(predictedStatsTable, frame)
 				else
-					--table.insert(events, "UNIT_MANA");
-					--table.insert(events, "UNIT_RAGE");
-					--table.insert(events, "UNIT_FOCUS");
-					--table.insert(events, "UNIT_ENERGY");
-					--table.insert(events, "UNIT_HAPPINESS");
-					--table.insert(events, "UNIT_RUNIC_POWER");
-					
 					ntinsert(events, "UNIT_MANA");
 					ntinsert(events, "UNIT_RAGE");
 					ntinsert(events, "UNIT_FOCUS");
@@ -2864,14 +2855,6 @@ function Nurfed:unitimbue(frame)
 					ntinsert(events, "UNIT_HAPPINESS");
 					ntinsert(events, "UNIT_RUNIC_POWER");
 				end
-				--table.insert(events, "UNIT_MAXMANA");
-				--table.insert(events, "UNIT_MAXRAGE");
-				--table.insert(events, "UNIT_MAXFOCUS");
-				--table.insert(events, "UNIT_MAXENERGY");
-				--table.insert(events, "UNIT_MAXHAPPINESS");
-				--table.insert(events, "UNIT_MAXRUNIC_POWER");
-				--table.insert(events, "UNIT_DISPLAYPOWER");
-				
 				ntinsert(events, "UNIT_MAXMANA");
 				ntinsert(events, "UNIT_MAXRAGE");
 				ntinsert(events, "UNIT_MAXFOCUS");
@@ -2882,36 +2865,25 @@ function Nurfed:unitimbue(frame)
 				
 			elseif pre == "XP" then
 				if frame.unit == "player" then
-					--table.insert(events, "PLAYER_XP_UPDATE");
-					--table.insert(events, "PLAYER_LEVEL_UP");
-					--table.insert(events, "UPDATE_EXHAUSTION");
-					--table.insert(events, "UPDATE_FACTION");
-					
 					ntinsert(events, "PLAYER_XP_UPDATE");
 					ntinsert(events, "PLAYER_LEVEL_UP");
 					ntinsert(events, "UPDATE_EXHAUSTION");
 					ntinsert(events, "UPDATE_FACTION");
 					
 				elseif frame.unit == "pet" then
-					--table.insert(events, "UNIT_PET_EXPERIENCE");
 					ntinsert(events, "UNIT_PET_EXPERIENCE");
 				end
 				
 			elseif pre == "combo" then
-				--table.insert(events, "UNIT_COMBO_POINTS");
 				ntinsert(events, "UNIT_COMBO_POINTS");
 				
 			elseif pre == "feedback" then
-				--table.insert(events, "UNIT_COMBAT");
 				ntinsert(events, "UNIT_COMBAT");
 				
 			elseif pre == "buff" or pre == "debuff" and not string.find(frame.unit, "target", 2, true) then
-				--table.insert(events, "UNIT_AURA");
 				ntinsert(events, "UNIT_AURA");
 			
 			elseif pre == "rune" then
-				--table.insert(events, "RUNE_POWER_UPDATE");
-				--table.insert(events, "RUNE_TYPE_UPDATE");
 				ntinsert(events, "RUNE_POWER_UPDATE");
 				ntinsert(events, "RUNE_TYPE_UPDATE");
 				child:GetParent().runes = {}
@@ -2984,13 +2956,13 @@ function Nurfed:unitimbue(frame)
 				regstatus("combo", child)
 				
 			elseif childname:find("^pvp") then
-				table.insert(events, "UNIT_FACTION")
+				ntinsert(events, "UNIT_FACTION")
 				frame.pvp = child
 				
 			elseif childname:find("^status") then
-				table.insert(events, "PLAYER_REGEN_DISABLED")
-				table.insert(events, "PLAYER_REGEN_ENABLED")
-				table.insert(events, "PLAYER_UPDATE_RESTING")
+				ntinsert(events, "PLAYER_REGEN_DISABLED")
+				ntinsert(events, "PLAYER_REGEN_ENABLED")
+				ntinsert(events, "PLAYER_UPDATE_RESTING")
 				frame.status = child
 				
 			elseif objtype == "FontString" then
@@ -2998,23 +2970,23 @@ function Nurfed:unitimbue(frame)
 					string.gsub(child.format, "%$%a+",
 						function(s)
 							if s == "$guild" then
-								table.insert(events, "PLAYER_GUILD_UPDATE")
+								ntinsert(events, "PLAYER_GUILD_UPDATE")
 								frame.guild = child
 								
 							elseif s == "$level" then
-								table.insert(events, "UNIT_LEVEL")
+								ntinsert(events, "UNIT_LEVEL")
 								frame.level = child
 								
 							elseif s == "$key" then
-								table.insert(events, "UPDATE_BINDINGS")
+								ntinsert(events, "UPDATE_BINDINGS")
 								frame.key = child
 								
 							elseif s == "$name" then
 								frame.name = child
 								
 							elseif s == "$loot" then
-								table.insert(events, "PARTY_MEMBERS_CHANGED")
-								table.insert(events, "PARTY_LOOT_METHOD_CHANGED")
+								ntinsert(events, "PARTY_MEMBERS_CHANGED")
+								ntinsert(events, "PARTY_LOOT_METHOD_CHANGED")
 								frame.loot = child
 							end
 						end
@@ -3022,8 +2994,8 @@ function Nurfed:unitimbue(frame)
 					regstatus("text", child)
 					
 				elseif childname == "group" then
-					table.insert(events, "RAID_ROSTER_UPDATE")
-					table.insert(events, "PARTY_MEMBERS_CHANGED")
+					ntinsert(events, "RAID_ROSTER_UPDATE")
+					ntinsert(events, "PARTY_MEMBERS_CHANGED")
 					frame.group = child
 				end
 				
@@ -3031,21 +3003,21 @@ function Nurfed:unitimbue(frame)
 				local texture = child:GetTexture()
 				if texture then
 					if texture == "Interface\\GroupFrame\\UI-Group-LeaderIcon" then
-						table.insert(events, "PARTY_LEADER_CHANGED")
+						ntinsert(events, "PARTY_LEADER_CHANGED")
 						frame.leader = child
 					elseif texture == "Interface\\GroupFrame\\UI-Group-MasterLooter" then
-						table.insert(events, "PARTY_LOOT_METHOD_CHANGED")
+						ntinsert(events, "PARTY_LOOT_METHOD_CHANGED")
 						frame.master = child
 					elseif texture == "Interface\\QuestFrame\\UI-QuestTitleHighlight" then
-						table.insert(events, "PLAYER_TARGET_CHANGED")
+						ntinsert(events, "PLAYER_TARGET_CHANGED")
 						if (not frame:GetHighlightTexture()) then
 							frame:SetHighlightTexture(child)
 						end
 					elseif texture == "Interface\\TargetingFrame\\UI-RaidTargetingIcons" then
-						table.insert(events, "RAID_TARGET_UPDATE")
+						ntinsert(events, "RAID_TARGET_UPDATE")
 						frame.raidtarget = child
 					elseif texture == "Interface\\PetPaperDollFrame\\UI-PetHappiness" then
-						table.insert(events, "UNIT_HAPPINESS")
+						ntinsert(events, "UNIT_HAPPINESS")
 						frame.happiness = child
 					elseif texture == "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Classes" then
 						frame.class = child
@@ -3053,7 +3025,7 @@ function Nurfed:unitimbue(frame)
 						frame.race = child
 					end
 				elseif childname:find("^portrait") or child.isportrait then
-					table.insert(events, "UNIT_PORTRAIT_UPDATE")
+					ntinsert(events, "UNIT_PORTRAIT_UPDATE")
 					frame.portrait = child
 					
 				elseif childname:find("^rank") then

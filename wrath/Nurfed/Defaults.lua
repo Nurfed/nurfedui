@@ -62,7 +62,9 @@ NURFED_DEFAULT["hotkeys"] = true
 NURFED_DEFAULT["macrotext"] = true
 NURFED_DEFAULT["unusedbtn"] = true
 NURFED_DEFAULT["fadein"] = true
-NURFED_DEFAULT["petbarstartbutton"] = 1
+
+NURFED_DEFAULT["olddebuffstyle"] = false
+
 NURFED_DEFAULT["actionbarnomana"] = { 0.5, 0.5, 1 }
 NURFED_DEFAULT["actionbarnotusable"] = { 0.4, 0.4, 0.4 }
 NURFED_DEFAULT["actionbarnorange"] = { 1, 0, 0 }
