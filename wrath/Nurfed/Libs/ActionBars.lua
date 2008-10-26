@@ -250,8 +250,15 @@ local function seticon(btn)
 						end
 					else
 						texture = GetSpellTexture(spell)
-						if not texture and companionList and companionList[spell] then
-							texture = select(3, GetSpellInfo(companionList[spell]))
+						if not texture then
+							if companionList and companionList[spell] then
+								texture = select(3, GetSpellInfo(companionList[spell]))
+							else
+								updateCompanionList()
+								if companionList[spell] then
+									texture = select(3, GetSpellInfo(companionList[spell]))
+								end
+							end
 						end
 						if IsAttackSpell(spell) or IsAutoRepeatSpell(spell) then
 							btn.attack = true
@@ -942,34 +949,11 @@ function Nurfed:updatebar(hdr)
 			end
 		end
 	end
-	if vals.unitmaps then
-		for k, v in pairs(vals.unitmaps) do
-			if k:find("%-") then
-				k = k:gsub("%-", ":");
-			end
-	
-			local add = true;
-			local list = v..":"..v;
-			table.insert(unitdriver, "["..k.."] "..v);
 
-			for _, l in ipairs(unitlist) do
-				if l == list then
-					add = nil;
-					break
-				end
-			end
-
-			if add then
-				table.insert(unitlist, v..":"..v);
-			end
-		end
-	end
 	driver = table.concat(driver, ";");
 	state = SecureCmdOptionParse(driver);
 	statelist = table.concat(statelist, ";");
 	
-	unitdriver = table.concat(unitdriver, ";");
-	unitlist = table.concat(unitlist, ";");
 
 	if #driver == 0 then
 		state = "0";
@@ -990,19 +974,11 @@ function Nurfed:updatebar(hdr)
 						self:SetAttribute("state", newstate)
 						control:ChildUpdate(stateid, newstate)]]
 					)
-	hdr:SetAttribute("_onstate-unit", [[
-						newstate = newstate ~= "none" and newstate or nil
-						unit = newstate
-						self:SetAttribute("unit", newstate)
-						control:ChildUpdate(stateid, newstate)]]
-					)
-	RegisterStateDriver(hdr, "unit", unitdriver)
 	RegisterStateDriver(hdr, "actionsettings", driver);
 	RegisterStateDriver(hdr, "visibility", visible);
 
 	hdr:SetAttribute("statebutton", statelist);
 	hdr:SetAttribute("state", state);
-	hdr:SetAttribute("unit", SecureCmdOptionParse(unitdriver))
 	
   	hdr:SetWidth(vals.cols * (36 + vals.xgap) - vals.xgap);
 	hdr:SetHeight(vals.rows * (36 + vals.ygap) - vals.ygap);

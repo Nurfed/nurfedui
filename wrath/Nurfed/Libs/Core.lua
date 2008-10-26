@@ -11,7 +11,7 @@ hooksecurefunc("QuestLog_UpdateQuestDetails", function()
 	QuestLogQuestDescription:SetText(text)
 end)
 
-local version = 1.11
+local version = 1.12
 local _G = getfenv(0)
 local util = _G["Nurfed"]
 
@@ -55,6 +55,20 @@ string.capital = function(text)
 	return text
 end
 
+-- clean table shit
+function ntinsert(tbl, val)
+	if not tbl or type(tbl) ~= "table" then return end
+	local add = true
+	for i,v in pairs(tbl) do
+		if i == val or v == val then
+			add = false
+			break
+		end
+	end
+	if add then
+		table.insert(tbl, val)
+	end	
+end
 ----------------------------------------------------------------
 -- Utility functions
 function util:print(msg, out, r, g, b, ...)

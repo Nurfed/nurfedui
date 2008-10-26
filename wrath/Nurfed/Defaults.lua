@@ -52,6 +52,10 @@ NURFED_DEFAULT["happiness"] = { 0.00, 1.00, 1.00 }
 NURFED_DEFAULT["showmap"] = true
 NURFED_DEFAULT["cdaura"] = true
 NURFED_DEFAULT["cdaction"] = true
+NURFED_DEFAULT["combatloglength"] = 50
+NURFED_DEFAULT["combatlogshowschool"] = true
+NURFED_DEFAULT["usebigdebuffs"] = false
+NURFED_DEFAULT["useshortnumbers"] = false
 NURFED_DEFAULT["debufffilterlist"] = {}
 NURFED_DEFAULT["bufffilterlist"] = {}
 

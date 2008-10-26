@@ -33,7 +33,16 @@ local localesMT = {
 				self.__Nagged = true
 			end
 			if false then	-- if true will input what is not translated and what module it belongs to in Chatframe3 or ChatFrame2
-				debug(TRANSLATE_MESSAGE_DEBUG:format(key))
+				print(TRANSLATE_MESSAGE_DEBUG:format(self.__Name, key))
+				if not translateList then
+					translateList = {}
+				end
+				if not translateList[self.__Name] then
+					translateList[self.__Name] = {}
+				end
+				if not translateList[self.__Name][key] then
+					translateList[self.__Name][key] = true
+				end
 			end
 		else
 			self[key] = common[key]

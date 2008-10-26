@@ -13,6 +13,10 @@ local UnitMana = UnitMana
 local UnitManaMax = UnitManaMax
 local UnitDebuff = UnitDebuff
 local UnitBuff = UnitBuff
+--local STRING_SCHOOL_UNKNOWN = _G.STRING_SCHOOL_UNKNOWN
+--local STRING_SCHOOL_PHYSICAL = _G.STRING_SCHOOL_PHYSICAL
+--local CombatLog_String_SchoolString = _G.CombatLog_String_SchoolString
+--local CombatLog_Color_ColorArrayBySchool = _G.CombatLog_Color_ColorArrayBySchool
 local playerClass = select(2, UnitClass("player"))
 local ghost = "Ghost"
 
@@ -1281,19 +1285,6 @@ local function auratip(self)
 	end
 end
 
-local function ntinsert(tbl, val)
-	if not tbl or type(tbl) ~= "table" then return end
-	local add = true
-	for i,v in pairs(tbl) do
-		if i == val or v == val then
-			add = false
-			break
-		end
-	end
-	if add then
-		table.insert(tbl, val)
-	end	
-end
 ----------------------------------------------------------------
 -- StatusBar animations
 local function glide(self, e)
@@ -1359,82 +1350,24 @@ local function fade(frame)
 	frame.old = 0
 	hooksecurefunc(frame, "SetValue", nrf_fading)
 end
-
-local function addcombat()-- Update:  You said this was used by the combatlog.  
-						  -- I still cant find it being called anywhere in this file
-	local text = date("[%#I:%M:%S]")
-	local unit = arg1
-	local event = arg2
-	local flags = arg3
-	local amount = arg4
-	local dtype = arg5
-	local color = Nurfed:rgbhex(1, 0.647, 0)
-
-	if event == "HEAL" then
-		text = text.." |cff00ff00+"..amount.."|r"
-	elseif event == "WOUND" then
-		if amount ~= 0 then
-			color = Nurfed:rgbhex(unpack(damage[dtype]))
-			text = text.." "..color.."-"..amount.."|r"
-		elseif CombatFeedbackText[flags] then
-			text = text.." "..color..CombatFeedbackText[flags].."|r"
-		else
-			text = text.." "..color..CombatFeedbackText["MISS"].."|r"
-		end
-	elseif event == "ENERGIZE" then
-		color = Nurfed:rgbhex(0.41, 0.8, 0.94)
-		text = text.." "..color..amount.."|r"
-	elseif CombatFeedbackText[event] then
-		text = text.." "..color..CombatFeedbackText[event].."|r"
-	end
-
-	if flags == "CRITICAL" then
-		text = text.."|cffffff00*|r"
-	elseif flags == "CRUSHING" then
-		text = text.."|cffffff00^|r"
-	elseif flags == "GLANCING" then
-		text = text.."|cffffff00-|r"
-	end
-
-	table.insert(combatlog[unit], { UnitName(unit), text })
-	if #combatlog[unit] > 50 then
-		table.remove(combatlog[unit], 1)
-	end
-end
-
-local lastTime, lastType, lastAmount = 0, 0, 0
-local function updatedamage(frame, unit, event, flags, amount, type)
-	-- hack to prevent double parsing of the same event.  UNIT_COMBAT seems to be firing
-	-- twice for each event.  This may be a Nurfed bug, look into further.
-	if lastTime + .001 >= GetTime() and lastType == type and lastAmount == amount then return end
-	lastTime, lastType, lastAmount = GetTime(), type, amount
+						--  self,		event, flags, amount, type
+local function updatedamage(self, unit, event, flags, amount, type, ...)
 	local text = ""
 	local r, g, b = 1, 0.647, 0
-	
 	if event == "HEAL" then
 		text = "+"..amount
 		r, g, b = 0, 1, 0
 	elseif event == "WOUND" then
 		if amount ~= 0 then
-			if not damage[type] then
-				Nurfed:print("New Damage Type:"..amount.."  type:"..type.."  Report this message to Apoco along with what mob did it!")
-				r, g, b = 1, 0, 0
-			else
-				r, g, b = unpack(damage[type])
-			end
+			local array = CombatLog_Color_ColorArrayBySchool(type)
+			r, g, b = array.r, array.g, array.b
 			text = "-"..amount
-		elseif flags == "ABSORB" then
-			text = CombatFeedbackText["ABSORB"]
-		elseif flags == "BLOCK" then
-			text = CombatFeedbackText["BLOCK"]
-		elseif flags == "RESIST" then
-			text = CombatFeedbackText["RESIST"]
+		elseif CombatFeedbackText[flags] then
+			text = CombatFeedbackText[flags]
 		else
 			text = CombatFeedbackText["MISS"]
 		end
-	elseif event == "IMMUNE" then
-		text = CombatFeedbackText[event]
-	elseif event == "BLOCK" then
+	elseif event == "IMMUNE" or event == "BLOCK" then
 		text = CombatFeedbackText[event]
 	elseif event == "ENERGIZE" then
 		text = amount
@@ -1442,8 +1375,8 @@ local function updatedamage(frame, unit, event, flags, amount, type)
 	else
 		text = CombatFeedbackText[event]
 	end
-	if frame.feedback then
-		for _, child in ipairs(frame.feedback) do
+	if self.feedback then
+		for _, child in ipairs(self.feedback) do
 			if child.heal and event == "HEAL" then
 				child:AddMessage(text, r, g, b, 1, 1)
 			end
@@ -1458,11 +1391,24 @@ local function updatedamage(frame, unit, event, flags, amount, type)
 
 	if combatlog[unit] then
 		local color = Nurfed:rgbhex(r, g, b)
-		text = date("[%#I:%M:%S]").." "..color..text.."|r"
-		table.insert(combatlog[unit], { UnitName(unit), text })
-		if #combatlog[unit] > 50 then
+		local ttype = CombatLog_String_SchoolString(type)
+		if ttype ~= STRING_SCHOOL_UNKNOWN and ttype ~= STRING_SCHOOL_PHYSICAL and Nurfed:getopt("combatlogshowschool") then
+			text = date("[%#I:%M:%S]").." "..color..text.." ("..ttype..")|r"
+		else
+			text = date("[%#I:%M:%S]").." "..color..text.."|r"
+		end
+
+		ntinsert(combatlog[unit], { UnitName(unit), text })
+
+		local max = Nurfed:getopt("combatloglength")
+		while #combatlog[unit] > max do
 			table.remove(combatlog[unit], 1)
 		end
+		
+		--table.insert(combatlog[unit], { UnitName(unit), text })
+		--if #combatlog[unit] > 50 then
+		--	table.remove(combatlog[unit], 1)
+		--end
 	end
 end
 
@@ -1722,7 +1668,7 @@ end
 local function updateinfo(self, stat, tstat)
 	if not stat or not self[stat] then return end
 	local unit = SecureButton_GetUnit(self)
-	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb, isTanking, state, scaledPercent, rawPercent, threatValue, rest;
+	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb, isTanking, state, scaledPercent, rawPercent, threatValue, rest, currtext;
 	if stat ~= "Threat" then
 		curr, max, missing, perc, r, g, b, bgr, bgg, bgb = Nurfed:getunitstat(unit, stat, tstat and 0, tstat and "Mana")
 	else
@@ -1763,6 +1709,13 @@ local function updateinfo(self, stat, tstat)
 		max = max / 100
 		r, g, b = GetThreatStatusColor(state)
 	else
+		if Nurfed:getopt("useshortnumbers") then
+			if curr >= 1000000 then
+				currtext = format("%.2fm", curr/1000000)
+			elseif max >= 100000 then
+				currtext = format("%.1fk", curr/1000)
+			end
+		end
 		if max >= 1000000 then
 			maxtext = format("%.2fm", max/1000000)
 		elseif max >= 100000 then
@@ -1825,7 +1778,7 @@ local function updateinfo(self, stat, tstat)
 					text = DEAD
 				else
 					text = child.format
-					text = text:gsub("$cur", curr)
+					text = text:gsub("$cur", currtext or curr)
 					text = text:gsub("$max", maxtext)
 					text = text:gsub("$perc", perc.."%%")
 					
@@ -2293,6 +2246,7 @@ local function updateauras(self)
 					button:SetScript("OnUpdate", cooldowntext)
 					button:SetAlpha(1)
 				end
+				button.isMine = isMine
 			else
 				button:SetScript("OnUpdate", nil)
 				button:Hide()
@@ -2302,9 +2256,14 @@ local function updateauras(self)
 			width = button:GetWidth()
 			fwidth = total * width
 			scale = self.debuffwidth / fwidth
+			local useIsMine = Nurfed:getopt("usebigdebuffs")
 			if scale > 1 then scale = 1 end
 			for i = 1, total do
-				_G[self:GetName().."debuff"..i]:SetScale(scale)
+				local btn = _G[self:GetName().."debuff"..i]
+				btn:SetScale(scale)
+				if btn.isMine and useIsMine then
+					btn:SetScale(scale*1.25)
+				end
 			end
 		end
 	end
@@ -2513,7 +2472,7 @@ local function updateframe(self, notext)
 		self.powerType = UnitPowerType(unit)
 		manacolor(self) 
 	end
-	if self.buff or frame.debuff then updateauras(self) end
+	if self.buff or self.debuff then updateauras(self) end
 	if self.portrait then SetPortraitTexture(self.portrait, unit) end
 	if self.pvp then updatepvp(self) end
 	if self.leader then updateleader(self) end
@@ -2538,8 +2497,6 @@ local function updateframe(self, notext)
 		end
 	end
 end
-
-
 
 local events = {
 	["UPDATE_SHAPESHIFT_FORM"] = updateframe,
@@ -2787,7 +2744,8 @@ function Nurfed:unitimbue(frame)
 	end
 	
 	if dropdown then
-		menufunc = function() ToggleDropDownMenu(1, nil, dropdown, "cursor") end
+		menufunc = function() securecall("ToggleDropDownMenu", 1, nil, dropdown, "cursor") end
+		--menufunc = function() ToggleDropDownMenu(1, nil, dropdown, "cursor") end
 	end
 	
 	SecureUnitButton_OnLoad(frame, frame.unit, menufunc)
@@ -2920,8 +2878,7 @@ function Nurfed:unitimbue(frame)
 			
 			local pre = childname:sub(1, 2)
 			if pre == "hp" or pre == "mp" or pre == "xp" or pre == "dr" or pre == "th" then
-				if pre == "hp" then
-					pre = "Health"
+				if pre == "hp" then pre = "Health"
 				elseif pre == "mp" then pre = "Mana"
 				elseif pre == "xp" then pre = "XP"
 				elseif pre == "dr" then pre = "dMana"
@@ -3052,7 +3009,7 @@ function Nurfed:unitimbue(frame)
 				end
 				
 				
-			elseif objtype == "MessageFrame" then
+			elseif objtype == "MessageFrame" or objtype == "ScrollingMessageFrame" then
 				regstatus("feedback", child)
 				
 			elseif objtype == "Button" then

@@ -16,5 +16,11 @@ Nurfed:RegisterTranslations("enUS",
 	"Left Click - |cff00ff00Lock|r UI", true,
 	"Right Click - Nurfed Menu", true,
 	"Middle Click - WoW Micro Menu", true,
-	"Ctrl + Drag moves your Action Bars.", true
+	"Ctrl + Drag moves your Action Bars.", true,
+	"Reset Action Bars", true,
+	"Reset Unit Frames", true,
+	"Disable Action Bars", true,
+	"Disable Unit Frames", true,
+	"Do Not Click", true,
+	"Pressing this button could cause death or other unwanted results.\rAre you sure?", true
 )
