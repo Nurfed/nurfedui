@@ -1622,7 +1622,7 @@ local panels = {
 	},
   -- Units Panel
 	{
-		name = L["Units"],
+		name = L["Unit Frames"],
 		subtext = L["Options that effect the unit frames created by Nurfed."],
 		menu = {
 			scroll = {
@@ -1648,7 +1648,12 @@ local panels = {
 			check1 = {
 				template = "nrf_check",
 				Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -2, 10 },
-				vars = { text = L["Aura Cooldowns"], option = "cdaura", page = 1 },
+				vars = { text = L["Aura Cooldowns"], option = "cdaura", page = 1, hint = L["Toggle Showing Cooldown Durations"] },
+			},
+			check1point2 = {
+				template = "nrf_check",
+				Point = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", -2, 10 },
+				vars = { text = L["Old De|Buff Durations"], option = "olddebuffstyle", page = 1, hint = L["Toggle Pre-3.0 De|Buff Duration Showing"], },
 			},
 			check2 = {
 				template = "nrf_check",
