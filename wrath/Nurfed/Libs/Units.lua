@@ -41,9 +41,6 @@ local combatlog = {
 	party3 = {},
 	party4 = {},
 }
-if UnitName("player") == "Adeathpoco" then 
-	NURFED_FRAMES = nil 
-end
 -- Default Options
 NURFED_FRAMES = NURFED_FRAMES or {
 	templates = {
@@ -2246,23 +2243,34 @@ local function updateauras(self)
 					button:SetScript("OnUpdate", cooldowntext)
 					button:SetAlpha(1)
 				end
-				button.isMine = isMine
+				-- notnot btn.isMine means it will ALWAYS be true or false vs true or nil
+				button.isMine = not not isMine
 			else
+				button.isMine = false
 				button:SetScript("OnUpdate", nil)
 				button:Hide()
 			end
 		end
+		local useIsMine = Nurfed:getopt("usebigdebuffs")
 		if self.debuffwidth then
 			width = button:GetWidth()
 			fwidth = total * width
 			scale = self.debuffwidth / fwidth
-			local useIsMine = Nurfed:getopt("usebigdebuffs")
 			if scale > 1 then scale = 1 end
 			for i = 1, total do
 				local btn = _G[self:GetName().."debuff"..i]
 				btn:SetScale(scale)
 				if btn.isMine and useIsMine then
 					btn:SetScale(scale*1.25)
+				end
+			end
+		elseif useIsMine then
+			for i = 1, total do
+				local btn = _G[self:GetName().."debuff"..i]
+				if btn.isMine then
+					btn:SetScale(1.25)
+				else
+					btn:SetScale(1)
 				end
 			end
 		end
