@@ -59,6 +59,7 @@ NURFED_DEFAULT["useshortnumbers"] = false
 NURFED_DEFAULT["debufffilterlist"] = {}
 NURFED_DEFAULT["bufffilterlist"] = {}
 
+
 -- ActionBars
 NURFED_DEFAULT["hidemain"] = true
 NURFED_DEFAULT["tooltips"] = true
@@ -102,3 +103,9 @@ NURFED_DEFAULT["microscale"] = 1
 NURFED_DEFAULT["microvert"] = false
 
 NURFED_DEFAULT["showbindings"] = true
+
+
+NURFED_DEFAULT["alphadistance"] = "30"
+NURFED_DEFAULT["alphaharmspellranged"] = ""
+NURFED_DEFAULT["alphaharmspellmelee"] = ""
+NURFED_DEFAULT["alphahelpspell"] = ""

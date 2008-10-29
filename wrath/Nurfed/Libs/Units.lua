@@ -19,7 +19,7 @@ local UnitBuff = UnitBuff
 --local CombatLog_Color_ColorArrayBySchool = _G.CombatLog_Color_ColorArrayBySchool
 local playerClass = select(2, UnitClass("player"))
 local ghost = "Ghost"
-
+local updateAlphaRangeList = {}
 if GetLocale()=="deDE" then
 	ghost = "Geist"
 elseif GetLocale()=="frFR" then
@@ -2465,8 +2465,67 @@ local function updateRunes(self, rune, usable)
 	end
 end
 
-local function updateThreat(self, unit)
-	updateinfo(self, "Threat")
+
+local function updateThreat(self, unit) updateinfo(self, "Threat") end
+local function updaterangealpha(self, unit)
+	local alpha
+	unit = unit or SecureButton_GetUnit(self)
+	-- check if the frames are raid or party frames before calling the UnitInParty/Raid APIS
+	if unit:match("^raid") or unit:match("^party") or UnitInParty(unit) or UnitInRaid(unit) then
+		alpha = UnitInRange(unit)
+	else
+		local distance = Nurfed:getopt("alphadistance")
+		if distance == "10" then	 alpha = CheckInteractDistance(unit, 3)
+		elseif distance == "11" then alpha = CheckInteractDistance(unit, 2)
+		elseif distance == "30" then alpha = CheckInteractDistance(unit, 1)
+		elseif distance == "15" then alpha = IsItemInRange("Heavy Neatherweave Bandage", unit)
+		end
+		if distance == "spell" then
+			-- use the macro parsing system instead of the apis, its faster and more accurate
+			local isHarm = SecureCmdOptionParse("[target="..unit..",harm]s1;s2")
+			if isHarm == "s1" then
+				local harmspell = Nurfed:getopt("alphaharmspellranged")
+				if harmspell == "" then
+					alpha = CheckInteractDistance(unit, 1)
+				else
+					alpha = IsSpellInRange(harmspell, unit)
+				end
+				if not alpha or alpha == 0 then
+					local harmspellmelee = Nurfed:getopt("alphaharmspellmelee")
+					if harmspellmelee ~= "" then
+						-- unit in melee vs ranged distance
+						alpha = IsSpellInRange(harmspellmelee, unit)
+					end
+				end
+					
+			else	
+				local helpspell = Nurfed:getopt("alphahelpspell")
+				if helpspell == "" then
+					alpha = CheckInteractDistance(unit, 1)
+				else
+					alpha = IsSpellInRange(helpspell, unit)
+				end
+			end
+		end	
+	end
+	if not alpha or alpha == 0 then
+		alpha = false
+	elseif alpha == 1 then
+		alpha = true
+	end
+
+	if alpha then
+		self:SetAlpha(1)
+	else
+		self:SetAlpha(0.5)
+	end
+end
+local function updateAlphaRange()
+	for _,frame in ipairs(updateAlphaRangeList) do
+		if UnitExists(frame.unit) then
+			updaterangealpha(frame, frame.unit)
+		end
+	end
 end
 
 local function updateframe(self, notext)
@@ -2492,6 +2551,7 @@ local function updateframe(self, notext)
 		if self.text then updatetext(self) end
 		updatename(self)
 	end
+	if self.alphaRange then updaterangealpha(self, unit) end
 
 	if unit == "pet" then
 		updatehappiness(self) 
@@ -2583,7 +2643,7 @@ local events = {
 		updatetext(self)
 	end,
 	["UNIT_DYNAMIC_FLAGS"] = function(self) formattext(self.name, self) end,
-	["UNIT_CLASSIFICATION_CHANGED"] = function(self) formattext(self.level) end,
+	["UNIT_CLASSIFICATION_CHANGED"] = function(self) formattext(self.level, self) end,
 	["UNIT_HAPPINESS"] = updatehappiness,
 	["RUNE_POWER_UPDATE"] = updateRunes,
 	["UNIT_ENTERED_VEHICLE"] = updateframe,
@@ -2767,7 +2827,12 @@ function Nurfed:unitimbue(frame)
 		RegisterUnitWatch(frame)
 	end
 	ClickCastFrames[frame] = true
-
+	if frame.alphaRange then
+		ntinsert(updateAlphaRangeList, frame)
+		if #updateAlphaRangeList == 1 then
+			Nurfed:schedule(TOOLTIP_UPDATE_TIME, updateAlphaRange, true)
+		end
+	end
 	local name = frame:GetName()
 	local regstatus = function(pre, child)
 		if not frame[pre] then
@@ -3178,7 +3243,6 @@ function Nurfed_UnitColors()
 		end
 	end
 end
-
 ----------------------------------------------------------------
 -- Add custom layouts to locals
 if Nurfed_Replace then
