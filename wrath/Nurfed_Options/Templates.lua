@@ -29,7 +29,15 @@ do	-- keep local dropmenu local...rofl?
 				--btn:GetParent():SetText(self.value)
 			end
 		else
-			func = function(self) btn:SetText(self.value) saveopt(btn) end
+			func = function(self) 
+				local valtext = _G[btn:GetName().."valtext"]
+				if valtext then
+					valtext:SetText(self.value or "")
+				else
+					btn:SetText(self.value) 
+				end
+				saveopt(btn) 
+			end
 		end
 		dropmenu.initialize = function()
 			for _, v in ipairs(tbl) do
@@ -181,7 +189,10 @@ onshow = function(self)
 	if self.fontobject then
 		text:SetFontObject(self.fontobject)
 	end
-
+	if self.textpos then
+		text:ClearAllPoints()
+		text:SetPoint(unpack(self.textpos))
+	end
 	local opt
 	if self.option then
 		opt = Nurfed:getopt(self.option)
@@ -232,7 +243,12 @@ onshow = function(self)
 				self.opacity = opt[4]
 			end
 		else
-			self:SetText(opt or "")
+			local valtext = _G[self:GetName().."valtext"]
+			if valtext then
+				valtext:SetText(opt or "")
+			else
+				self:SetText(opt or "")
+			end
 		end
 	end
 	self:SetScript("OnShow", nil)
@@ -255,7 +271,12 @@ saveopt = function(self)
 		if not self.focus then return end
 		value = self:GetText()
 	elseif objtype == "Button" then
-		value = self:GetText()
+		local valtext = _G[self:GetName().."valtext"]
+		if valtext then
+			value = valtext:GetText()
+		else
+			value = self:GetText()
+		end
 	end
 
 	if self.option then
@@ -300,7 +321,7 @@ local templates = {
 	},
 	nrf_button = {
 		type = "Button",
-		uitemp = "UIPanelButtonTemplate2",
+		--uitemp = "Button",
 		size = { 60, 18 },
 		Backdrop = {
 			bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
@@ -316,13 +337,23 @@ local templates = {
 		HighlightTextColor = { 0, 0.75, 1 },
 		DisabledTextColor = { 1, 0, 0 },
 		PushedTextOffset = { 1, -1 },
+		children = {
+			valtext = {
+				type = "FontString",
+				layer = "ARTWORK",
+				Anchor = { "CENTER", "$parent", "CENTER", 0, 0 },
+				FontObject = "GameFontNormalSmall",
+				JustifyH = "LEFT",
+			},
+		},
+		--[[
 		OnShow = function(self) 
 			_G[self:GetName().."Left"]:Hide()
 			_G[self:GetName().."Middle"]:Hide()
 			_G[self:GetName().."Right"]:Hide()
 			self:SetWidth(self:GetTextWidth() + 12) 
 			self:SetScript("OnShow", nil)
-		end,
+		end,]]
 	},
 	nrf_slider = {
 		type = "Slider",
@@ -421,7 +452,7 @@ local templates = {
 		},
 		OnShow = function(self) onshow(self) end,
 		OnEscapePressed = function(self) self:ClearFocus() end,
-		OnEnterPressed = function(self) self:ClearFocus() end,
+		OnEnterPressed = function(self) if self.option and self.saveopt then saveopt(self) end self:ClearFocus(); end,
 		OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
 		OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 		OnTextChanged = function(self) end,

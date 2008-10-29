@@ -8,6 +8,7 @@ local units = { "", "focus", "party1", "party2", "party3", "party4", "pet", "pla
 local states = { "stance:", "stealth:", "actionbar:", "shift:", "ctrl:", "alt:" }
 local unitstates = { "modifier: shift", "nomodifier: shift", "modifier: alt", "nomodifier: alt" };
 local visible = { "show", "hide", "combat", "nocombat", "exists" }
+local alpharange = { "spell", "10", "11", "30", "15" }
 local setupFrameName, setupParentName, setupPoints
 
 local function addDeBuffFilter(type, buff)
@@ -1526,7 +1527,7 @@ local panels = {
 	},
   -- Units Panel
 	{
-		name = L["Unit Frames"],
+		name = L["Units"],
 		subtext = L["Options that effect the unit frames created by Nurfed."],
 		menu = {
 			scroll = {
@@ -1658,7 +1659,7 @@ local panels = {
 						text:Show()
 					end
 				end,
-				vars = { text = L["Buff Filter List"], func = function(text) NurfedUnitsPanelbutton3:SetText(""); removeDeBuff("bufffilterlist", text) end, page = 2 },
+				vars = { text = L["Buff Filter List"], func = function(text) NurfedUnitsPanelbutton3valtext:SetText(""); removeDeBuff("bufffilterlist", text) end, page = 2 },
 			},
 			editbox1 = {
 				template = "nrf_editbox",
@@ -1689,7 +1690,7 @@ local panels = {
 						text:Show()
 					end
 				end,
-				vars = { text = L["Debuff Filter List"], func = function(text) NurfedUnitsPanelbutton4:SetText(""); removeDeBuff("debufffilterlist", text) end, page = 2 },
+				vars = { text = L["Debuff Filter List"], func = function(text) NurfedUnitsPanelbutton4valtext:SetText(""); removeDeBuff("debufffilterlist", text) end, page = 2 },
 			},
 			editbox2 = {
 				template = "nrf_editbox",
@@ -1699,6 +1700,31 @@ local panels = {
 				OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
 				OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 				vars = { text = L["Add Debuff Filter"], page = 2 },
+			},
+			button5 = {
+				template = "nrf_optbutton",
+				size = { 120, 18 },
+				Point = { "TOPLEFT", "$parenteditbox2", "BOTTOMLEFT", -18, -25 },
+				OnClick = function(self) Nurfed_DropMenu(self, alpharange) end,
+				vars = { text = L["Alpha Range"], option = "alphadistance", page = 2, nohitrect = true, textpos = { "BOTTOM", "$parent", "TOP", 0, 0 } },
+			},
+			editbox3 = {
+				template = "nrf_editbox",
+				size = { 150, 18 },
+				Point = { "TOPLEFT", "$parentbutton5", "BOTTOMLEFT", 0, -18 },
+				vars = { text = L["Harmful Ranged Spell"], option = "alphaharmspellranged", saveopt = true, page = 2 },
+			},
+			editbox4 = {
+				template = "nrf_editbox",
+				size = { 150, 18 },
+				Point = { "TOPLEFT", "$parenteditbox3", "BOTTOMLEFT", 0, -18 },
+				vars = { text = L["Harmful Melee Spell"], option = "alphaharmspellmelee", saveopt = true, page = 2 },
+			},
+			editbox5 = {
+				template = "nrf_editbox",
+				size = { 200, 18 },
+				Point = { "TOPLEFT", "$parenteditbox3", "TOPRIGHT", 2, 0 },
+				vars = { text = L["Helpful Range Spell"], option = "alphahelpspell", saveopt = true, page = 2 },
 			},
 		},
 	},
