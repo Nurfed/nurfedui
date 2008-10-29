@@ -770,7 +770,7 @@ if (not Nurfed_UnitsLayout) then
 					vars = { format = "$cur/$max | $perc" },
 				},
 			},
-			vars = { unit = "target", debuffwidth = 176, buffwidth = 176, enablePredictedStats = true, },
+			vars = { unit = "target", debuffwidth = 176, buffwidth = 176, enablePredictedStats = true, alphaRange = true, },
 		},
 		
 		targettarget = {
@@ -937,7 +937,7 @@ if (not Nurfed_UnitsLayout) then
 					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
 				},
 			},
-			vars = { unit = "focus" },
+			vars = { unit = "focus", alphaRange = true, },
 	},
 
   Nurfed_party1 = { template = "Nurfed_Party", vars = { unit = "party1" } },
