@@ -321,7 +321,6 @@ local templates = {
 	},
 	nrf_button = {
 		type = "Button",
-		--uitemp = "Button",
 		size = { 60, 18 },
 		Backdrop = {
 			bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
@@ -346,14 +345,15 @@ local templates = {
 				JustifyH = "LEFT",
 			},
 		},
-		--[[
-		OnShow = function(self) 
-			_G[self:GetName().."Left"]:Hide()
-			_G[self:GetName().."Middle"]:Hide()
-			_G[self:GetName().."Right"]:Hide()
-			self:SetWidth(self:GetTextWidth() + 12) 
+		OnShow = function(self)
+			local valtext = _G[self:GetName().."valtext"]
+			local text = self.opt or self.text or self.Text
+			if not text then text = self:GetText() end
+			text = text or ""
+			valtext:SetText(text)
+			self:SetWidth(valtext:GetStringWidth()+12)
 			self:SetScript("OnShow", nil)
-		end,]]
+		end,
 	},
 	nrf_slider = {
 		type = "Slider",
