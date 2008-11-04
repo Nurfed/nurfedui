@@ -304,7 +304,6 @@ end
 local templates = {
 	nrf_check = {
 		type = "CheckButton",
-		--uitemp = "InterfaceOptionsCheckButtonTemplate",
 		uitemp = "OptionsCheckButtonTemplate",
 		OnShow = onshow,
 		OnClick = saveopt,
@@ -450,7 +449,7 @@ local templates = {
 				JustifyH = "LEFT",
 			},
 		},
-		OnShow = function(self) onshow(self) end,
+		OnShow = onshow,
 		OnEscapePressed = function(self) self:ClearFocus() end,
 		OnEnterPressed = function(self) if self.option and self.saveopt then saveopt(self) end self:ClearFocus(); end,
 		OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
@@ -533,7 +532,7 @@ local templates = {
 				NormalTexture = "Interface\\Buttons\\UI-PlusButton-Up",
 				PushedTexture = "Interface\\Buttons\\UI-PlusButton-Down",
 				HighlightTexture = "Interface\\Buttons\\UI-PlusButton-Hilight",
-				OnClick = function() Nurfed_ExpandBar() end,
+				OnClick = Nurfed_ExpandBar,
 			},
 			name = {
 				type = "FontString",
@@ -554,7 +553,7 @@ local templates = {
 					GameTooltip:Show()
 				end,
 				OnLeave = function() GameTooltip:Hide() end,
-				OnClick = function(self) Nurfed_ToggleStates(self) end,
+				OnClick = Nurfed_ToggleStates,
 			},
 			delete = {
 				type = "Button",
@@ -602,7 +601,7 @@ local templates = {
 				JustifyH = "LEFT",
 			},
 		},
-		OnShow = function(self) onshow(self) end,
+		OnShow = onshow,
 		OnClick = function(self) Nurfed_Options_swatchOpenColorPicker(self) end,
 	},
 	nrf_scroll = {
@@ -706,7 +705,7 @@ local templates = {
 				JustifyH = "LEFT",
 			},
 		},
-		OnShow = function(self) onshow(self) end,
+		OnShow = onshow,
 	},
 }
 
