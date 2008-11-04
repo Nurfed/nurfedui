@@ -13,10 +13,6 @@ local UnitMana = UnitMana
 local UnitManaMax = UnitManaMax
 local UnitDebuff = UnitDebuff
 local UnitBuff = UnitBuff
---local STRING_SCHOOL_UNKNOWN = _G.STRING_SCHOOL_UNKNOWN
---local STRING_SCHOOL_PHYSICAL = _G.STRING_SCHOOL_PHYSICAL
---local CombatLog_String_SchoolString = _G.CombatLog_String_SchoolString
---local CombatLog_Color_ColorArrayBySchool = _G.CombatLog_Color_ColorArrayBySchool
 local playerClass = select(2, UnitClass("player"))
 local ghost = "Ghost"
 local updateAlphaRangeList = {}
@@ -325,7 +321,6 @@ NURFED_FRAMES = NURFED_FRAMES or {
 		Nurfed_Party = {
 			type = "Button",
 			uitemp = "SecureUnitButtonTemplate",
-			--uitemp = "SecurePartyHeaderTemplate",
 			size = { 180, 41 },
 			FrameStrata = "LOW",
 			ClampedToScreen = true,
@@ -428,10 +423,9 @@ NURFED_FRAMES = NURFED_FRAMES or {
 			},
 			vars = { aurawidth = 176 },
 		},
-			Nurfed_Raid = {
+		Nurfed_Raid = {
 			type = "Button",
 			uitemp = "SecureUnitButtonTemplate",
-			--uitemp = "SecurePartyHeaderTemplate",
 			size = { 180, 41 },
 			FrameStrata = "LOW",
 			ClampedToScreen = true,
@@ -738,7 +732,6 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					Anchor = { "RIGHT", "$parent", "LEFT" },
 				},
 				threat = {
-					--template = "Nurfed_Unit_threat",
 					type = "StatusBar",
 					StatusBarTexture = NRF_IMG.."statusbar5",
 					size = { 170, 8 },
@@ -778,7 +771,6 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					template = "Nurfed_Unit_model",
 					size = { 40, 40 },
 					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -4, -6 },
-					
 				},
 				rank = {
 					type = "Texture",
@@ -846,7 +838,6 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					type = "FontString",
 						size = { 90, 8 },
 					layer = "OVERLAY",
-					--FontObject = "Nurfed_UnitFont",
 					FontObject = "Nurfed_UnitFontSmall",
 					JustifyH = "LEFT",
 					Anchor = { "TOPLEFT", "$parentname", "BOTTOMLEFT", 0, 0 },
@@ -856,49 +847,12 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					type = "FontString",
 					size = { 100, 9 },
 					layer = "OVERLAY",
-					--Font = { NRF_FONT.."framd.ttf", 9, "NONE" },
+					Font = { NRF_FONT.."framd.ttf", 9, "NONE" },
 					FontObject = "Nurfed_UnitFontSmall",
 					JustifyH = "RIGHT",
 					Anchor = { "BOTTOMRIGHT", "$parenthp", "TOPRIGHT", 0, 0 },
 					vars = { format = "$perc" },
 				},
-				--[[
-				name = {
-					type = "FontString",
-					size = { 110, 9 },
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFont",
-					JustifyH = "LEFT",
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 5, -4 },
-					vars = { format = "$name $guild" },
-				},
-				level = {
-					type = "FontString",
-					size = { 90, 8 },
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontSmall",
-					JustifyH = "LEFT",
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 5, -13 },
-					vars = { format = "$level $class" },
-				},
-				hpperc = {
-					type = "FontString",
-					size = { 100, 9 },
-					layer = "OVERLAY",
-					Font = {NRF_FONT.."framd.ttf", 9, "NONE" },
-					JustifyH = "RIGHT",
-					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -63, -12 },
-					vars = { format = "$perc" },
-				},
-				threat = {
-					type = "FontString",
-					size = { 100, 8 },
-					layer = "OVERLAY",
-					Font = { NRF_FONT.."framd.ttf", 9, "NONE" },
-					JustifyH = "RIGHT",
-					Anchor = { "BOTTOMLEFT", "$parenthpperc", "TOPRIGHT", 15, 0 },
-					vars = { format = "$threat-$tperc", threatUnit = "player" },
-				},]]
 				combo = {
 					type = "FontString",
 					layer = "OVERLAY",
@@ -1000,12 +954,12 @@ NURFED_FRAMES = NURFED_FRAMES or {
 				hp = {
 					template = "Nurfed_Unit_hp",
 					size = { 150, 12 },
-					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 14 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", 15, 14 },
 				},
 				mp = {
 					template = "Nurfed_Unit_mp",
 					size = { 150, 8 },
-					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 5 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", 15, 5 },
 				},
 				castingframe = {
 					template = "Nurfed_Unit_casting",
@@ -1017,7 +971,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					layer = "ARTWORK",
 					FontObject = "Nurfed_UnitFont",
 					JustifyH = "LEFT",
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 5, -4 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 20, -4 },
 					vars = { format = "[$level] $name" },
 				},
 				hpperc = {
@@ -1025,8 +979,13 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					layer = "OVERLAY",
 					Font = { NRF_FONT.."framd.ttf", 9, "OUTLINE" },
 					JustifyH = "RIGHT",
-					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -5, -5 },
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 15, -5 },
 					vars = { format = "$perc" },
+				},
+				model = {
+					template = "Nurfed_Unit_model",
+					size = { 40, 40 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", -4, -6 },
 				},
 				buff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parent", "BOTTOMLEFT", 4, 2 } },
 				buff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff1", "RIGHT", 0, 0 } },
@@ -1054,7 +1013,6 @@ NURFED_FRAMES = NURFED_FRAMES or {
 		Nurfed_party2 = { template = "Nurfed_Party", vars = { unit = "party2" } },
 		Nurfed_party3 = { template = "Nurfed_Party", vars = { unit = "party3" } },
 		Nurfed_party4 = { template = "Nurfed_Party", vars = { unit = "party4" } },
-		--Nurfed_raid1 = { template = "Nurfed_Raid", vars = { unit = "raid1" } },
 	},
 }
 
@@ -1145,26 +1103,33 @@ local replace = {
 		return string
 	end,
 	["$name"] = function(self, t)
-		local name = UnitName(self.unit)
+		if not self.unit then return end
 		local color
+		local colorLst = Nurfed:getopt("colorlist")
+		
 		if UnitIsPlayer(self.unit) then
 			local eclass = select(2, UnitClass(self.unit))
 			if eclass then
 				color = RAID_CLASS_COLORS[eclass].hex
 			end
-			
 		else
 			if not UnitPlayerControlled(self.unit) and UnitIsTapped(self.unit) and not UnitIsTappedByPlayer(self.unit) then
 				color = "|cff7f7f7f"
 			else
-				color = Nurfed:rgbhex(UnitSelectionColor(self.unit))
+				if UnitPlayerControlled(self.unit) and UnitCreatureType(self.unit) == "Beast" then
+					-- unit is a pet
+					color = "|cff005500"
+				else
+					color = Nurfed:rgbhex(UnitSelectionColor(self.unit))
+				end
 			end
 		end
-		return (color or "|cffffffff")..name.."|r"
+		return (color or "|cffffffff")..UnitName(self.unit).."|r"
 	end,
 
 
 	["$key"] = function(self, t)
+			if not self.unit then return end
 			local id, found = self.unit:gsub("party([1-4])", "%1")
 			if found == 1 then
 				local binding = GetBindingText(GetBindingKey("TARGETPARTYMEMBER"..id), "KEY_")
@@ -1174,6 +1139,7 @@ local replace = {
 	end,
 
 	["$level"] = function(self, t)
+			if not self.unit then return end
 			local level = UnitLevel(self.unit)
 			local classification = UnitClassification(self.unit)
 			local r, g, b
@@ -1199,6 +1165,7 @@ local replace = {
 	end,
 
 	["$class"] = function(self, t)
+			if not self.unit then return end
 			local class, eclass = UnitClass(self.unit)
 			if UnitIsPlayer(self.unit) then
 				if RAID_CLASS_COLORS[eclass] then
@@ -1222,6 +1189,7 @@ local replace = {
 	end,
 
 	["$guild"] = function(self, t)
+			if not self.unit then return end
 			local guild = GetGuildInfo(self.unit)
 			if guild then
 				local color = "|cff00bfff"
@@ -1347,7 +1315,7 @@ local function fade(frame)
 	frame.old = 0
 	hooksecurefunc(frame, "SetValue", nrf_fading)
 end
-						--  self,		event, flags, amount, type
+
 local function updatedamage(self, unit, event, flags, amount, type, ...)
 	local text = ""
 	local r, g, b = 1, 0.647, 0
@@ -1396,22 +1364,20 @@ local function updatedamage(self, unit, event, flags, amount, type, ...)
 		end
 
 		ntinsert(combatlog[unit], { UnitName(unit), text })
-
-		local max = Nurfed:getopt("combatloglength")
-		while #combatlog[unit] > max do
+		-- while localizing this makes sense, it really isnt necessary.  The only time it should be called more than
+		-- once in the 'while #tbl > val do' is when changing settings, and if thats the case who cares
+		-- if its calling the func numerious un-needed times.
+		-- there is no reason to cause a local var everytime combat entries are added just for settings shit
+		--local max = Nurfed:getopt("combatloglength")
+		while #combatlog[unit] > Nurfed:getopt("combatloglength") do
 			table.remove(combatlog[unit], 1)
 		end
-		
-		--table.insert(combatlog[unit], { UnitName(unit), text })
-		--if #combatlog[unit] > 50 then
-		--	table.remove(combatlog[unit], 1)
-		--end
 	end
 end
 
 ----------------------------------------------------------------
 -- Casting bar functions
-local function castevent(self)
+local function castevent(self, event)
 	local parent = self.parent
 	if event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_TARGET_CHANGED" or event == "PARTY_MEMBERS_CHANGED" or event == "PLAYER_FOCUS_CHANGED" then
 		local nameChannel  = UnitChannelInfo(self.unit)
@@ -1445,6 +1411,7 @@ local function castevent(self)
 
 		self:SetStatusBarColor(1.0, 0.7, 0.0)
 		self.startTime = startTime / 1000
+		self.endTime = endTime / 1000
 		self.maxValue = endTime / 1000
 
 		self:SetMinMaxValues(self.startTime, self.maxValue)
@@ -1553,6 +1520,9 @@ local function castevent(self)
 			local out = barText.format
 			out = string.gsub(out, "$spell", name)
 			out = string.gsub(out, "$rank", nameSubtext)
+			if nameSubtext == "" then
+				out = out:gsub("%(", ""):gsub("%)", "")
+			end
 			if orient == "VERTICAL" or barText.short then
 				local vtext = ""
 				out = string.gsub(out, "[^A-Z:0-9.]", "") --fridg
@@ -1602,7 +1572,18 @@ local function castupdate(self)
 		self:SetValue(status)
 		local cast = _G[self:GetName().."time"]
 		if cast then
-			cast:SetText(string.format("(%.1fs)", self.maxValue - status))
+			if cast.format then
+				local text = cast.format
+				local cur = self.maxValue - status
+				local max = self.maxValue - self.startTime
+				text = text:gsub("$cur", string.format("%.1f", cur))
+				text = text:gsub("$max", string.format("%.1f", max))
+				text = text:gsub("$perc", string.format("%.0f", 100 - ((cur / max) * 100)))
+				cast:SetText(text)
+				text, cur, max = nil, nil, nil
+			else
+				cast:SetText(string.format("(%.1fs)", self.maxValue - status))
+			end
 		end
 	elseif self.channeling then
 		local time = GetTime()
@@ -1620,7 +1601,17 @@ local function castupdate(self)
 		self:SetValue(barValue)
 		local cast = _G[self:GetName().."time"]
 		if cast then
-			cast:SetText(string.format("(%.1fs)", self.endTime - time))
+			if cast.format then
+				local text = cast.format
+				local cur = self.endTime - status
+				local max = self.endTime - self.startTime
+				text = text:gsub("$cur", string.format("%.1f", cur))
+				text = text:gsub("$max", string.format("%.1f", max))
+				text = text:gsub("$perc", string.format("%.0f", 100 - ((cur / max) * 100)))
+				cast:SetText(text)
+			else
+				cast:SetText(string.format("(%.1fs)", self.endTime - time))
+			end
 		end
 	elseif GetTime() < self.holdTime then
 		return
@@ -2109,9 +2100,6 @@ local removeLst = {
 	["Enrage"] = {
 		["HUNTER"] = true,
 	},
-	[""] = {	-- Frenzy, Enrage show up as "" instead of nil for some reason, probably bugged
-		["HUNTER"] = true,
-	},
 }
 local function updateauras(self)
 	local unit = SecureButton_GetUnit(self)
@@ -2148,7 +2136,6 @@ local function updateauras(self)
 				end
 				button.filter = self.bfilter
 				button:Show()
-				--button:SetScript("OnUpdate", cooldowntext)
 				cd = _G[button:GetName().."Cooldown"]
 				if duration and duration > 0 then
 					if not oldBuffs or oldBuffs and isMine then
@@ -2165,7 +2152,6 @@ local function updateauras(self)
 						button.update = 0
 						button.flashdct = 1
 						button:SetScript("OnUpdate", aurafade)
-						self.cure = cure[dtype][playerClass]
 					end
 				else
 					button:SetScript("OnUpdate", cooldowntext)
@@ -2237,7 +2223,7 @@ local function updateauras(self)
 						button.update = 0
 						button.flashdct = 1
 						button:SetScript("OnUpdate", aurafade)
-						self.cure = true
+						self.cure = cure[dtype][playerClass]
 					end
 				else
 					button:SetScript("OnUpdate", cooldowntext)
@@ -2470,8 +2456,10 @@ local function updateThreat(self, unit) updateinfo(self, "Threat") end
 local function updaterangealpha(self, unit)
 	local alpha
 	unit = unit or SecureButton_GetUnit(self)
-	-- check if the frames are raid or party frames before calling the UnitInParty/Raid APIS
-	if unit:match("^raid") or unit:match("^party") or UnitInParty(unit) or UnitInRaid(unit) then
+	local helpspell = Nurfed:getopt("alphahelpspell")
+	
+-- check if the frames are raid or party frames before calling the UnitInParty/Raid APIS
+	if helpspell == "" and (unit:match("^raid") or unit:match("^party") or UnitInParty(unit) or UnitInRaid(unit)) then
 		alpha = UnitInRange(unit)
 	else
 		local distance = Nurfed:getopt("alphadistance")
@@ -2481,7 +2469,23 @@ local function updaterangealpha(self, unit)
 		elseif distance == "15" then alpha = IsItemInRange("Heavy Neatherweave Bandage", unit)
 		end
 		if distance == "spell" then
+				--theory code
+				---- if this works, it will work much smoother than the previous code.
+				local spell = SecureCmdOptionParse("[target="..unit..",harm]"..Nurfed:getopt("alphaharmspellranged")..";"..helpspell)
+				if spell and spell ~= "" then
+					alpha = IsSpellInRange(spell, unit)
+					if not alpha or alpha == 0 then
+						local harmspellmelee = Nurfed:getopt("alphaharmspellmelee")
+						if harmspellmelee ~= "" then
+							-- unit in melee vs ranged distance
+							alpha = IsSpellInRange(harmspellmelee, unit)
+						end
+					end
+				else
+					alpha = CheckInteractDistance(unit, 1)	-- check for 33 yards
+				end
 			-- use the macro parsing system instead of the apis, its faster and more accurate
+			--[[
 			local isHarm = SecureCmdOptionParse("[target="..unit..",harm]s1;s2")
 			if isHarm == "s1" then
 				local harmspell = Nurfed:getopt("alphaharmspellranged")
@@ -2505,21 +2509,16 @@ local function updaterangealpha(self, unit)
 				else
 					alpha = IsSpellInRange(helpspell, unit)
 				end
-			end
-		end	
+			end]]
+		end
 	end
 	if not alpha or alpha == 0 then
-		alpha = false
-	elseif alpha == 1 then
-		alpha = true
-	end
-
-	if alpha then
-		self:SetAlpha(1)
-	else
 		self:SetAlpha(0.5)
+	else
+		self:SetAlpha(1)
 	end
 end
+
 local function updateAlphaRange()
 	for _,frame in ipairs(updateAlphaRangeList) do
 		if UnitExists(frame.unit) then
@@ -2760,6 +2759,9 @@ function Nurfed:unitimbue(frame)
 					elseif arg1 < 0 and scale > 0.25 then
 						self:SetScale(scale - 0.1)
 					end
+					if IsShiftKeyDown() and IsControlKeyDown() then
+						self:SetScale(1)
+					end
 					NURFED_FRAMES.frames[self:GetName()].Scale = self:GetScale()
 				end
 			end)
@@ -2812,8 +2814,8 @@ function Nurfed:unitimbue(frame)
 	end
 	
 	if dropdown then
+		-- trying to stop tainting, but alass it seems all unitframes mods are having the same issue.
 		menufunc = function() securecall("ToggleDropDownMenu", 1, nil, dropdown, "cursor") end
-		--menufunc = function() ToggleDropDownMenu(1, nil, dropdown, "cursor") end
 	end
 	
 	SecureUnitButton_OnLoad(frame, frame.unit, menufunc)
