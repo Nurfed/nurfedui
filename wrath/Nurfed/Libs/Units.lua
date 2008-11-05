@@ -1603,7 +1603,7 @@ local function castupdate(self)
 		if cast then
 			if cast.format then
 				local text = cast.format
-				local cur = self.endTime - status
+				local cur = self.endTime - time
 				local max = self.endTime - self.startTime
 				text = text:gsub("$cur", string.format("%.1f", cur))
 				text = text:gsub("$max", string.format("%.1f", max))
@@ -2101,7 +2101,41 @@ local removeLst = {
 		["HUNTER"] = true,
 	},
 }
+function testbuffs()
+	local self = _G["Nurfed_target"]
+	local name, rank, texture, app, dtype, duration, left, isMine, isStealable, button
+	local bufflist = {}
+	local unit = "target"
+	for i = 1, #self.buff do
+		button = _G[self:GetName().."buff"..i]
+		name, rank, texture, app, dtype, duration, left, isMine, isStealable = UnitBuff(unit, i, self.bfilter)
+		if name then
+			table.insert(bufflist, texture)
+			_G[button:GetName().."Icon"]:SetTexture(texture)
+			button:Show()
+		else
+			_G[button:GetName().."Icon"]:SetTexture(bufflist[math.random(#bufflist)])
+			print("showing button", button:GetName())
+			button:Show()
+		end			
+	end
+	for i=1, #self.debuff do
+		button = _G[self:GetName().."debuff"..i]
+		name, rank, texture, app, dtype, duration, left, isMine, isStealable = UnitDebuff(unit, i, self.dfilter)
+		if name then
+			table.insert(bufflist, texture)
+			_G[button:GetName().."Icon"]:SetTexture(texture)
+			button:Show()
+		else
+			_G[button:GetName().."Icon"]:SetTexture(bufflist[math.random(#bufflist)])
+			print("showing button", button:GetName())
+			button:Show()
+		end			
+	end
+end
+
 local function updateauras(self)
+	--do return end
 	local unit = SecureButton_GetUnit(self)
 	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd, isMine, isStealable
 	local isFriend, filterList, check

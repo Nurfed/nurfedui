@@ -76,13 +76,19 @@ local function updateCompanionList()
 	if not companionList then
 		companionList = {}
 	end
-	for i=1, GetNumCompanions("MOUNT") do
-		local _, name, id = GetCompanionInfo("MOUNT", i)
-		companionList[name] = id
+	local mnum = GetNumCompanions("MOUNT")
+	if mnum and mnum > 0 then
+		for i=1, mnum do
+			local _, name, id = GetCompanionInfo("MOUNT", i)
+			companionList[name] = id
+		end
 	end
-	for i=1, GetNumCompanions("CRITTER") do
-		local _, name, id = GetCompanionInfo("CRITTER", i)
-		companionList[name] = id
+	mnum = GetNumCompanions("CRITTER")
+	if mnum and mnum > 0 then
+		for i=1, mnum do
+			local _, name, id = GetCompanionInfo("CRITTER", i)
+			companionList[name] = id
+		end
 	end
 end
 
@@ -254,9 +260,14 @@ local function seticon(btn)
 							if companionList and companionList[spell] then
 								texture = select(3, GetSpellInfo(companionList[spell]))
 							else
-								updateCompanionList()
-								if companionList[spell] then
-									texture = select(3, GetSpellInfo(companionList[spell]))
+								-- the ingame mount name via companions is different from the actual spell name.  
+								if spell == "Summon Charger" then
+									texture = "Interface\\Icons\\Ability_Mount_Charger"
+								else
+									updateCompanionList()
+									if companionList[spell] then
+										texture = select(3, GetSpellInfo(companionList[spell]))
+									end
 								end
 							end
 						end
