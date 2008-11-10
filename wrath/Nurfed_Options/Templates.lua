@@ -377,6 +377,7 @@ local templates = {
 						local min, max = parent:GetMinMaxValues()
 						if not value or value < min then return end
 						if value > max then value = max end
+						value = math.round(value, self.deci)
 						parent:SetValue(value)
 						saveopt(parent)
 					end

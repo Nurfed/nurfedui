@@ -568,6 +568,7 @@ do
 	end
 end
 Nurfed_ImportLayout = import;
+nrfimp = import;
 local panels = {
   -- Chat Panel
 	{
@@ -848,8 +849,6 @@ local panels = {
 				vars = {
 					text = L["Bags Scale"],
 					option = "bagsscale",
-					low = "25%",
-					high = "100%",
 					min = 0.25,
 					max = 2,
 					step = 0.01,
@@ -867,8 +866,6 @@ local panels = {
 				vars = {
 					text = L["Micro Scale"],
 					option = "microscale",
-					low = "25%",
-					high = "100%",
 					min = 0.25,
 					max = 2,
 					step = 0.01,
@@ -886,8 +883,6 @@ local panels = {
 				vars = {
 					text = L["Stance Scale"],
 					option = "stancescale",
-					low = "25%",
-					high = "100%",
 					min = 0.25,
 					max = 2,
 					step = 0.01,
@@ -1725,6 +1720,22 @@ local panels = {
 				size = { 200, 18 },
 				Point = { "TOPLEFT", "$parenteditbox3", "TOPRIGHT", 2, 0 },
 				vars = { text = L["Helpful Range Spell"], option = "alphahelpspell", saveopt = true, page = 2 },
+			},
+			slider2 = {
+				template = "nrf_slider",
+				Point = { "TOP", "$parenteditbox5", "BOTTOM", 0, -15 },
+				vars = {
+					text = L["Alpha Value"],
+					tooltip = L["Adjust how transparent your frames become when they are out of range."],
+					option = "alphahidevalue",
+					min = 0.01,
+					max = 1.0,
+					step = 0.01,
+					deci = 2,
+					bigStep = 0.05,
+					format = "%.2f",
+					page = 2,
+				},
 			},
 		},
 	},
