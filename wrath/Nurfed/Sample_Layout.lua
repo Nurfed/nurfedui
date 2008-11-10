@@ -1,322 +1,161 @@
-
-
-
--- Apoco's Modified Unit Frames (Nurfed Unit Frames v3)
-----------------------------------------------------------------------------------------
---	Text Format Vars
---		(HP/MP text and status bars)
---		$miss = Missing hp/mp
---		$cur = current hp/mp
---		$max = Max hp/mp
---		$perc = Percent hp/mp
---
---		(Name/Level text)
---		$name = Name
---		$level = Level
---		$class = Class
---		$guild = Guild
---		$race = Race
---		$rname = PvP Rank Name
---		$rnum = PvP Rank Number
---		$key = Key Binding
---
---	Element Names
---		hp, mp, xp, combo, target
---		name, level, class, race
---		pvp, leader, master, feedback
---		group, status, buff, debuff
---		raidtarget, highlight, pet, portrait
---
---	StatusBar Animations
---		glide
-----------------------------------------------------------------------------------------
-
-
 if (not Nurfed_UnitsLayout) then
 
-	Nurfed_UnitsLayout = {};
+	Nurfed_UnitsLayout = {}
 
-	Nurfed_UnitsLayout.Name = "Nurfed Unit Frames v3.0";
-	Nurfed_UnitsLayout.Author = "Apoco";
+	Nurfed_UnitsLayout.Name = "Modified Simplicity Layout"
+	Nurfed_UnitsLayout.Author = "Croissant"
 
 	--Frame Templates
 	Nurfed_UnitsLayout.templates = {
-		Nurfed_UnitFont = {
+		Nurfed_Unit_Font = {
 			type = "Font",
-			Font = { "Interface\\Addons\\Nurfed\\Fonts\\BigNoodle.ttf", 10, "NONE" },
-			TextColor = { 1, 1, 1 },
-			FrameStrata = "HIGH",
-		},
-		Nurfed_UnitFontLarge = {
-			type = "Font",
-			Font = { "Interface\\Addons\\Nurfed\\Fonts\\BigNoodle.ttf", 16, "OVERLAY" },
-			TextColor = { 1, 1, 1 },
-			FrameStrata = "HIGH",
-			ShadowColor = { 0, 0, 0, 0.99 },
-			ShadowOffset = { 0.8, -0.8 },
-		},
-		Nurfed_UnitFontMed = {
-			type = "Font",
-			Font = { "Interface\\Addons\\Nurfed\\Fonts\\BigNoodle.ttf", 14, "OVERLAY" },
-			TextColor = { .99, .99, .75 },
-			FrameStrata = "HIGH",
-			ShadowColor = { 0, 0, 0, 0.99 },
-			ShadowOffset = { 0.8, -0.8 },
-		},
-		Nurfed_UnitFontSmall = {
-			type = "Font",
-			Font = { "Interface\\Addons\\Nurfed\\Fonts\\BigNoodle.ttf", 12, "OVERLAY" },
-			TextColor = { .99, .99, .75 },
-			FrameStrata = "HIGH",
-			ShadowColor = { 0, 0, 0, 0.99 },
-			ShadowOffset = { 0.8, -0.8 },
-		},
-		Nurfed_UnitFontMedWhite = {
-			type = "Font",
-			Font = { "Interface\\Addons\\Nurfed\\Fonts\\BigNoodle.ttf", 14, "OVERLAY" },
-			TextColor = { 1, 1, 1 },
-			FrameStrata = "HIGH",
-			ShadowColor = { 0, 0, 0, 0.99 },
-			ShadowOffset = { 0.8, -0.8 },
-		},
-		Nurfed_UnitFontOutline = {
-			type = "Font",
-			Font = { "Interface\\Addons\\Nurfed\\Fonts\\BigNoodle.ttf", 10, "OUTLINE" },
+			Font = { NRF_FONT.."Charcoal.ttf", 12, "NONE" },
 			TextColor = { 1, 1, 1 },
 		},
-		Nurfed_UnitFontOutlineLarge = {
+		Nurfed_Unit_Bold = {
 			type = "Font",
-			Font = { "Interface\\Addons\\Nurfed\\Fonts\\BigNoodle.ttf", 12, "OUTLINE" },
+			Font = { NRF_FONT.."Charcoal.ttf", 12, "OUTLINE" },
 			TextColor = { 1, 1, 1 },
 		},
-		Nurfed_UnitFontSmall = {
-			type = "Font",
-			Font = { "Interface\\Addons\\Nurfed\\Fonts\\BigNoodle.ttf", 8, "NONE" },
-			TextColor = { 1, 1, 1 },
-		},
-		Nurfed_UnitFontSmallOutline = {
-			type = "Font",
-			Font = { "Interface\\Addons\\Nurfed\\Fonts\\BigNoodle.ttf", 8, "OUTLINE" },
-			TextColor = { 1, 1, 1 },
-		},
-		Nurfed_CountFontOutline = {
-			type = "Font",
-			Font = { "Fonts\\ARIALN.TTF", 12, "OUTLINE" },
-			TextColor = { 1, 1, 1 },
-		},
+		Nurfed_Unit_backdrop = { bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", tile = true, tileSize = 16, edgeSize = 16, insets = { left = 0, right = 0, top = 0, bottom = 0 }, },
+
 		Nurfed_Unit_hp = {
 			type = "StatusBar",
 			FrameStrata = "LOW",
-			FrameLevel = 2,
-			StatusBarTexture = NRF_IMG.."HalH",
-			Backdrop = {
-				bgFile = NRF_IMG.."HalH",
-				tile = false,
-				insets = { left = 0, right = 0, top = 0, bottom = 0 }
-			},
-			BackdropColor = { 0.27843075990677, 0.39999911189079, 0.23529359698296, 1 },
+			Orientation = "HORIZONTAL",
+			StatusBarTexture = NRF_IMG.."statusbar9",
 			vars = { ani = "glide" },
-		},
-		Nurfed_Unit_hptar = {
-			type = "StatusBar",
-			FrameStrata = "LOW",
-			FrameLevel = 2,
-			StatusBarTexture = NRF_IMG.."HalH",
-			Backdrop = {
-				bgFile = NRF_IMG.."HalH",
-				tile = false,
-				insets = { left = 0, right = 0, top = 0, bottom = 0 }
-			},
-			BackdropColor = { 0.235, 0.266, 0.401, .99 },
-			children = {
-				text = {
-					type = "FontString",
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontLarge",
-					JustifyH = "RIGHT",
-					Anchor = { "RIGHT", -2, 0 },
-					vars = { format = "$cur/$max | $perc" },
-				},
-			},
-			vars = { ani = "glide" },
-		},
-		Nurfed_Unit_hppet = {
-			type = "StatusBar",
-			FrameStrata = "LOW",
-			FrameLevel = 2,
-			StatusBarTexture = NRF_IMG.."HalH",
 			children = {
 				bg = {
 					type = "Texture",
 					layer = "BACKGROUND",
-					Texture = NRF_IMG.."HalH",
-					--VertexColor = { 0.235, 0.266, 0.799, 1 },
-					VertexColor = { 54/255, 66/255, 149/255, 0.50 },
-					Anchor = "all",
+					Texture = NRF_IMG.."statusbar9",
+					VertexColor = { 1, 0, 0, 0.25 },
+					Anchor = "all"
 				},
 				text = {
 					type = "FontString",
 					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontSmall",
-					JustifyH = "RIGHT",
-					Anchor = { "RIGHT", -2, 0 },
-					vars = { format = "$perc" },
-				},
-			},
-			vars = { ani = "glide" },
-		},
-		Nurfed_Unit_mp = {
-			type = "StatusBar",
-			FrameStrata = "LOW",
-			FrameLevel = 2,
-			StatusBarTexture = NRF_IMG.."HalH",
-			Backdrop = {
-				bgFile = NRF_IMG.."HalH",
-				tile = false,
-				insets = { left = 0, right = 0, top = 0, bottom = 0 }
-			},
-			BackdropColor = { 0.25882294774055, 0.32548949122429, 0.3921560049057, 1 },
-			vars = { ani = "glide" },
-		},
-
-		Nurfed_Unit_mppet = {
-			type = "StatusBar",
-			FrameStrata = "LOW",
-			FrameLevel = 2,
-			StatusBarTexture = NRF_IMG.."HalH",
-			Backdrop = {
-				bgFile = NRF_IMG.."HalH",
-				tile = false,
-				insets = { left = 0, right = 0, top = 0, bottom = 0 }
-			},
-			BackdropColor = { 0.235, 0.266, 0.401, .99 },
-			vars = { ani = "glide" },
-		},
-		Nurfed_Unit_xp = {
-			type = "StatusBar",
-			StatusBarTexture = NRF_IMG.."HalH",
-			children = {
-				text = {
-					type = "FontString",
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontSmall",
+					FontObject = "Nurfed_Unit_Font",
 					JustifyH = "LEFT",
-					ShadowColor = { 0, 0, 0, 0.75 },
+					ShadowColor = { 0, 0, 0, 0.75},
 					ShadowOffset = { -1, -1 },
-					Anchor = "all",
-					vars = { format = "$cur/$max ($rest)" },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, 0 },
+					vars = { format = "$cur / $max" },
 				},
 				text2 = {
 					type = "FontString",
 					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontSmall",
+					FontObject = "Nurfed_Unit_Bold",
+					JustifyH = "RIGHT",
+					TextColor = { 1, 0, 0 },
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 0, 0 },
+					vars = { format = "$miss" },
+				},
+			},
+		},
+
+		Nurfed_Unit_mp = {
+			type = "StatusBar",
+			FrameStrata = "LOW",
+			Orientation = "HORIZONTAL",
+			StatusBarTexture = NRF_IMG.."statusbar9",
+			vars = { ani = "glide" },
+			children = {	
+				bg = {
+					type = "Texture",
+					layer = "BACKGROUND",
+					Texture = NRF_IMG.."statusbar9",
+					VertexColor = { 0, 1, 1, 0.25 },
+					Anchor = "all",
+				},
+				text = {
+					type = "FontString",
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "LEFT",
+					ShadowColor = { 0, 0, 0, 0.75 },
+					ShadowOffset = { -1, -1 },
+					Anchor = "all",
+					vars = { format = "$cur / $max" },
+				},
+			},
+		},
+
+		Nurfed_Unit_xp = {
+			type = "StatusBar",
+--			StatusBarTexture = NRF_IMG.."statusbar9",
+			children = {
+--				bg = {
+--					type = "Texture",
+--					layer = "BACKGROUND",
+--					Texture = NRF_IMG.."statusbar5",
+--					VertexColor = { 0, 0, 1, 0.25 },
+--					Anchor = "all",
+--				},
+--				text = {
+--					type = "FontString",
+--					layer = "OVERLAY",
+--					FontObject = "Nurfed_Unit_Font",
+--					JustifyH = "CENTER",
+--					ShadowColor = { 0, 0, 0, 0.75 },
+--					ShadowOffset = { -1, -1 },
+--					Anchor = "all",
+--					vars = { format = "$cur/$max$rest" },
+--				},
+				text2 = {
+					type = "FontString",
+					layer = "OVERLAY",
+				FontObject = "Nurfed_Unit_Bold",
 					JustifyH = "RIGHT",
 					ShadowColor = { 0, 0, 0, 0.75 },
+					TextColor = { 1, 0, 0 },
 					ShadowOffset = { -1, -1 },
 					Anchor = "all",
 					vars = { format = "$perc" },
 				}
 			},
-			vars = { ani = "glide" },
 		},
-		Nurfed_Unit_pcasting = {
-			type = "StatusBar",
-			StatusBarTexture = NRF_IMG.."axstatusbar",
-			children = {
-				bg = {
-					type = "Texture",
-					layer = "BACKGROUND",
-					Texture = NRF_IMG.."axstatusbar",
-					VertexColor = { 0, 0, 1, 0.25 },
-					Anchor = "all",
-				},
-				text = {
-					type = "FontString",
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontSmall",
-					JustifyH = "LEFT",
-					ShadowColor = { 0, 0, 0, 0.75 },
-					ShadowOffset = { -1, -1 },
-					Anchor = "all",
-					vars = { format = "$spell ($rank)" },
-				},
-				time = {
-					type = "FontString",
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontSmall",
-					JustifyH = "RIGHT",
-					ShadowColor = { 0, 0, 0, 0.75 },
-					ShadowOffset = { -1, -1 },
-					Anchor = "all",
-				}
-			},
-			Hide = true,
-		},
-		Nurfed_Unit_castingtarget = {
-			type = "StatusBar",
-			StatusBarTexture = NRF_IMG.."HalH",
-			children = {
-				text = {
-					type = "FontString",
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontSmall",
-					JustifyH = "LEFT",
-					ShadowColor = { 0, 0, 0, 0.75 },
-					ShadowOffset = { -1, -1 },
-					Anchor = "all",
-					vars = { format = "$spell ($rank)" },
-				},
-				time = {
-					type = "FontString",
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontSmall",
-					JustifyH = "RIGHT",
-					ShadowColor = { 0, 0, 0, 0.75 },
-					ShadowOffset = { -1, -1 },
-					Anchor = "all",
-				}
-			},
-			Hide = true,
-		},
+
 		Nurfed_Unit_casting = {
 			type = "Frame",
-			size = { 15, 59 },
+			size = { 176, 20 },
 			Backdrop = { bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = true, tileSize = 12, edgeSize = 10, insets = { left = 2, right = 2, top = 2, bottom = 2 }, },
 			BackdropColor = { 0, 0, 0, 0 },
 			children = {
 				casting = {
 					type = "StatusBar",
-					size = { 10, 44 },
-					Orientation = "VERTICAL",
-					Anchor = { "TOP", 0, -3 },
-					StatusBarTexture = NRF_IMG.."axstatusbar",
-					FrameLevel = 2,
+					size = { 173, 17 },
+					Orientation = "HORIZONTAL",
+					Anchor = { "LEFT", 2, 0 },
+					StatusBarTexture = NRF_IMG.."statusbar9",
+					FrameLevel = 1,
 					children = {
 						text = {
 							type = "FontString",
 							layer = "ARTWORK",
-							size = { 10, 44 },
-							JustifyH = "LEFT",
-							FontObject = "Nurfed_UnitFontSmall",
+							size = { 176, 20 },
+							JustifyH = "CENTER",
+							FontObject = "Nurfed_Unit_Font",
 							ShadowColor = { 0, 0, 0, 0.75 },
 							ShadowOffset = { -1, -1 },
-							Anchor = { "TOP" },
-							vars = { format = "$spell ($rank)" },
+							Anchor = { "LEFT" },
+							vars = { format = "$spell" },
 						},
 						time = {
 							type = "FontString",
 							layer = "ARTWORK",
 							JustifyH = "LEFT",
-							FontObject = "Nurfed_UnitFontSmall",
+							FontObject = "Nurfed_Unit_Font",
 							ShadowColor = { 0, 0, 0, 0.75 },
 							ShadowOffset = { -1, -1 },
-							Anchor = { "BOTTOM", "$parent", "TOP", 0, 3 },
+							Anchor = { "RIGHT", "$parent", "RIGHT", 27, 0 },
 						},
 						icon = {
 							type = "Texture",
 							layer = "ARTWORK",
-							size = { 10, 10 },
-							Anchor = { "TOP", "$parent", "BOTTOM", 0, 0 },
+							size = { 20, 20 },
+							Anchor = { "LEFT", "$parent", "LEFT", -25, 0 },
 						},
 					},
 					Hide = true,
@@ -324,103 +163,236 @@ if (not Nurfed_UnitsLayout) then
 			},
 			Hide = true,
 		},
+
 		Nurfed_Unit_model = {
 			type = "PlayerModel",
-			size = { 40, 40 },
 			FrameStrata = "LOW",
 			ModelScale = 1.9,
+			Camera = 0,
+			FrameLevel = 1,
+		},
+
+		Nurfed_Unit_model = {
+			type = "PlayerModel",
+			FrameStrata = "LOW",
+			ModelScale = 1.9,
+			Camera = 0,
 			FrameLevel = 2,
+		},
+
+		Nurfed_Model_frame = {
+			type = "Frame",
+			FrameStrata = "LOW",
+			FrameLevel = 1,
+			Backdrop = { 
+				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+				edgeFile = "",
+				tile = true,
+				tileSize = 100,
+				edgeSize = 16,
+				insets = { left = 4, right = 4, top = 4, bottom = 4 },
+				},
+			BackdropColor = { 0, 0, 0, .75 },
+		},
+
+		Nurfed_Pet_frame = {
+			type = "Frame",
+			FrameStrata = "LOW",
+			FrameLevel = 2,
+			Backdrop = { 
+				bgFile = NRF_IMG.."statusbar9",
+				edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+				tile = true,
+				tileSize = 100,
+				edgeSize = 16,
+				insets = { left = 4, right = 4, top = 4, bottom = 4 },
+				},
+			BackdropColor = { .06, .13, .22, .95 },
+		},
+
+		Nurfed_Name_frame = {
+			type = "Frame",
+			Backdrop = {
+				bgFile = NRF_IMG.."statusbar9",
+				edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+				tile = true,
+				tileSize = 100,
+				edgeSize = 16,
+				insets = { left = 4, right = 4, top = 4, bottom = 4 },
+				},
+			BackdropColor = { .06, .13, .22, .95 },
+			children = {
+				text = {
+					type = "FontString",
+					size = { 105, 30 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "CENTER",
+					Anchor = "all",
+					vars = { format = "$name" },
+				},
+			},
 		},
 
 		Nurfed_Unit_mini = {
 			type = "Button",
 			uitemp = "SecureUnitButtonTemplate",
-			size = { 80, 22 },
+			size = { 75, 20 },
 			FrameStrata = "LOW",
 			Backdrop = {
 				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-				edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
 				tile = true,
 				tileSize = 16,
 				edgeSize = 8,
-				insets = { left = 2, right = 2, top = 2, bottom = 2 }
+				insets = { left = 0, right = 0, top = 0, bottom = 0 }
 			},
 			BackdropColor = { 0, 0, 0, 0.75 },
 			children = {
 				hp = {
 					type = "StatusBar",
-					size = { 74, 9 },
+					size = { 75, 10 },
 					FrameStrata = "LOW",
 					Orientation = "HORIZONTAL",
-					StatusBarTexture = NRF_IMG.."axstatusbar",
-					Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 3, 3 },
+					StatusBarTexture = NRF_IMG.."statusbar9",
+					Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 0, 0 },
 					children = {
 						bg = {
 							type = "Texture",
 							layer = "BACKGROUND",
-							Texture = NRF_IMG.."axstatusbar",
+							Texture = NRF_IMG.."statusbar9",
 							VertexColor = { 1, 0, 0, 0.25 },
 							Anchor = "all",
 						},
 						text = {
 							type = "FontString",
 							layer = "OVERLAY",
-							FontObject = "Nurfed_UnitFontSmallOutline",
+							Font = { NRF_FONT.."Charcoal.ttf", 9, "OUTLINE" },
 							JustifyH = "RIGHT",
-							TextColor = { 1, 0.25, 0 },
-							Anchor = "all",
+							TextColor = { 1, 0, 0 },
+							Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 0, 0 },
 							vars = { format = "$perc" },
 						},
 					},
 				},
 				name = {
 					type = "FontString",
-					size = { 75, 8 },
+					size = { 75, 10 },
 					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontSmall",
+					FontObject = "Nurfed_Unit_Font",
 					JustifyH = "LEFT",
 					ShadowColor = { 0, 0, 0, 0.75 },
 					ShadowOffset = { -1, -1 },
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 3, -2 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 1, 1 },
 					vars = { format = "$name" },
 				},
 			},
 			Hide = true,
 		},
-		Nurfed_Unit_target = {
+
+		Nurfed_Unit_mini_party = {
 			type = "Button",
 			uitemp = "SecureUnitButtonTemplate",
-			size = { 134, 28 },
+			size = { 75, 44 },
 			FrameStrata = "LOW",
-			FrameLevel = 2,
-			ClampedToScreen = true,
 			Backdrop = {
---				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-				tile = false,
-				tileSize = 0,
-				edgeSize = 0,
+				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+				tile = true,
+				tileSize = 16,
+				edgeSize = 8,
+				insets = { left = 0, right = 0, top = 0, bottom = 0 }
 			},
-			BackdropColor = { 0, 0, 0, 1.0 },
-			Movable = true,
-			Mouse = true,
+			BackdropColor = { 0, 0, 0, 0.75 },
 			children = {
 				hp = {
-					template = "Nurfed_Unit_hppet",
-					size = { 130, 20.5 },
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 2, -2 },
-				},
-				mp = {
-					template = "Nurfed_Unit_mppet",
-					size = { 130, 3 },
-					Anchor = { "TOP", "$parenthp", "BOTTOM", 0, -1 },
+					type = "StatusBar",
+					size = { 75, 22 },
+					FrameStrata = "LOW",
+					Orientation = "HORIZONTAL",
+					StatusBarTexture = NRF_IMG.."statusbar9",
+					Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 0, 0 },
+					children = {
+						bg = {
+							type = "Texture",
+							layer = "BACKGROUND",
+							Texture = NRF_IMG.."statusbar9",
+							VertexColor = { 1, 0, 0, 0.25 },
+							Anchor = "all",
+						},
+						text = {
+							type = "FontString",
+							layer = "OVERLAY",
+							Font = { NRF_FONT.."Charcoal.ttf", 15, "OUTLINE" },
+							JustifyH = "RIGHT",
+							TextColor = { 1, 0, 0 },
+							Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 0, -3 },
+							vars = { format = "$perc" },
+						},
+					},
 				},
 				name = {
 					type = "FontString",
-					size = { 123, 10 },
-					layer = "ARTWORK",
-					FontObject = "Nurfed_UnitFontMed",
+					size = { 75, 22 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
 					JustifyH = "LEFT",
-					Anchor = { "LEFT", "$parenthp", "LEFT", 5, 0 },
+					ShadowColor = { 0, 0, 0, 0.75 },
+					ShadowOffset = { -1, -1 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 1, 1 },
+					vars = { format = "$name" },
+				},
+			},
+			Hide = true,
+		},
+
+		Nurfed_Unit_mini_party_pet = {
+			type = "Button",
+			uitemp = "SecureUnitButtonTemplate",
+			size = { 100, 36 },
+			FrameStrata = "LOW",
+			Backdrop = {
+				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+				tile = true,
+				tileSize = 16,
+				edgeSize = 8,
+				insets = { left = 0, right = 0, top = 0, bottom = 0 }
+			},
+			BackdropColor = { 0, 0, 0, 0.75 },
+			children = {
+				hp = {
+					type = "StatusBar",
+					size = { 100, 18 },
+					FrameStrata = "LOW",
+					Orientation = "HORIZONTAL",
+					StatusBarTexture = NRF_IMG.."statusbar9",
+					Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 0, 0 },
+					children = {
+						bg = {
+							type = "Texture",
+							layer = "BACKGROUND",
+							Texture = NRF_IMG.."statusbar9",
+							VertexColor = { 1, 0, 0, 0.25 },
+							Anchor = "all",
+						},
+						text = {
+							type = "FontString",
+							layer = "OVERLAY",
+							Font = { NRF_FONT.."Charcoal.ttf", 14, "OUTLINE" },
+							JustifyH = "RIGHT",
+							TextColor = { 1, 0, 0 },
+							Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 0, -3 },
+							vars = { format = "$perc" },
+						},
+					},
+				},
+				name = {
+					type = "FontString",
+					size = { 75, 22 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "LEFT",
+					ShadowColor = { 0, 0, 0, 0.75 },
+					ShadowOffset = { -1, -1 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 1, 1 },
 					vars = { format = "$name" },
 				},
 			},
@@ -430,269 +402,57 @@ if (not Nurfed_UnitsLayout) then
 		Nurfed_Party = {
 			type = "Button",
 			uitemp = "SecureUnitButtonTemplate",
-			size = { 0, 0 },
+			size = { 176, 44 },
 			FrameStrata = "LOW",
 			ClampedToScreen = true,
-			Backdrop = { bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = true, tileSize = 16, edgeSize = 16, insets = { left = 5, right = 5, top = 5, bottom = 5 }, },
+			Backdrop = "Nurfed_Unit_backdrop",
 			BackdropColor = { 0, 0, 0, 0.75 },
 			Movable = true,
 			Mouse = true,
-			Hide = true,
-		},
-	};
-	--Frame Design
-	Nurfed_UnitsLayout.Layout = {
-		player = {
-			type = "Button",
-			uitemp = "SecureUnitButtonTemplate",
-			size = { 282, 37 },
-			FrameStrata = "LOW",
-			FrameLevel = 2,
-			ClampedToScreen = true,
-			Backdrop = {
-				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-				tile = false,
-				tileSize = 0,
-				edgeSize = 0,
-			},
-			BackdropColor = { 0, 0, 0, 1 },
-			Movable = true,
-			Mouse = true,
+			events = { "PLAYER_LOGIN" },
+			OnEvent = [[
+				local class = select(2, UnitClass("player")) 
+				if class == "PRIEST" then 
+					self.heal = "Lesser Heal"
+				elseif class == "MAGE" then 
+					self.heal = "Arcane Brilliance"
+				elseif class == "DRUID" then 
+					self.heal = "Healing Touch" elseif 
+				class == "PALADIN" then 
+					self.heal = "Holy Light" 
+				elseif class == "SHAMAN" then 
+					self.heal = "Healing Wave"
+				end
+			]],
+			OnUpdate = [[
+				if CheckInteractDistance(self.unit, 1) then 
+					self:SetAlpha(1) 
+					self:SetBackdropColor(0, 0, 0, 0.75) 
+				elseif self.heal and IsSpellInRange(self.heal, self.unit) == 1 then
+					self:SetAlpha(1) 
+					self:SetBackdropColor(1, 0, 0, 0.75)
+				else 
+					self:SetAlpha(0.5) 
+					self:SetBackdropColor(0, 0, 0, 0.75) 
+				end
+			]],
 			children = {
 				hp = {
 					template = "Nurfed_Unit_hp",
-					size = { 280, 26 },
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 1, -1 },
+					size = { 170, 14 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -3, 15 },
 				},
 				mp = {
 					template = "Nurfed_Unit_mp",
-					size = { 280, 8 },
-					Anchor = { "TOP", "$parenthp", "BOTTOM", 0, -1 },
-				},
-				name = {
-					type = "FontString",
-					size = { 65, 18 },
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontLarge",
-					JustifyH = "RIGHT",
-					Anchor = { "RIGHT", "$parenthp", "RIGHT", -2, 0 },
-					vars = { format = "$name" },
-				},
---[[				status = {
-					type = "Texture",
-					size = { 20, 20 },
-					layer = "OVERLAY",
-					Texture = "Interface\\CharacterFrame\\UI-StateIcon",
-					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -15, 10 },
-					Hide = true,
-				},]]
-				castingframebg = {
-					type = "Texture",
-					size = { 280, 4 },
-					layer = "BACKGROUND",
-					Texture = NRF_IMG.."HalH",
-					VertexColor = { 0, 0, 1, 0.25 },
-					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
+					size = { 170, 12 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT",-3, 2 },
 				},
 				castingframe = {
-					size = { 280, 4 },
-					template = "Nurfed_Unit_castingtarget",
-					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
-					vars = { hideFrame = "xp", },
+					template = "Nurfed_Unit_casting",
+					Anchor = { "BOTTOMLEFT", "$parent", "LEFT", 20, -62 },
 				},
-				mptext = {
-					type = "FontString",
-					size = { 140, 18 },
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontMedWhite",
-					JustifyH = "LEFT",
-					Anchor = { "TOPLEFT", "$parentcastingframe", "BOTTOMLEFT", 0, 0 },
-					vars = { format = "$cur/$max" },
-				},
-				hptext = {
-					type = "FontString",
-					size = { 140, 18 },
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontMedWhite",
-					JustifyH = "RIGHT",
-					Anchor = { "TOPRIGHT", "$parentcastingframe", "BOTTOMRIGHT", 0, 0 },
-					vars = { format = "$cur/$max | $perc" },
-				},
-
-				--[[
-				leader = {
-					type = "Texture",
-					size = { 15, 15 },
-					layer = "OVERLAY",
-					Texture = "Interface\\GroupFrame\\UI-Group-LeaderIcon",
-					Anchor = { "TOP", "$parent", "TOP", 0, 10 },
-					Hide = true,
-				},
-				master = {
-					type = "Texture",
-					size = { 15, 15 },
-					layer = "OVERLAY",
-					Texture = "Interface\\GroupFrame\\UI-Group-MasterLooter",
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", -5, 10 },
-					Hide = true,
-				},
-				level = {
-					type = "FontString",
-					size = { 100, 18 },
-					layer = "OVERLAY",
-					FrameLevel = 3,
-					FontObject = "Nurfed_UnitFontMed",
-					JustifyH = "LEFT",
-					Anchor = { "LEFT", "$parentmp", "LEFT", 4, 0 },
-					vars = { format = "$level $class" },
-				},
-				group = {
-					type = "FontString",
-					size = { 50, 8 },
-					layer = "OVERLAY",
-					FrameLevel = 3,
-					FontObject = "Nurfed_UnitFontSmall",
-					JustifyH = "LEFT",
-					Anchor = { "TOPLEFT", "$parentname", "BOTTOMLEFT", 1, 5 },
-				},
-				xpframebg = {
-					type = "Texture",
-					size = { 280, 4 },
-					layer = "BACKGROUND",
-					Texture = NRF_IMG.."HalH",
-					VertexColor = { 0, 0, 1, 0.25 },
-					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
-				},]]
-				xp = {
-					size = { 280, 4 },
-					template = "Nurfed_Unit_xp",
-					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
-				},
-				feedbackheal = {
-					type = "ScrollingMessageFrame",
-					layer = "OVERLAY",
-					size = { 280, 16 },
-					FontObject = "Nurfed_UnitFontMed",
-					JustifyH = "CENTER",
-					InsertMode = "TOP",
-					Anchor = { "CENTER", "$parenthp", "CENTER", 0, 0 },
-					FadeDuration = 0.3,
-					TimeVisible = 0.8,
-					vars = { heal = true },
-				},
-				feedbackdamage = {
-					type = "ScrollingMessageFrame",
-					layer = "OVERLAY",
-					size = { 280, 16 },
-					FontObject = "Nurfed_UnitFontMed",
-					JustifyH = "CENTER",
-					InsertMode = "TOP",
-					Anchor = { "CENTER", "$parenthp", "CENTER", 0, 0 },
-					FadeDuration = 0.3,
-					TimeVisible = 0.8,
-					vars = { damage = true },
-				},
-			},
-			vars = { unit = "player", enablePredictedStats = true, },
-		},
-
-		target = {
-			type = "Button",
-			uitemp = "SecureUnitButtonTemplate",
-			size = { 282, 37 },
-			FrameStrata = "LOW",
-			FrameLevel = 2,
-			ClampedToScreen = true,
-			Backdrop = {
-				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-				tile = false,
-				tileSize = 0,
-				edgeSize = 0,
-			},
-			BackdropColor = { 0, 0, 0, 1 },
-			Movable = true,
-			Mouse = true,
-			children = {
-				hp = {
-					template = "Nurfed_Unit_hptar",
-					size = { 280, 26 },
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 1, -1 },
-				},
-				mp = {
-					template = "Nurfed_Unit_mp",
-					size = { 280, 8 },
-					Anchor = { "TOP", "$parenthp", "BOTTOM", 0, -1 },
-				},
-				castingframebg = {
-					type = "Texture",
-					size = { 280, 4 },
-					layer = "BACKGROUND",
-					Texture = NRF_IMG.."HalH",
-					VertexColor = { 0, 0, 1, 0.25 },
-					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
-				},
-				castingframe = {
-					size = { 280, 4 },
-					template = "Nurfed_Unit_castingtarget",
-					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
-				},
-				hptext = {
-					type = "FontString",
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontMedWhite",
-					JustifyH = "RIGHT",
-					Anchor = { "TOPRIGHT", "$parenthp", "TOPRIGHT", -2, -10 },
-					vars = { format = "$miss$cur/$max | $perc" },
-				},
-				--[[
-				threat = {
-					type = "StatusBar",
-					StatusBarTexture = NRF_IMG.."statusbar5",
-					size = { 170, 8 },
-					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -5, 5 },
-					children = {
-						bg = {
-							type = "Texture",
-							layer = "BACKGROUND",
-							Texture = NRF_IMG.."statusbar5",
-							VertexColor = { 0, 0, 1, 0.25 },
-							Anchor = "all",
-						},
-						text = {
-							type = "FontString",
-							layer = "OVERLAY",
-							FontObject = "Nurfed_UnitFontSmall",
-							JustifyH = "CENTER",
-							ShadowColor = { 0, 0, 0, 0.75 },
-							ShadowOffset = { -1, -1 },
-							Anchor = "all",
-							vars = { format = "$cur" },
-						},
-						text2 = {
-							type = "FontString",
-							layer = "OVERLAY",
-							FontObject = "Nurfed_UnitFontSmall",
-							JustifyH = "RIGHT",
-							ShadowColor = { 0, 0, 0, 0.75 },
-							ShadowOffset = { -1, -1 },
-							Anchor = "all",
-							vars = { format = "$perc" },
-						}
-					},
-					vars = { threatUnit = "player", ani = "glide", },
-					Hide = true,
-				},
-]]
-				name = {
-					type = "FontString",
-					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontMedWhite",
-					JustifyH = "LEFT",
-					Anchor = { "TOPLEFT", "$parentcastingframe", "BOTTOMLEFT", 0, 0 },
-					vars = { format = "$name $guild $level" },
-				},
-				--buff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parent", "TOPLEFT", 0, 1 } },
-				buff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parent", "TOPLEFT", 5, 8 } },
+				target = { template = "Nurfed_Unit_mini_party", Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", 175, 0 } },
+				buff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parent", "BOTTOMLEFT", 0, -2 } },
 				buff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff1", "RIGHT", 0, 0 } },
 				buff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff2", "RIGHT", 0, 0 } },
 				buff4 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff3", "RIGHT", 0, 0 } },
@@ -708,7 +468,238 @@ if (not Nurfed_UnitsLayout) then
 				buff14 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff13", "RIGHT", 0, 0 } },
 				buff15 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff14", "RIGHT", 0, 0 } },
 				buff16 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff15", "RIGHT", 0, 0 } },
-				debuff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentbuff1", "TOPLEFT", 0, 0 } },
+				debuff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parent", "TOPRIGHT", 1, 0 } },
+				debuff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff1", "RIGHT", 1, 0 } },
+				debuff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff2", "RIGHT", 1, 0 } },
+				debuff4 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff3", "RIGHT", 1, 0 } },
+				debuff5 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOP", "$parentdebuff1", "BOTTOM", 1, 0 } },
+				debuff6 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff5", "RIGHT", 1, 0 } },
+				debuff7 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff6", "RIGHT", 1, 0 } },
+				debuff8 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff7", "RIGHT", 1, 0 } },
+				highlight = {
+					type = "Texture",
+					size = { 160, 10 },
+					layer = "ARTWORK",
+					Texture = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
+					BlendMode = "ADD",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 0, -4 },
+				},				
+				leader = {
+					type = "Texture",
+					size = { 10, 10 },
+					layer = "OVERLAY",
+					Texture = "Interface\\GroupFrame\\UI-Group-LeaderIcon",
+					Anchor = { "TOP", "$parent", "TOP", 40, -4 },
+				},
+				master = {
+					type = "Texture",
+					size = { 9, 9 },
+					layer = "OVERLAY",
+					Texture = "Interface\\GroupFrame\\UI-Group-MasterLooter",
+					Anchor = { "TOP", "$parent", "TOP", 28, -4 },
+				},
+				name = {
+					type = "FontString",
+					size = { 100, 9 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 18, -4 },
+					vars = { format = "$name" },
+				},
+				pet = {
+					template = "Nurfed_Unit_mini_party_pet",
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", 150, -38 },
+				},
+				level = {
+					type = "FontString",
+					size = { 20, 9 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 3, -4 },
+					vars = { format = "$level" },
+				},
+			},
+			vars = { aurawidth = 272, aurasize = 17, enablePredictedStats = true },
+		},
+	}
+	
+	--Frame Design
+	Nurfed_UnitsLayout.Layout = {
+		player = {
+			type = "Button",
+			uitemp = "SecureUnitButtonTemplate",
+			size = { 176, 44 },
+			FrameStrata = "LOW",
+			ClampedToScreen = true,
+			Backdrop = "Nurfed_Unit_backdrop",
+			BackdropColor = { 0, 0, 0, 0.75 },
+			Scale = 1.5,
+			Movable = true,
+			Mouse = true,
+			children = {
+				hp = {
+					template = "Nurfed_Unit_hp",
+					size = { 170, 14 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -3, 15 },
+				},
+				mp = {
+					template = "Nurfed_Unit_mp",
+					size = { 170, 12 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT",-3, 2 },
+				},
+				xp = {
+					template = "Nurfed_Unit_xp",
+					size = { 170, 8 },
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 0, -4 },
+				},
+				model_frame = {
+					template = "Nurfed_Model_frame",
+					size = { 51, 52 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", -47, 4 },
+				},
+				model = {
+					template = "Nurfed_Unit_model",
+					size = { 42, 42 },
+					Anchor = { "BOTTOMLEFT", "$parentmodel_frame", "BOTTOMLEFT", 7, 4 },
+				},
+				leader = {
+					type = "Texture",
+					size = { 10, 10 },
+					layer = "OVERLAY",
+					Texture = "Interface\\GroupFrame\\UI-Group-LeaderIcon",
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -19, -4 },
+				},
+				master = {
+					type = "Texture",
+					size = { 9, 9 },
+					layer = "OVERLAY",
+					Texture = "Interface\\GroupFrame\\UI-Group-MasterLooter",
+					Anchor = { "TOP", "$parent", "TOP", 28, -4 },
+				},
+				name = {
+					type = "FontString",
+					size = { 65, 9 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 18, -4 },
+					vars = { format = "$name" },
+				},
+				level = {
+					type = "FontString",
+					size = { 20, 9 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 3, -4 },
+					vars = { format = "$level" },
+				},
+				group = {
+					type = "FontString",
+					size = { 50, 8 },
+					layer = "OVERLAY",
+					Font = { NRF_FONT.."Charcoal.ttf", 12, "NONE" },
+					JustifyH = "LEFT",
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -20, -5 },
+				},
+   		        druidmanabar = {
+      		        template = "Nurfed_Unit_mp",
+					size = { 170, 8 },
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 0, -4 },
+  			        vars = { hideFrame = "xp" },
+ 		        },
+			},
+			vars = { unit = "player", enablePredictedStats = true },
+		},
+
+		target = {
+			type = "Button",
+			uitemp = "SecureUnitButtonTemplate",
+			size = { 176, 44 },
+			FrameStrata = "LOW",
+			ClampedToScreen = true,
+			Backdrop = "Nurfed_Unit_backdrop",
+			BackdropColor = { 0, 0, 0, 0.75 },
+			Scale = 1.5,
+			Movable = true,
+			Mouse = true,
+			events = { "PLAYER_LOGIN" },
+			OnEvent = [[
+				local class = select(2, UnitClass("player")) 
+					if class == "PRIEST" then 
+						self.heal = "Lesser Heal" 
+						self.harm = "Shadow Word: Pain" 
+					elseif class == "MAGE" then 
+						self.heal = "Arcane Brilliance" 
+						self.harm = "Fireball" 
+					elseif class == "DRUID" then 
+						self.heal = "Healing Touch" 
+						self.harm = "Cyclone" 
+					elseif class == "WARLOCK" then 
+						self.heal = "Unending Breath" 
+						self.harm = "Shadowbolt" 
+					elseif class == "PALADIN" then 
+						self.heal = "Holy Light" 
+						self.harm = "Hammer of Wrath" 
+					elseif class == "SHAMAN" then 
+						self.heal = "Healing Wave" 
+						self.harm = "Lightning Bolt" 
+					end
+			]],
+			OnUpdate = [[
+				if CheckInteractDistance(self.unit, 1) then 
+					self:SetAlpha(1) 
+					self:SetBackdropColor(0, 0, 0, 0.75) 
+				elseif self.heal and (IsSpellInRange(self.heal, self.unit) == 1 or IsSpellInRange(self.harm, self.unit) == 1) then 
+					self:SetAlpha(1) 
+					self:SetBackdropColor(1, 0, 0, 0.75) 
+				else 
+					self:SetAlpha(0.5) 
+					self:SetBackdropColor(0, 0, 0, 0.75) 
+				end
+			]],
+			children = {
+				hp = {
+					template = "Nurfed_Unit_hp",
+					size = { 170, 14 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -3, 15 },
+				},
+				mp = {
+					template = "Nurfed_Unit_mp",
+					size = { 170, 12 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT",-3, 2 },
+				},
+				model_frame = {
+					template = "Nurfed_Model_frame",
+					size = { 51, 52 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", -47, 4 },
+				},
+				model = {
+					template = "Nurfed_Unit_model",
+					size = { 42, 42 },
+					Anchor = { "BOTTOMLEFT", "$parentmodel_frame", "BOTTOMLEFT", 7, 4 },
+				},
+				target = { template = "Nurfed_Unit_mini", Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 0, 44 } },
+				targettarget = { template = "Nurfed_Unit_mini", Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", 0, 44 } },
+				buff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parent", "BOTTOMLEFT", 0, -2 } },
+				buff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff1", "RIGHT", 0, 0 } },
+				buff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff2", "RIGHT", 0, 0 } },
+				buff4 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff3", "RIGHT", 0, 0 } },
+				buff5 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff4", "RIGHT", 0, 0 } },
+				buff6 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff5", "RIGHT", 0, 0 } },
+				buff7 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff6", "RIGHT", 0, 0 } },
+				buff8 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff7", "RIGHT", 0, 0 } },
+				buff9 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff8", "RIGHT", 0, 0 } },
+				buff10 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff9", "RIGHT", 0, 0 } },
+				buff11 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff10", "RIGHT", 0, 0 } },
+				buff12 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff11", "RIGHT", 0, 0 } },
+				buff13 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff12", "RIGHT", 0, 0 } },
+				buff14 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff13", "RIGHT", 0, 0 } },
+				buff15 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff14", "RIGHT", 0, 0 } },
+				buff16 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff15", "RIGHT", 0, 0 } },
+				debuff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parentbuff1", "BOTTOMLEFT", 0, -1 } },
 				debuff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff1", "RIGHT", 0, 0 } },
 				debuff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff2", "RIGHT", 0, 0 } },
 				debuff4 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff3", "RIGHT", 0, 0 } },
@@ -724,149 +715,142 @@ if (not Nurfed_UnitsLayout) then
 				debuff14 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff13", "RIGHT", 0, 0 } },
 				debuff15 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff14", "RIGHT", 0, 0 } },
 				debuff16 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff15", "RIGHT", 0, 0 } },
-				debuff17 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff16", "RIGHT", 0, 0 } },
-				debuff18 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff17", "RIGHT", 0, 0 } },
-				debuff19 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff18", "RIGHT", 0, 0 } },
-				debuff20 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff19", "RIGHT", 0, 0 } },
-				debuff21 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff20", "RIGHT", 0, 0 } },
-				debuff22 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff21", "RIGHT", 0, 0 } },
-				debuff23 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff22", "RIGHT", 0, 0 } },
-				debuff24 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff23", "RIGHT", 0, 0 } },
-				rank = {
-					type = "Texture",
-					size = { 20, 20 },
+				name = {
+					type = "FontString",
+					size = { 100, 9 },
 					layer = "OVERLAY",
-					Anchor = { "TOPRIGHT", "$parent", "TOPLEFT", 3, -4 },
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 25, -4 },
+					vars = { format = "$name" },
 				},
-				pvp = {
-					type = "Texture",
-					size = { 35, 35 },
+				level = {
+					type = "FontString",
+					size = { 20, 9 },
 					layer = "OVERLAY",
-					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 20, 10 },
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 3, -4 },
+					vars = { format = "$level" },
+				},
+				hpperc = {
+					type = "FontString",
+					size = { 100, 9 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					TextColor = { 1, 0, 0 },
+					JustifyH = "RIGHT",
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -5, -4 },
+					vars = { format = "$perc" },
 				},
 				combo = {
 					type = "FontString",
 					layer = "OVERLAY",
-					Font = {"Interface\\Addons\\Nurfed\\Fonts\\BigNoodle.ttf", 22, "OUTLINE" },
-					TextHeight = 22,
+					Font = { NRF_FONT.."Charcoal.ttf", 22, "OUTLINE" },
 					JustifyH = "RIGHT",
-					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMLEFT", -2, 0 },
-					vars = { unit1 = "player", unit2 = "target", },
+					Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMRIGHT", -2, 3 },
+			        vars = { unit1 = "player", unit2 = "target" },
 				},
 				raidtarget = {
 					type = "Texture",
 					Texture = "Interface\\TargetingFrame\\UI-RaidTargetingIcons",
 					size = { 15, 15 },
 					layer = "OVERLAY",
-					Anchor = { "BOTTOMRIGHT", "$parent", "TOPRIGHT", -5, 0 },
+					Anchor = { "TOPLEFT", "$parent", "TOPRIGHT", 0, -4 },
 					Hide = true,
 				},
-				mptext = {
+			},
+			vars = { unit = "target", enablePredictedStats = true },
+		},
+
+		focus = {
+			type = "Button",
+			uitemp = "SecureUnitButtonTemplate",
+			size = { 176, 44 },
+			FrameStrata = "LOW",
+			ClampedToScreen = true,
+			Backdrop = "Nurfed_Unit_backdrop",
+			BackdropColor = { 0, 0, 0, 0.75 },
+			Scale = 1.5,
+			Movable = true,
+			Mouse = true,
+			events = { "PLAYER_LOGIN" },
+			OnEvent = [[
+				local class = select(2, UnitClass("player")) 
+				if class == "PRIEST" then 
+					self.heal = "Lesser Heal" 
+					self.harm = "Shadow Word: Pain" 
+				elseif class == "MAGE" then 
+					self.heal = "Arcane Brilliance" 
+					self.harm = "Fireball" 
+				elseif class == "DRUID" then 
+					self.heal = "Healing Touch" 
+					self.harm = "Cyclone" 
+				elseif class == "WARLOCK" then 
+					self.heal = "Unending Breath" 
+					self.harm = "Shadowbolt" 
+				elseif class == "PALADIN" then 
+					self.heal = "Holy Light" 
+					self.harm = "Hammer of Wrath" 
+				elseif class == "SHAMAN" then 
+					self.heal = "Healing Wave" 
+					self.harm = "Lightning Bolt" 
+				end
+			]],
+			OnUpdate = [[
+				if CheckInteractDistance(self.unit, 1) then 
+					self:SetAlpha(1) 
+					self:SetBackdropColor(0, 0, 0, 0.75) 
+				elseif self.heal and (IsSpellInRange(self.heal, self.unit) == 1 or IsSpellInRange(self.harm, self.unit) == 1) then 
+					self:SetAlpha(1) 
+					self:SetBackdropColor(1, 0, 0, 0.75) 
+				else 
+					self:SetAlpha(0.5) 
+					self:SetBackdropColor(0, 0, 0, 0.75)
+				end
+			]],
+			children = {
+				hp = {
+					template = "Nurfed_Unit_hp",
+					size = { 170, 14 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -3, 15 },
+				},
+				mp = {
+					template = "Nurfed_Unit_mp",
+					size = { 170, 12 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT",-3, 2 },
+				},
+				name = {
 					type = "FontString",
+					size = { 100, 9 },
 					layer = "OVERLAY",
-					FontObject = "Nurfed_UnitFontMedWhite",
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 18, -4 },
+					vars = { format = "$name" },
+				},
+				level = {
+					type = "FontString",
+					size = { 20, 9 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 3, -4 },
+					vars = { format = "$level" },
+				},
+				hpperc = {
+					type = "FontString",
+					size = { 100, 9 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					TextColor = { 1, 0, 0 },
 					JustifyH = "RIGHT",
-					Anchor = { "TOPRIGHT", "$parentcastingframe", "BOTTOMRIGHT", 0, 0 },
-					vars = { format = "$cur/$max | $perc" },
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -5, -4 },
+					vars = { format = "$perc" },
 				},
-			},
-			vars = { unit = "target", debuffwidth = 176, buffwidth = 176, enablePredictedStats = true, alphaRange = true, },
-		},
-		
-		targettarget = {
-			type = "Button",
-			uitemp = "SecureUnitButtonTemplate",
-			size = { 163, 27 },
-			FrameStrata = "LOW",
-			FrameLevel = 2,
-			ClampedToScreen = true,
-			Backdrop = {
-				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-				tile = false,
-				tileSize = 0,
-				edgeSize = 0,
-			},
-			BackdropColor = { 0, 0, 0, .55 },
-			Movable = true,
-			Mouse = true,
-			children = {
-				--[[
-				hp = {
-					template = "Nurfed_Unit_hptar",
-					size = { 161, 25 },
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 1, -1 },
-					children = {
-						text = {
-							type = "FontString",
-							layer = "OVERLAY",
-							FontObject = "Nurfed_UnitFontMedWhite",
-							JustifyH = "RIGHT",
-							Anchor = { "RIGHT", "$parent", "RIGHT", -2, 0 },
-							vars = { format = "$perc" },
-						},
-					},
-				},]]
-				hp = {
-					template = "Nurfed_Unit_hppet",
-					size = { 161, 21 },
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 1, -1 },
-				},
-				mp = {
-					template = "Nurfed_Unit_mppet",
-					size = { 161, 4 },
-					Anchor = { "TOPLEFT", "$parenthp", "BOTTOMLEFT", 0, 0 },
-				},
-				name = {
-					type = "FontString",
-					size = { 140, 18 },
-					layer = "OVERLAY",
-					FrameLevel = 3,
-					FontObject = "Nurfed_UnitFontMedWhite",
-					JustifyH = "MIDDLE",
-					Anchor = { "CENTER", "$parenthp", "CENTER", 0, 0 },
-					vars = { format = "$name" },
-				},
-			},
-			vars = { unit = "targettarget" },
-		},
-   		
-   		pet = {
-			type = "Button",
-			uitemp = "SecureUnitButtonTemplate",
-			size = { 160, 14 },
-			FrameStrata = "LOW",
-			FrameLevel = 2,
-			ClampedToScreen = true,
-			Backdrop = {
-				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-				tile = false,
-				tileSize = 0,
-				edgeSize = 0,
-			},
-			BackdropColor = { 0, 0, 0, 1 },
-			Movable = true,
-			Mouse = true,
-			children = {
-				hp = {
-					template = "Nurfed_Unit_hppet",
-					size = { 160, 10 },
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 1, -1 },
-				},
-				mp = {
-					template = "Nurfed_Unit_mppet",
-					size = { 160, 2 },
-					Anchor = { "TOPLEFT", "$parenthp", "BOTTOMLEFT", 0, 0 },
-				},
-				name = {
-					type = "FontString",
-					size = { 123, 10 },
-					layer = "ARTWORK",
-					FontObject = "Nurfed_UnitFontSmall",
-					JustifyH = "MIDDLE",
-					Anchor = { "CENTER", "$parenthp", "CENTER", 0, 0 },
-					vars = { format = "$name" },
-				},
-				buff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parentmp", "BOTTOMLEFT", 0, 0 } },
+				target = { template = "Nurfed_Unit_mini", Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 0, 44 } },
+				targettarget = { template = "Nurfed_Unit_mini", Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", 0, 44 } },
+				buff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parent", "BOTTOMLEFT", 0, -2 } },
 				buff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff1", "RIGHT", 0, 0 } },
 				buff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff2", "RIGHT", 0, 0 } },
 				buff4 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff3", "RIGHT", 0, 0 } },
@@ -874,75 +858,98 @@ if (not Nurfed_UnitsLayout) then
 				buff6 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff5", "RIGHT", 0, 0 } },
 				buff7 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff6", "RIGHT", 0, 0 } },
 				buff8 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff7", "RIGHT", 0, 0 } },
-				buff9 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff8", "RIGHT", 0, 0 } },
-				debuff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parentbuff1", "BOTTOMLEFT", 0, -1 } },
-				debuff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff1", "RIGHT", 0, 0 } },
-				debuff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff2", "RIGHT", 0, 0 } },
-				debuff4 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff3", "RIGHT", 0, 0 } },
-				debuff5 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff4", "RIGHT", 0, 0 } },
-				debuff6 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff5", "RIGHT", 0, 0 } },
-				debuff7 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff6", "RIGHT", 0, 0 } },
-				debuff8 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff7", "RIGHT", 0, 0 } },
-				debuff9 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentdebuff8", "RIGHT", 0, 0 } },
+				debuff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 0, -40 } },
+				debuff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff1", "BOTTOMRIGHT", 0, 0 } },
+				debuff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff2", "BOTTOMRIGHT", 0, 0 } },
+				debuff4 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff3", "BOTTOMRIGHT", 0, 0 } },
+				debuff5 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff4", "BOTTOMRIGHT", 0, 0 } },
+				debuff6 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff5", "BOTTOMRIGHT", 0, 0 } },
+				debuff7 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff6", "BOTTOMRIGHT", 0, 0 } },
+				debuff8 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff7", "BOTTOMRIGHT", 0, 0 } },
 			},
-			vars = { unit = "pet", debuffwidth = 140, buffwidth = 140, enablePredictedStats = true, },
+			vars = { unit = "focus", aurawidth = 160, enablePredictedStats = true },
+
 		},
-		focus = {
+
+		pet = {
 			type = "Button",
 			uitemp = "SecureUnitButtonTemplate",
-			size = { 135, 21 },
+			size = { 176, 44 },
 			FrameStrata = "LOW",
-			FrameLevel = 2,
 			ClampedToScreen = true,
-			Backdrop = {
-				bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-				tile = false,
-				tileSize = 0,
-				edgeSize = 0,
-			},
-			BackdropColor = { 0, 0, 0, 1 },
+			Backdrop = "Nurfed_Unit_backdrop",
+			BackdropColor = { 0, 0, 0, 0.75 },
+			Scale = 1,
 			Movable = true,
 			Mouse = true,
 			children = {
 				hp = {
-					template = "Nurfed_Unit_hppet",
-					size = { 133, 16 },
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 1, -1 },
+					template = "Nurfed_Unit_hp",
+					size = { 170, 14 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", -3, 15 },
 				},
 				mp = {
-					template = "Nurfed_Unit_mppet",
-					size = { 133, 3 },
-					Anchor = { "TOPLEFT", "$parenthp", "BOTTOMLEFT", 0, 0 },
+					template = "Nurfed_Unit_mp",
+					size = { 170, 12 },
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT",-3, 2 },
+				},
+				castingframe = {
+					template = "Nurfed_Unit_casting",
+					Anchor = { "BOTTOMLEFT", "$parent", "LEFT", 20, -62 },
 				},
 				name = {
 					type = "FontString",
-					size = { 123, 16 },
-					layer = "ARTWORK",
-					FontObject = "Nurfed_UnitFontMed",
-					JustifyH = "MIDDLE",
-					Anchor = { "BOTTOM", "$parent", "TOP", 0, 0 },
+					size = { 100, 9 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 18, -4 },
 					vars = { format = "$name" },
 				},
-				castingframebg = {
+				level = {
+					type = "FontString",
+					size = { 20, 9 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					JustifyH = "LEFT",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 3, -4 },
+					vars = { format = "$level" },
+				},
+				hpperc = {
+					type = "FontString",
+					size = { 100, 9 },
+					layer = "OVERLAY",
+					FontObject = "Nurfed_Unit_Font",
+					TextColor = { 1, 0, 0 },
+					JustifyH = "RIGHT",
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -5, -4 },
+					vars = { format = "$perc" },
+				},
+				happiness = {
 					type = "Texture",
-					size = { 133, 4 },
-					layer = "BACKGROUND",
-					Texture = NRF_IMG.."HalH",
-					VertexColor = { 0, 0, 1, 0.25 },
-					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
+					Texture = "Interface\\PetPaperDollFrame\\UI-PetHappiness",
+					size = { 13, 13 },
+					layer = "OVERLAY",
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 125, -1 },
+					Hide = true,
 				},
-				castingframe = {
-					size = { 133, 4 },
-					template = "Nurfed_Unit_castingtarget",
-					Anchor = { "TOP", "$parentmp", "BOTTOM", 0, -1 },
-				},
+				target = { template = "Nurfed_Unit_mini", Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 0, 44 } },
+				targettarget = { template = "Nurfed_Unit_mini", Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", 0, 44 } },
+				debuff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 0, -40 } },
+				debuff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff1", "BOTTOMRIGHT", 0, 0 } },
+				debuff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff2", "BOTTOMRIGHT", 0, 0 } },
+				debuff4 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff3", "BOTTOMRIGHT", 0, 0 } },
+				debuff5 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff4", "BOTTOMRIGHT", 0, 0 } },
+				debuff6 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff5", "BOTTOMRIGHT", 0, 0 } },
+				debuff7 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff6", "BOTTOMRIGHT", 0, 0 } },
+				debuff8 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "BOTTOMLEFT", "$parentdebuff7", "BOTTOMRIGHT", 0, 0 } },
 			},
-			vars = { unit = "focus", alphaRange = true, },
-	},
+			vars = { unit = "pet", aurawidth = 160, enablePredictedStats = true },
+		},
 
-  Nurfed_party1 = { template = "Nurfed_Party", vars = { unit = "party1" } },
-  Nurfed_party2 = { template = "Nurfed_Party", vars = { unit = "party2" } },
-  Nurfed_party3 = { template = "Nurfed_Party", vars = { unit = "party3" } },
-  Nurfed_party4 = { template = "Nurfed_Party", vars = { unit = "party4" } },
-};
-end	
+		Nurfed_party1 = { template = "Nurfed_Party", vars = { unit = "party1" } },
+		Nurfed_party2 = { template = "Nurfed_Party", vars = { unit = "party2" } },
+		Nurfed_party3 = { template = "Nurfed_Party", vars = { unit = "party3" } },
+		Nurfed_party4 = { template = "Nurfed_Party", vars = { unit = "party4" } },
+	}
+end

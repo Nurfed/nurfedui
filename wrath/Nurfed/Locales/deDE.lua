@@ -1,0 +1,27 @@
+-- deDE translations provided by: Jobe (Thanks)
+Nurfed:RegisterTranslations("deDE",
+	"|cffffffffSold |r%d |cffffffffItem: |r%s", "|cffffffffVerkauft |r%d |cffffffffItem: |r%s",
+	"|cffffffffSold |r%d |cffffffffItems: |r%s", "|cffffffffVerkauft |r%d |cffffffffItems: |r%s",
+	"|cffffffffReceived|r |c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cfffffffffrom selling trash loot.|r", "|c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cffffffffdurch Verkauf von Trash erhalten.|r",
+	"Drop group and resend '%s'", "Verlasse die Gruppe und lade erneut '%s'",
+	"Pary Full", "Gruppe voll",
+	" Ping.", true, -- notice the prespace
+	"|cffffffffSpent|r |c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cffffffffOn Repairs.|r", "|c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cfffffffffür Reparaturen ausgegeben.|r",
+	"|cffffffffSpent|r |c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cffffffffOn Repairs (Guild).|r", "|c00ffff66%dg|r |c00c0c0c0%ds|r |c00cc9900%dc|r |cfffffffffür Reparaturen ausgegeben (Guild).|r",
+	"Reload UI", true,
+	"Reload User Interface?", "Interface neu laden?",
+	"|cffbbccddNurfed Version:|r %s(%d)\r|cffaabbccConfig Version:|r %s(%d)\r|cffccddeeArena Version:|r %s(%d)", "|cffbbccddNurfed Version:|r %s(%d)\r|cffaabbccConfig Version:|r %s(%d)\r|cffccddeeArena Version:|r %s(%d)",
+	"This is the main Nurfed options menu, please select a subcategory to change options.", "Dies ist das Nurfed Haupmenü, bitte wähle eine Kategorie.",
+	"Frame Editor", true,
+	"Left Click - |cffff0000Unlock|r UI", "Links Klick - |cffff0000Freigeben|r UI",
+	"Left Click - |cff00ff00Lock|r UI", "Links Klick - |cff00ff00Sperren|r UI",
+	"Right Click - Nurfed Menu", "Rechts Klick - Nurfed Menü",
+	"Middle Click - WoW Micro Menu", "Mittlerer Klick - WoW Micro Menü",
+	"Ctrl + Drag moves your Action Bars.", "Action Bars mit CTRL ziehen.",
+	"Reset Action Bars", "Action Bars zurücksetzen",
+	"Reset Unit Frames", "Unit Frames zurücksetzen",
+	"Disable Action Bars", "Action Bars abschalten",
+	"Disable Unit Frames", "Unit Frames abschalten",
+	"Do Not Click", "NICHT KLICKEN!",
+	"Pressing this button could cause death or other unwanted results.\rAre you sure?", "Diesen Knopf zu drücken könnte zu Tod oder anderen ungewünschten Ergebnissen führen\rBist du sicher?"
+)

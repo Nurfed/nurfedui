@@ -1105,7 +1105,6 @@ local replace = {
 	["$name"] = function(self, t)
 		if not self.unit then return end
 		local color
-		local colorLst = Nurfed:getopt("colorlist")
 		
 		if UnitIsPlayer(self.unit) then
 			local eclass = select(2, UnitClass(self.unit))
@@ -1124,7 +1123,23 @@ local replace = {
 				end
 			end
 		end
-		return (color or "|cffffffff")..UnitName(self.unit).."|r"
+		local name = UnitName(self.unit)
+		local tname
+		if t and t.orientation == "VERTICAL" then
+			local tnum = string.len(name)
+			local num = 1
+			tname = ""
+			for i in name:gmatch("%S") do
+				if num == tnum then
+					tname = tname..i
+				else
+					tname = tname..i.."\r"
+				end
+				num = num+1
+			end
+			tnum, num = nil, nil
+		end
+		return (color or "|cffffffff")..(tname or name).."|r"
 	end,
 
 
@@ -1242,12 +1257,19 @@ local disable = {
 local function auratip(self)
 	if not self:IsVisible() then return end
 	GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
-	local unit = self:GetParent().unit
+	local unit = self.unit
+	if not unit then
+		unit = self:GetParent().unit
+		if not unit then 
+			unit = self:GetParent():GetParent().unit 
+		end
+	end
 	if self.isdebuff then
 		GameTooltip:SetUnitDebuff(unit, self:GetID(), self.filter)
 	else
 		GameTooltip:SetUnitBuff(unit, self:GetID(), self.filter)
 	end
+	GameTooltip:Show()
 end
 
 ----------------------------------------------------------------
@@ -1866,12 +1888,12 @@ end
 
 ----------------------------------------------------------------
 -- Text replacement
-local function subtext(self, text)
+local function subtext(self, text, txtself)
 	if not text then return end
 	local pre = text:find("%$%a")
 	string.gsub(text, "%$%a+", function(s)
 		if replace[s] then
-			text = text:gsub(s, replace[s](self))
+			text = text:gsub(s, replace[s](self, txtself))
 		end
 	end)
 
@@ -1886,7 +1908,7 @@ end
 
 local function formattext(self, trueself)
 	if self and self.format then
-		local display = subtext(trueself or self, self.format)
+		local display = subtext(trueself or self, self.format, self)
 		self:SetText(display)
 	end
 end
@@ -2101,41 +2123,8 @@ local removeLst = {
 		["HUNTER"] = true,
 	},
 }
-function testbuffs()
-	local self = _G["Nurfed_target"]
-	local name, rank, texture, app, dtype, duration, left, isMine, isStealable, button
-	local bufflist = {}
-	local unit = "target"
-	for i = 1, #self.buff do
-		button = _G[self:GetName().."buff"..i]
-		name, rank, texture, app, dtype, duration, left, isMine, isStealable = UnitBuff(unit, i, self.bfilter)
-		if name then
-			table.insert(bufflist, texture)
-			_G[button:GetName().."Icon"]:SetTexture(texture)
-			button:Show()
-		else
-			_G[button:GetName().."Icon"]:SetTexture(bufflist[math.random(#bufflist)])
-			print("showing button", button:GetName())
-			button:Show()
-		end			
-	end
-	for i=1, #self.debuff do
-		button = _G[self:GetName().."debuff"..i]
-		name, rank, texture, app, dtype, duration, left, isMine, isStealable = UnitDebuff(unit, i, self.dfilter)
-		if name then
-			table.insert(bufflist, texture)
-			_G[button:GetName().."Icon"]:SetTexture(texture)
-			button:Show()
-		else
-			_G[button:GetName().."Icon"]:SetTexture(bufflist[math.random(#bufflist)])
-			print("showing button", button:GetName())
-			button:Show()
-		end			
-	end
-end
 
 local function updateauras(self)
-	--do return end
 	local unit = SecureButton_GetUnit(self)
 	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd, isMine, isStealable
 	local isFriend, filterList, check
@@ -2487,6 +2476,29 @@ end
 
 
 local function updateThreat(self, unit) updateinfo(self, "Threat") end
+local alphaFadeList = {}
+local function fadeAlpha(self)
+	for frame in pairs(alphaFadeList) do
+		local val = math.round(frame:GetAlpha(), 2)
+		if not UnitExists(frame.unit) then
+			alphaFadeList[frame] = nil			
+			Nurfed:unschedule(fadeAlpha, true)
+			return
+		end
+		if val == frame.alphaFade then
+			alphaFadeList[frame] = nil
+			Nurfed:unschedule(fadeAlpha, true)
+			return
+		else
+			if val >= frame.alphaFade then
+				frame:SetAlpha(val-0.01)
+			elseif val <= frame.alphaFade then
+				frame:SetAlpha(val+0.01)
+			end
+		end
+	end
+end
+
 local function updaterangealpha(self, unit)
 	local alpha
 	unit = unit or SecureButton_GetUnit(self)
@@ -2503,31 +2515,10 @@ local function updaterangealpha(self, unit)
 		elseif distance == "15" then alpha = IsItemInRange("Heavy Neatherweave Bandage", unit)
 		end
 		if distance == "spell" then
-				--theory code
-				---- if this works, it will work much smoother than the previous code.
-				local spell = SecureCmdOptionParse("[target="..unit..",harm]"..Nurfed:getopt("alphaharmspellranged")..";"..helpspell)
-				if spell and spell ~= "" then
-					alpha = IsSpellInRange(spell, unit)
-					if not alpha or alpha == 0 then
-						local harmspellmelee = Nurfed:getopt("alphaharmspellmelee")
-						if harmspellmelee ~= "" then
-							-- unit in melee vs ranged distance
-							alpha = IsSpellInRange(harmspellmelee, unit)
-						end
-					end
-				else
-					alpha = CheckInteractDistance(unit, 1)	-- check for 33 yards
-				end
-			-- use the macro parsing system instead of the apis, its faster and more accurate
-			--[[
-			local isHarm = SecureCmdOptionParse("[target="..unit..",harm]s1;s2")
-			if isHarm == "s1" then
-				local harmspell = Nurfed:getopt("alphaharmspellranged")
-				if harmspell == "" then
-					alpha = CheckInteractDistance(unit, 1)
-				else
-					alpha = IsSpellInRange(harmspell, unit)
-				end
+			---- if this works, it will work much smoother than the previous code.
+			local spell = SecureCmdOptionParse("[target="..unit..",harm]"..Nurfed:getopt("alphaharmspellranged")..";"..helpspell)
+			if spell and spell ~= "" then
+				alpha = IsSpellInRange(spell, unit)
 				if not alpha or alpha == 0 then
 					local harmspellmelee = Nurfed:getopt("alphaharmspellmelee")
 					if harmspellmelee ~= "" then
@@ -2535,21 +2526,51 @@ local function updaterangealpha(self, unit)
 						alpha = IsSpellInRange(harmspellmelee, unit)
 					end
 				end
-					
-			else	
-				local helpspell = Nurfed:getopt("alphahelpspell")
-				if helpspell == "" then
+				if not alpha or alpha == 0 then
 					alpha = CheckInteractDistance(unit, 1)
-				else
-					alpha = IsSpellInRange(helpspell, unit)
 				end
-			end]]
+			else
+				alpha = CheckInteractDistance(unit, 1)	-- check for 33 yards
+			end
 		end
 	end
 	if not alpha or alpha == 0 then
-		self:SetAlpha(0.5)
+		self:SetAlpha(Nurfed:getopt("alphahidevalue"))
+		--[[	poc code
+		local hideval = math.round(Nurfed:getopt("alphahidevalue"), 2)
+		if math.round(self:GetAlpha(), 2) ~= hideval then
+			if true then
+				self.alphaFade = hideval
+				if not alphaFadeList[self] then
+					print("adding to fade list!")
+					alphaFadeList[self] = true
+					Nurfed:schedule(0.01, fadeAlpha, true) 
+				end
+			else
+				self:SetAlpha(hideval)
+			end
+		]]
+			if self.hiddenBackdropColor then
+				self:SetBackdropColor(unpack(self.hiddenBackdropColor))
+			end
+		--end
 	else
-		self:SetAlpha(1)
+		--[[	poc code
+		if self:GetAlpha() ~= 1 then
+			if true then
+				self.alphaFade = 1
+				if not alphaFadeList[self] then
+					alphaFadeList[self] = true
+					Nurfed:schedule(0.01, fadeAlpha, true)
+				end
+			else
+		]]
+				self:SetAlpha(1)
+		--	end
+			if self.shownBackdropColor then
+				self:SetBackdropColor(unpack(self.shownBackdropColor))
+			end
+		--end
 	end
 end
 
@@ -2702,7 +2723,7 @@ local function onevent(event, ...)
 	end
 end
 
-local function totupdate()
+local function totupdate(self)
 	local unit, notext
 	for _, frame in ipairs(tots) do
 		unit = SecureButton_GetUnit(frame)
@@ -2711,8 +2732,9 @@ local function totupdate()
 			if not frame.lastname or frame.lastname ~= UnitName(unit) then
 				frame.lastname = UnitName(unit)
 				notext = nil
+				-- don't update the frame every .15 seconds ffs
+				updateframe(frame, notext)
 			end
-			updateframe(frame, notext)
 		else
 			frame.lastname = nil
 		end
@@ -2947,8 +2969,14 @@ function Nurfed:unitimbue(frame)
 			elseif pre == "feedback" then
 				ntinsert(events, "UNIT_COMBAT");
 				
-			elseif pre == "buff" or pre == "debuff" and not string.find(frame.unit, "target", 2, true) then
-				ntinsert(events, "UNIT_AURA");
+			elseif pre == "buff" or pre == "debuff" then
+				if not string.find(frame.unit, "target", 2, true) then
+					ntinsert(events, "UNIT_AURA");
+				else
+					Nurfed:regevent("UNIT_AURA", function()
+						updateauras(frame)
+					end)
+				end
 			
 			elseif pre == "rune" then
 				ntinsert(events, "RUNE_POWER_UPDATE");
@@ -2956,18 +2984,77 @@ function Nurfed:unitimbue(frame)
 				child:GetParent().runes = {}
 			end
 			if child.hideFrame then
+				local f = child.hideFrame
+				local ftbl = {}
+				if f:find(",") then
+					local i=1
+					local fname = select(i, string.split(",", f)):gsub("%s", "")
+					while fname do
+						fname = fname:gsub("%s", "")
+						if _G[child:GetParent():GetName()..fname] then
+							table.insert(ftbl, child:GetParent():GetName()..fname)
+						else
+							table.insert(ftbl, fname)
+						end
+						i=i+1
+						fname = select(i, string.split(",", f))
+					end
+				else
+					table.insert(ftbl, _G[self:GetParent():GetName()..f])
+				end
 				child:SetScript("OnShow", function(self)
-					UIFrameFadeOut(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
+					for i,v in ipairs(ftbl) do
+						if type(v) == "string" then
+							v = _G[v]
+							ftbl[i] = v
+						end
+						if Nurfed:getopt("fadein") then
+							UIFrameFadeOut(v, 0.15)
+						else
+							v:Hide()
+						end
+					end
 				end)
 				child:SetScript("OnHide", function(self)
-					UIFrameFadeIn(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
+					for _,v in ipairs(ftbl) do
+						if type(v) == "string" then
+							v = _G[v]
+							ftbl[i] = v
+						end
+						if Nurfed:getopt("fadein") then
+							UIFrameFadeIn(v, 0.15)
+						else
+							v:Show()
+						end
+					end
 				end)
-				if UnitPowerType(frame.unit) ~= 0 then
-					child:Show()
-					UIFrameFadeOut(_G[frame:GetName()..child.hideFrame], 0.15)
-				else
-					child:Hide()
-					UIFrameFadeIn(_G[frame:GetName()..child.hideFrame], 0.15)
+				Nurfed:schedule(1.0, function()
+					if child:IsShown() then
+						for _,v in ipairs(ftbl) do
+							if Nurfed:getopt("fadein") then
+								UIFrameFadeOut(v, 0.15)
+							else
+								v:Hide()
+							end
+						end
+					else
+						for _,v in ipairs(ftbl) do
+							if Nurfed:getopt("fadein") then
+								UIFrameFadeIn(v, 0.15)
+							else
+								v:Show()
+							end
+						end
+					end
+				end)
+				if child:GetName():find("druid") then
+					if UnitPowerType(frame.unit) ~= 0 then
+						child:Show()
+						UIFrameFadeOut(_G[frame:GetName()..child.hideFrame], 0.15)
+					else
+						child:Hide()
+						UIFrameFadeIn(_G[frame:GetName()..child.hideFrame], 0.15)
+					end
 				end
 			end			
 		end
@@ -3112,7 +3199,13 @@ function Nurfed:unitimbue(frame)
 					child:RegisterEvent("PARTY_MEMBERS_CHANGED")
 				end
 				child.unit = frame.unit
-				child:SetScript("OnEvent", function(self) if event == "DISPLAY_SIZE_CHANGED" then self:RefreshUnit() else self:SetUnit(self.unit) end end)
+				child:SetScript("OnEvent", function(self) 
+					if event == "DISPLAY_SIZE_CHANGED" then 
+						self:RefreshUnit() 
+					else 
+						self:SetUnit(self.unit)
+					end 
+				end)
 				if not child.full then
 					child:SetScript("OnUpdate", function(self) self:SetCamera(0) end)
 				end
@@ -3122,7 +3215,6 @@ function Nurfed:unitimbue(frame)
 				regstatus("feedback", child)
 				
 			elseif objtype == "Button" then
-				
 				if childname:find("^buff") or childname:find("^debuff") then
 					local cd = _G[child:GetName().."Cooldown"]
 					if not cd then
@@ -3193,19 +3285,50 @@ function Nurfed:unitimbue(frame)
 					child:SetScript("OnEvent", castevent)
 					child:SetScript("OnUpdate", castupdate)
 					if child.hideFrame then
+						local f = child.hideFrame
+						local ftbl = {}
+						if f:find(",") then
+							local i=1
+							local fname = select(i, string.split(",", f)):gsub("%s", "")
+							while fname do
+								fname = fname:gsub("%s", "")
+								if _G[child:GetParent():GetName()..fname] then
+									table.insert(ftbl, child:GetParent():GetName()..fname)
+								else
+									table.insert(ftbl, fname)
+								end
+								i=i+1
+								fname = select(i, string.split(",", f))
+							end
+						else
+							table.insert(ftbl, _G[self:GetParent():GetName()..f])
+						end
 						child:SetScript("OnShow", function(self)
-							UIFrameFadeOut(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
+							for i,v in ipairs(ftbl) do
+								if type(v) == "string" then
+									v = _G[v]
+									ftbl[i] = v
+								end
+								if Nurfed:getopt("fadein") then
+									UIFrameFadeOut(v, 0.15)
+								else
+									v:Hide()
+								end
+							end
 						end)
 						child:SetScript("OnHide", function(self)
-							UIFrameFadeIn(_G[self:GetParent():GetName()..self.hideFrame], 0.15)
+							for _,v in ipairs(ftbl) do
+								if type(v) == "string" then
+									v = _G[v]
+									ftbl[i] = v
+								end
+								if Nurfed:getopt("fadein") then
+									UIFrameFadeIn(v, 0.15)
+								else
+									v:Show()
+								end
+							end
 						end)
-						if UnitPowerType(frame.unit) ~= 0 then
-							child:Show()
-							UIFrameFadeOut(_G[frame:GetName()..child.hideFrame], 0.15)
-						else
-							child:Hide()
-							UIFrameFadeIn(_G[frame:GetName()..child.hideFrame], 0.15)
-						end
 					end
 				end
 			end
@@ -3213,7 +3336,9 @@ function Nurfed:unitimbue(frame)
 		elseif objtype == "Button" then
 			if childname:find("^target") then
 				child.unit = frame.unit..childname
-				self:unitimbue(child)
+				if child:GetParent() == frame then
+					self:unitimbue(child)
+				end
 				
 			elseif childname:find("^pet") then
 				child.punit = frame.unit
@@ -3232,7 +3357,7 @@ function Nurfed:unitimbue(frame)
 			tots = {}
 			Nurfed:schedule(0.15, totupdate, true)
 		end
-		table.insert(tots, frame)
+		ntinsert(tots, frame)
 	else
 		if not units then units = {} end
 		for _, event in ipairs(events) do
@@ -3240,7 +3365,7 @@ function Nurfed:unitimbue(frame)
 				units[event] = {}
 				Nurfed:regevent(event, onevent)
 			end
-			table.insert(units[event], frame)
+			ntinsert(units[event], frame)
 		end
 	end
 end

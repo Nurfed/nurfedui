@@ -631,13 +631,21 @@ function util:createobj(name, layout, parent)
 			if type(v) == "function" then
 				obj:SetScript(k, v)
 			else
-				obj:SetScript(k, assert(loadstring(v)))
+				if obj:GetScript(k) then
+					obj:HookScript(k, assert(loadstring(v)))
+				else
+					obj:SetScript(k, assert(loadstring(v)))
+				end
 			end
 			if k == "OnLoad" then
 				onload = obj:GetScript("OnLoad")
 			end
 		
 		elseif frameinit[k] then
+			if type(v) == "string" and v:find("loadstring") then
+				v = assert(loadstring(v)(obj))
+			end
+			
 			frameinit[k](obj, v)
 		elseif framecomp[k] then
 			table.insert(framecomp[k], { obj, v })
@@ -801,7 +809,7 @@ local onupdate = function(self, e)
 		for k, v in ipairs(loops) do
 			loops[k] = loops[k] - e
 			if loops[k] <= 0 then
-				loopfuncs[k]()
+				loopfuncs[k](k)
 				loops[k] = looptimes[k]
 			end
 		end

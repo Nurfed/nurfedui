@@ -109,3 +109,4 @@ NURFED_DEFAULT["alphadistance"] = "30"
 NURFED_DEFAULT["alphaharmspellranged"] = ""
 NURFED_DEFAULT["alphaharmspellmelee"] = ""
 NURFED_DEFAULT["alphahelpspell"] = ""
+NURFED_DEFAULT["alphahidevalue"] = 0.5

@@ -569,10 +569,12 @@ local function getbtn(hdr)
 	else
 		local new = #live + 1
 		--btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate ActionButtonTemplate")
-		btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate, ActionButtonTemplate")
+		btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate ActionButtonTemplate")
+
+		--hdr:SetAttribute("_adopt", btn)
 		btn:RegisterForClicks("AnyUp")
 		btn:RegisterForDrag("LeftButton")
-
+		
 		btn:SetAttribute("checkselfcast", true)
 		btn:SetAttribute("useparent-unit", true)
 		btn:SetAttribute("useparent-statebutton", true)
@@ -1122,7 +1124,7 @@ end
 
 Nurfed:createtemp("actionbar", {
 	type = "Frame",
-	uitemp = "SecureHandlerStateTemplate SecureHandlerClickTemplate",
+	uitemp = "SecureHandlerStateTemplate SecureHandlerAttributeTemplate SecureHandlerClickTemplate",
 	size = { 36, 36 },
 	Movable = true,
 	Hide = true,
