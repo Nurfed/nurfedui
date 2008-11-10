@@ -989,7 +989,6 @@ function Nurfed:updatebar(hdr)
 					)
 	RegisterStateDriver(hdr, "actionsettings", driver);
 	RegisterStateDriver(hdr, "visibility", visible);
-
 	hdr:SetAttribute("statebutton", statelist);
 	hdr:SetAttribute("state", state);
 	
@@ -1124,7 +1123,8 @@ end
 
 Nurfed:createtemp("actionbar", {
 	type = "Frame",
-	uitemp = "SecureHandlerStateTemplate SecureHandlerAttributeTemplate SecureHandlerClickTemplate",
+	--uitemp = "SecureHandlerStateTemplate SecureHandlerAttributeTemplate SecureHandlerClickTemplate",
+	uitemp = "SecureHandlerStateTemplate SecureHandlerClickTemplate",
 	size = { 36, 36 },
 	Movable = true,
 	Hide = true,
