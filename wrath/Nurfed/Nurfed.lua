@@ -120,7 +120,7 @@ local function updateFriendsColors()
 				class = class == "Death Knight" and "DeathKnight" or class
 				for i=1, FRIENDS_TO_DISPLAY, 1 do
 					nameString = getglobal("FriendsFrameFriendButton"..(i-friendOffset).."ButtonTextName");
-					if nameString then
+					if nameString and class then
 						nameString:SetTextColor(RAID_CLASS_COLORS[string.upper(class)].r, RAID_CLASS_COLORS[string.upper(class)].g, RAID_CLASS_COLORS[string.upper(class)].b)
 						break
 					end

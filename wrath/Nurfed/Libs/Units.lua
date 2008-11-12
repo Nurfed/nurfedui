@@ -3301,7 +3301,7 @@ function Nurfed:unitimbue(frame)
 								fname = select(i, string.split(",", f))
 							end
 						else
-							table.insert(ftbl, _G[self:GetParent():GetName()..f])
+							table.insert(ftbl, _G[child:GetParent():GetName()..f])
 						end
 						child:SetScript("OnShow", function(self)
 							for i,v in ipairs(ftbl) do
