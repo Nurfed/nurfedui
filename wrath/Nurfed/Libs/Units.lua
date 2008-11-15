@@ -2,7 +2,7 @@
 --		Nurfed Units Library
 ------------------------------------------
 --locals
-local units, tots
+local units, tots, alphaFadeList, predictedUpdate, predictedStatsTable
 local partyframes = {}
 local _G = getfenv(0)
 local pairs = pairs
@@ -1828,17 +1828,21 @@ end
 
 local function manacolor(self)
 	if not self.Mana then return end
-	local unit = SecureButton_GetUnit(self)
-	local color = PowerBarColor[UnitPowerType(unit)]
-	for _, child in ipairs(self.Mana) do
-		local objtype = child:GetObjectType()
-		if objtype == "StatusBar" then
-			child:SetStatusBarColor(color.r, color.g, color.b)
-		elseif objtype == "Texture" then
-			child:SetVertexColor(color.r, color.g, color.b)
-		elseif objtype == "FontString" then
-			if child.color then
-				child:SetTextColor(color.r, color.g, color.b)
+	local unit, color
+	unit = SecureButton_GetUnit(self)
+	self.powerType = UnitPowerType(unit)
+	color = PowerBarColor[self.powerType]
+	if color then
+		for _, child in ipairs(self.Mana) do
+			local objtype = child:GetObjectType()
+			if objtype == "StatusBar" then
+				child:SetStatusBarColor(color.r, color.g, color.b)
+			elseif objtype == "Texture" then
+				child:SetVertexColor(color.r, color.g, color.b)
+			elseif objtype == "FontString" then
+				if child.color then
+					child:SetTextColor(color.r, color.g, color.b)
+				end
 			end
 		end
 	end
@@ -1913,12 +1917,38 @@ local function formattext(self, trueself)
 	end
 end
 
+local function updatename(self)
+	local unit = SecureButton_GetUnit(self)
+	if self.name then
+		formattext(self.name, self)
+	end
+
+	if self.class then
+		local info
+		local icon = self.class
+		local texture, coords = Nurfed:getclassicon(unit)
+		if coords then
+			icon:SetTexture(texture)
+			icon:SetTexCoord(unpack(coords))
+		end
+	end
+
+	if self.race then
+		local icon = self.race
+		local coords = Nurfed:getraceicon(unit)
+		if coords then
+			icon:SetTexCoord(unpack(coords))
+		end
+	end
+end
+
 local function updatetext(self)
 	if self.text then
 		for _, v in ipairs(self.text) do
 			formattext(v, self)
 		end
 	end
+	updatename(self)
 end
 
 local function updatehappiness(self)
@@ -2309,31 +2339,6 @@ local function updaterank(self)
 	end
 end
 
-local function updatename(self)
-	local unit = SecureButton_GetUnit(self)
-	if self.name then
-		formattext(self.name, self)
-	end
-
-	if self.class then
-		local info
-		local icon = self.class
-		local texture, coords = Nurfed:getclassicon(unit)
-		if coords then
-			icon:SetTexture(texture)
-			icon:SetTexCoord(unpack(coords))
-		end
-	end
-
-	if self.race then
-		local icon = self.race
-		local coords = Nurfed:getraceicon(unit)
-		if coords then
-			icon:SetTexCoord(unpack(coords))
-		end
-	end
-end
-
 local function updatehighlight(self)
 	local unit = SecureButton_GetUnit(self)
 	if UnitExists("target") and UnitName("target") == UnitName(unit) then
@@ -2474,9 +2479,7 @@ local function updateRunes(self, rune, usable)
 	end
 end
 
-
-local function updateThreat(self, unit) updateinfo(self, "Threat") end
-local alphaFadeList = {}
+--[[	poc shit
 local function fadeAlpha(self)
 	for frame in pairs(alphaFadeList) do
 		local val = math.round(frame:GetAlpha(), 2)
@@ -2498,7 +2501,7 @@ local function fadeAlpha(self)
 		end
 	end
 end
-
+]]
 local function updaterangealpha(self, unit)
 	local alpha
 	unit = unit or SecureButton_GetUnit(self)
@@ -2589,10 +2592,7 @@ local function updateframe(self, notext)
 	if self.XP then updateinfo(self, "XP") end
 	if self.Threat then updateinfo(self, "Threat") end
 	if self.combo then updatecombo(self, "player", true) end
-	if self.Mana then 
-		self.powerType = UnitPowerType(unit)
-		manacolor(self) 
-	end
+	if self.Mana then manacolor(self) end
 	if self.buff or self.debuff then updateauras(self) end
 	if self.portrait then SetPortraitTexture(self.portrait, unit) end
 	if self.pvp then updatepvp(self) end
@@ -2601,22 +2601,16 @@ local function updateframe(self, notext)
 	if self.raidtarget then updateraid(self) end
 	if self.rank then updaterank(self) end
 	if self.threat then formattext(self.threat) end
-	if not notext then
-		if self.text then updatetext(self) end
-		updatename(self)
-	end
+	if self.text then updatetext(self) end
 	if self.alphaRange then updaterangealpha(self, unit) end
-
-	if unit == "pet" then
-		updatehappiness(self) 
-	end
-	if self.GetHighlightTexture and self:GetHighlightTexture() then
-		updatehighlight(self)
-	end
+	if self.GetHighlightTexture and self:GetHighlightTexture() then updatehighlight(self) end
 	if self.rune then
 		for i,v in ipairs(self.rune) do
 			updateRunes(self, i)
 		end
+	end
+	if unit == "pet" then
+		updatehappiness(self)
 	end
 end
 
@@ -2638,8 +2632,8 @@ local events = {
 	["UPDATE_FACTION"] = function(self) updateinfo(self, "XP") end,
 	["UPDATE_EXHAUSTION"] = function(self) updateinfo(self, "XP") end,
 	["PLAYER_GUILD_UPDATE"] = function(self) formattext(self.guild, self) end,
-	["UNIT_THREAT_LIST_UPDATE"] = updateThreat,
-	["UNIT_THREAT_SITUATION_UPDATE"] = updateThreat,
+	["UNIT_THREAT_LIST_UPDATE"] = function(self) updateinfo(self, "Threat") end,
+	["UNIT_THREAT_SITUATION_UPDATE"] = function(self) updateinfo(self, "Threat") end,
 	
 	["RAID_TARGET_UPDATE"] = updateraid,
 	
@@ -2693,7 +2687,6 @@ local events = {
 		formattext(self.level, self)
 	end,
 	["UNIT_NAME_UPDATE"] = function(self)
-		updatename(self)
 		updatetext(self)
 	end,
 	["UNIT_DYNAMIC_FLAGS"] = function(self) formattext(self.name, self) end,
@@ -2724,25 +2717,24 @@ local function onevent(event, ...)
 end
 
 local function totupdate(self)
-	local unit, notext
+	local unit
 	for _, frame in ipairs(tots) do
 		unit = SecureButton_GetUnit(frame)
 		if UnitExists(unit) then
-			notext = true
 			if not frame.lastname or frame.lastname ~= UnitName(unit) then
 				frame.lastname = UnitName(unit)
-				notext = nil
-				-- don't update the frame every .15 seconds ffs
-				updateframe(frame, notext)
-			end
+				updateframe(frame)
+			else
+				if frame.portrait then SetPortraitTexture(frame.portrait, unit) end
+				if frame.Health then updateinfo(frame, "Health") end
+				if frame.Mana then manacolor(frame) end
+			end	
 		else
 			frame.lastname = nil
 		end
 	end
 end
 
-local predictedStatsUpdateFrame = CreateFrame("Frame")
-local predictedStatsTable = {}
 local function predictstats()
 	for _, frame in ipairs(predictedStatsTable) do
 		if UnitExists(frame.unit) then
@@ -2898,8 +2890,12 @@ function Nurfed:unitimbue(frame)
 			if not frame.unit and frame:GetParent().unit then frame.unit = frame:GetParent().unit end
 			if pre == "Health" then
 				if GetCVarBool("predictedHealth") and frame.enablePredictedStats then
-					predictedStatsUpdateFrame:SetScript("OnUpdate", predictstats)
 					frame.predictedHealth = true
+					if not predictedUpdate then
+						predictedUpdate = true
+						Nurfed:schedule(0.01, predictstats, true)
+					end
+					if not predictedStatsTable then predictedStatsTable = {} end
 					ntinsert(predictedStatsTable, frame)
 				else
 					ntinsert(events, "UNIT_HEALTH")
@@ -2912,8 +2908,12 @@ function Nurfed:unitimbue(frame)
 			
 			elseif pre == "dMana" then
 				if GetCVarBool("predictedPower") and frame.enablePredictedStats then
-					predictedStatsUpdateFrame:SetScript("OnUpdate", predictstats)
 					frame.predictedPower = true
+					if not predictedUpdate then
+						predictedUpdate = true
+						Nurfed:schedule(0.01, predictstats, true)
+					end
+					if not predictedStatsTable then predictedStatsTable = {} end
 					ntinsert(predictedStatsTable, frame)
 				else
 					ntinsert(events, "UNIT_MANA")
@@ -2932,9 +2932,13 @@ function Nurfed:unitimbue(frame)
 				ntinsert(events, "UNIT_DISPLAYPOWER");
 			elseif pre == "Mana" then
 				if GetCVarBool("predictedPower") and frame.enablePredictedStats then
-					predictedStatsUpdateFrame:SetScript("OnUpdate", predictstats)
 					frame.predictedPower = true
+					if not predictedUpdate then
+						predictedUpdate = true
+						Nurfed:schedule(0.01, predictstats, true)
+					end	
 					frame.powerType = UnitPowerType(frame.unit)
+					if not predictedStatsTable then predictedStatsTable = {} end
 					ntinsert(predictedStatsTable, frame)
 				else
 					ntinsert(events, "UNIT_MANA");
@@ -3000,7 +3004,7 @@ function Nurfed:unitimbue(frame)
 						fname = select(i, string.split(",", f))
 					end
 				else
-					table.insert(ftbl, _G[self:GetParent():GetName()..f])
+					table.insert(ftbl, _G[child:GetParent():GetName()..f])
 				end
 				child:SetScript("OnShow", function(self)
 					for i,v in ipairs(ftbl) do

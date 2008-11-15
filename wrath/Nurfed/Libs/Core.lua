@@ -55,7 +55,8 @@ string.capital = function(text)
 	return text
 end
 
--- clean table shit
+-- Clean Table Inserting.  What this does is:
+-- if a table already has a value, then it doesn't reinsert it....why?  Prevent multiple values of the same shit!
 function ntinsert(tbl, val)
 	if not tbl or type(tbl) ~= "table" then return end
 	local add = true

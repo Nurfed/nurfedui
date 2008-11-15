@@ -9,6 +9,7 @@ NURFED_DEFAULT["chatfadetime"] = 120
 NURFED_DEFAULT["autoinvite"] = true
 NURFED_DEFAULT["invitetext"] = true
 NURFED_DEFAULT["keyword"] = "invite"
+NURFED_DEFAULT["autojoingroup"] = true
 NURFED_DEFAULT["readycheck"] = true
 NURFED_DEFAULT["ping"] = true
 NURFED_DEFAULT["raidgroup"] = true

@@ -197,10 +197,10 @@ local function onevent(self, event, arg1, arg2, arg3)
 		end
 		
 	elseif event == "PARTY_INVITE_REQUEST" and Nurfed:getopt("autojoingroup") then
-		local i = 1
+		local i, name = 1, nil
 		while i do
-			local name = GetGuildRosterInfo(i)
-			if name == arg1 then
+			name = GetGuildRosterInfo(i)
+			if name and name == arg1 then
 				AcceptGroup()
 				StaticPopup_Hide("PARTY_INVITE")
 				return
@@ -431,7 +431,7 @@ Nurfed:create("Nurfed_LockButton", {
 	},
 	OnEvent = onevent,
 	OnEnter = onenter,
-	OnClick = function(self, arg1) onclick(self, arg1) end,
+	OnClick = onclick,
 	OnLeave = function() GameTooltip:Hide() end,
 	OnDragStart = function(self)
 		self.isMoving = true
@@ -467,6 +467,7 @@ local function OnMouseWheel(self, arg1)
 		end
 	end
 end
+
 local messageText = {}
 local ACHIEVEMENT_BROADCAST_NURFED = ACHIEVEMENT_BROADCAST:gsub("%%s", "%%S+", 1):gsub("%s%%s!", "")
 local function message(self, msg, r, g, b, id)
