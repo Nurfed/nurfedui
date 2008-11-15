@@ -2604,6 +2604,7 @@ local function updateframe(self, notext)
 	if self.text then updatetext(self) end
 	if self.alphaRange then updaterangealpha(self, unit) end
 	if self.GetHighlightTexture and self:GetHighlightTexture() then updatehighlight(self) end
+	if self.model then self.model:SetUnit(self.unit)  end
 	if self.rune then
 		for i,v in ipairs(self.rune) do
 			updateRunes(self, i)
@@ -2725,7 +2726,6 @@ local function totupdate(self)
 				frame.lastname = UnitName(unit)
 				updateframe(frame)
 			else
-				if frame.portrait then SetPortraitTexture(frame.portrait, unit) end
 				if frame.Health then updateinfo(frame, "Health") end
 				if frame.Mana then manacolor(frame) end
 			end	
@@ -3193,7 +3193,7 @@ function Nurfed:unitimbue(frame)
 				child:RegisterEvent("PLAYER_ENTERING_WORLD")
 				child:RegisterEvent("DISPLAY_SIZE_CHANGED")
 				child:RegisterEvent("UNIT_MODEL_CHANGED")
-				if frame.unit == "target" then
+				if frame.unit == "target" or frame.unit:find("^target", 2) then
 					child:RegisterEvent("PLAYER_TARGET_CHANGED")
 				elseif frame.unit == "pet" then
 					child:RegisterEvent("UNIT_PET")
@@ -3203,8 +3203,9 @@ function Nurfed:unitimbue(frame)
 					child:RegisterEvent("PARTY_MEMBERS_CHANGED")
 				end
 				child.unit = frame.unit
-				child:SetScript("OnEvent", function(self) 
-					if event == "DISPLAY_SIZE_CHANGED" then 
+				frame.model = child
+				child:SetScript("OnEvent", function(self)
+					if event == "DISPLAY_SIZE_CHANGED" then
 						self:RefreshUnit() 
 					else 
 						self:SetUnit(self.unit)
