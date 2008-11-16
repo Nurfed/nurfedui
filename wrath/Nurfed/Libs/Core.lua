@@ -451,7 +451,7 @@ function util:getunitstat(unit, stat, tstat, ttype)
 		if r and self:getopt("changehpbg") then
 			g = g or 0
 			b = b or 0
-			bgr, bgg, bgb = (r + 0.2)/3, (g + 0.2)/3, (b + 0.2)/3
+			bgr, bgg, bgb = (r + 0.3)/3, (g + 0.3)/3, (b + 0.3)/3
 		end
 	end
 	

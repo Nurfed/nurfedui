@@ -1104,7 +1104,8 @@ local replace = {
 	end,
 	["$name"] = function(self, t)
 		if not self.unit then return end
-		local color
+		local color, tname
+		local name = UnitName(self.unit)
 		
 		if UnitIsPlayer(self.unit) then
 			local eclass = select(2, UnitClass(self.unit))
@@ -1123,21 +1124,15 @@ local replace = {
 				end
 			end
 		end
-		local name = UnitName(self.unit)
-		local tname
-		if t and t.orientation == "VERTICAL" then
-			local tnum = string.len(name)
-			local num = 1
-			tname = ""
-			for i in name:gmatch("%S") do
-				if num == tnum then
-					tname = tname..i
-				else
-					tname = tname..i.."\r"
-				end
-				num = num+1
+		if t then 
+			if t.maxLen then
+				name = name:sub(1, t.maxLen)
 			end
-			tnum, num = nil, nil
+			if t.orientation == "VERTICAL" then
+				local len = string.len(name) - 1
+				if name:find("%s") then name = name:gsub("%s", "") end
+				name = name:gsub("%a", "%1\n", len)
+			end
 		end
 		return (color or "|cffffffff")..(tname or name).."|r"
 	end,
@@ -2694,6 +2689,7 @@ local events = {
 	["UNIT_CLASSIFICATION_CHANGED"] = function(self) formattext(self.level, self) end,
 	["UNIT_HAPPINESS"] = updatehappiness,
 	["RUNE_POWER_UPDATE"] = updateRunes,
+	["RUNE_TYPE_UPDATE"] = updateRunes,
 	["UNIT_ENTERED_VEHICLE"] = updateframe,
 	["UNIT_EXITED_VEHICLE"] = updateframe,
 }
