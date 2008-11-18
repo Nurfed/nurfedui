@@ -42,15 +42,15 @@ Nurfed:createtemp("nrf_addons_row", {
   },
 })
 
-function Nurfed_ToggleAddOn()
-  if (this:GetChecked()) then
-    EnableAddOn(this:GetID())
+function Nurfed_ToggleAddOn(self)
+  if (self:GetChecked()) then
+    EnableAddOn(self:GetID())
     PlaySound("igMainMenuOptionCheckBoxOn")
   else
-    DisableAddOn(this:GetID())
+    DisableAddOn(self:GetID())
     PlaySound("igMainMenuOptionCheckBoxOff")
   end
-  local reload = getglobal(this:GetParent():GetName().."reload")
+  local reload = getglobal(self:GetParent():GetName().."reload")
   reload:SetText("(Reload UI)")
 end
 
@@ -114,5 +114,4 @@ function Nurfed_AddonsCreate()
     end
   end
 end
-Nurfed:setver("$Date$", 1)
-Nurfed:setrev("$Rev$", 1)
+Nurfed:setversion("Nurfed-Options", "$Date$", "$Rev$")

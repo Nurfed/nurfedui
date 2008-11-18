@@ -2337,5 +2337,4 @@ function nrf_test(num)
 	end		
 end
 
-Nurfed:setver("$Date$", 1)
-Nurfed:setrev("$Rev$", 1)
+Nurfed:setversion("Nurfed-Options", "$Date$", "$Rev$")

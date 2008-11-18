@@ -1513,3 +1513,4 @@ StaticPopupDialogs["NRF_CREATE"] = {
 	whileDead = 1,
 	hideOnEscape = 1,
 }
+Nurfed:setversion("Nurfed-Options", "$Date$", "$Rev$")
