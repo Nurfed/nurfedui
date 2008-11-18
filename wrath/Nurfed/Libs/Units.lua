@@ -1125,6 +1125,7 @@ local replace = {
 			end
 		end
 		if t then 
+			--[[
 			if t.maxLen then
 				name = name:sub(1, t.maxLen)
 			end
@@ -1132,6 +1133,14 @@ local replace = {
 				local len = string.len(name) - 1
 				if name:find("%s") then name = name:gsub("%s", "") end
 				name = name:gsub("%a", "%1\n", len)
+			end
+			]]
+			if t.orientation == "VERTICAL" then
+				local vtext = ""
+				for i=1, string.len(name) do
+					vtext = vtext..string.sub(name, i, i).."\n"
+				end
+				name = vtext
 			end
 		end
 		return (color or "|cffffffff")..(tname or name).."|r"
@@ -1330,7 +1339,8 @@ local function fade(frame)
 	local name = texture:GetTexture()
 	frame.texture = name
 	frame.old = 0
-	hooksecurefunc(frame, "SetValue", nrf_fading)
+	frame:HookScript("SetValue", nrf_fading)
+	--hooksecurefunc(frame, "SetValue", nrf_fading)
 end
 
 local function updatedamage(self, unit, event, flags, amount, type, ...)
@@ -1413,12 +1423,10 @@ local function castevent(self, event)
 	end
 
 	if arg1 ~= self.unit then return end
-
 	local barText = _G[self:GetName().."text"]
 	local barIcon = _G[self:GetName().."icon"]
 	local orient = self:GetOrientation()
-
-	if event == "UNIT_SPELLCAST_START" then
+	if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_SENT" then
 		local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitCastingInfo(self.unit)
 		if not name then
 			self:Hide()
@@ -1476,7 +1484,10 @@ local function castevent(self, event)
 			self.fadeOut = 1
 			self.holdTime = 0
 		end
-	elseif event == "UNIT_SPELLCAST_FAILED" or event == "UNIT_SPELLCAST_INTERRUPTED" then
+	elseif event == "UNIT_SPELLCAST_FAILED" or event == "UNIT_SPELLCAST_INTERRUPTED" or event == "UNIT_SPELLCAST_CHANNEL_INTERRUPTED" then
+		if event == "UNIT_SPELLCAST_FAILED" and (self.casting or self.channeling) then
+			return
+		end
 		if self:IsShown() and not self.channeling then
 			self:SetValue(self.maxValue)
 			self:SetStatusBarColor(1.0, 0.0, 0.0)
@@ -1673,9 +1684,9 @@ end
 local function updateinfo(self, stat, tstat)
 	if not stat or not self[stat] then return end
 	local unit = SecureButton_GetUnit(self)
-	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb, isTanking, state, scaledPercent, rawPercent, threatValue, rest, currtext;
+	local curr, max, missing, perc, r, g, b, isTanking, state, scaledPercent, rawPercent, threatValue, rest, currtext;
 	if stat ~= "Threat" then
-		curr, max, missing, perc, r, g, b, bgr, bgg, bgb = Nurfed:getunitstat(unit, stat, tstat and 0, tstat and "Mana")
+		curr, max, missing, perc, r, g, b = Nurfed:getunitstat(unit, stat, tstat and 0, tstat and "Mana")
 	else
 		isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation(self[stat][1].threatUnit, unit)
 		if not scaledPercent or not threatValue then
@@ -1733,7 +1744,7 @@ local function updateinfo(self, stat, tstat)
 			missingtext = format("%.1fk", missing/1000)
 		end
 	end
-
+	
 	for _, child in ipairs(self[stat]) do
 		local objtype = child:GetObjectType()
 		if max == 0 then
@@ -1752,9 +1763,6 @@ local function updateinfo(self, stat, tstat)
 				end
 				if r and g and b then
 					child:SetStatusBarColor(r, g, b)
-				end
-				if bgr and bgg and bgb then
-					child:SetBackdropColor(bgr, bgg, bgb)
 				end
 			elseif objtype == "FontString" then
 				local text
@@ -1798,23 +1806,31 @@ local function updateinfo(self, stat, tstat)
 				if r and g and b and child.color then
 					child:SetTextColor(r, g, b)
 				end
-			elseif objtype == "Texture" and child.fill then
-				local size = child.bar * (perc / 100)
-				local p_h1, p_h2
-				if size < 1 then
-					size = 1
-				end
+			elseif objtype == "Texture" then
+				if child.fill then
+					local size = child.bar * (perc / 100)
+					local p_h1, p_h2
+					if size < 1 then
+						size = 1
+					end
 
-				if child.fill == "top" or child.fill == "bottom" or child.fill == "vertical" then
-					p_h1 = child.bar / child.height
+					if child.fill == "top" or child.fill == "bottom" or child.fill == "vertical" then
+						p_h1 = child.bar / child.height
+					else
+						p_h1 = child.bar / child.width
+					end
+
+					p_h2 = 1 - p_h1
+					cuttexture(child, size, child.fill, (1 - (perc / 100)) * p_h1 + p_h2)
+					if r and g and b then
+						child:SetVertexColor(r, g, b)
+					end
 				else
-					p_h1 = child.bar / child.width
-				end
-
-				p_h2 = 1 - p_h1
-				cuttexture(child, size, child.fill, (1 - (perc / 100)) * p_h1 + p_h2)
-				if r and g and b then
-					child:SetVertexColor(r, g, b)
+					if r and g and b then
+						if (stat == "Health" and Nurfed:getopt("changehpbg")) or (stat == "Mana" and Nurfed:getopt("changempbg")) then
+							child:SetVertexColor((r + 0.2)/3, (g + 0.2)/3, (b + 0.2)/3)
+						end
+					end
 				end
 			end
 		end
@@ -2524,7 +2540,7 @@ local function updaterangealpha(self, unit)
 						alpha = IsSpellInRange(harmspellmelee, unit)
 					end
 				end
-				if not alpha or alpha == 0 then
+				if not alpha then
 					alpha = CheckInteractDistance(unit, 1)
 				end
 			else
@@ -3071,7 +3087,6 @@ function Nurfed:unitimbue(frame)
 		local objtype = child:GetObjectType()
 		local childname = child:GetName():gsub(name, "")
 		if not childname:find("^target") and not childname:find("^pet") then
-			
 			local pre = childname:sub(1, 2)
 			if pre == "hp" or pre == "mp" or pre == "xp" or pre == "dr" or pre == "th" then
 				if pre == "hp" then pre = "Health"
@@ -3184,7 +3199,7 @@ function Nurfed:unitimbue(frame)
 				elseif childname:find("^rank") then
 					frame.rank = child
 				end
-				
+
 			elseif objtype == "PlayerModel" then
 				child:RegisterEvent("PLAYER_ENTERING_WORLD")
 				child:RegisterEvent("DISPLAY_SIZE_CHANGED")
@@ -3269,16 +3284,18 @@ function Nurfed:unitimbue(frame)
 					child.casting = nil
 					child.channeling = nil
 					child.holdTime = 0
+					child:RegisterEvent("UNIT_SPELLCAST_SENT")
 					child:RegisterEvent("UNIT_SPELLCAST_START")
+					child:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
 					child:RegisterEvent("UNIT_SPELLCAST_STOP")
 					child:RegisterEvent("UNIT_SPELLCAST_FAILED")
-					child:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
 					child:RegisterEvent("UNIT_SPELLCAST_DELAYED")
-					child:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
+					child:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+					child:RegisterEvent("UNIT_SPELLCAST_CHANNEL_INTERRUPTED")
 					child:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
 					child:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
 					child:RegisterEvent("PLAYER_ENTERING_WORLD")
-					
+
 					if frame.unit == "target" then child:RegisterEvent("PLAYER_TARGET_CHANGED")
 					elseif frame.unit == "focus" then child:RegisterEvent("PLAYER_FOCUS_CHANGED")
 					elseif found == 1 then child:RegisterEvent("PARTY_MEMBERS_CHANGED")

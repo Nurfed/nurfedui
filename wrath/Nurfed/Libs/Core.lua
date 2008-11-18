@@ -292,7 +292,7 @@ local function HealthGradient(perc)
 end
 
 function util:getunitstat(unit, stat, tstat, ttype)
-	local curr, max, missing, perc, r, g, b, bgr, bgg, bgb
+	local curr, max, missing, perc, r, g, b
 	if stat == "XP" then
 		r, g, b = 0.58, 0.0, 0.55
 		if unit == "pet" then
@@ -366,14 +366,7 @@ function util:getunitstat(unit, stat, tstat, ttype)
 			elseif powertype == 4 then r, g, b = unpack(colorLst.happiness)
 			end
 		end
-
-		if r and self:getopt("changempbg") then
-			g = g or 0
-			b = b or 0
-			bgr, bgg, bgb = (r + 0.2)/3, (g + 0.2)/3, (b + 0.2)/3
-		end
-
-				
+						
 	elseif stat == "Health" then
 		local color = self:getopt("hpcolor")
 		if color == "pitbull" then
@@ -446,12 +439,6 @@ function util:getunitstat(unit, stat, tstat, ttype)
 				self:sethpfunc()
 			end
 			r, g, b = hpfunc(perc, unit)
-		end
-		
-		if r and self:getopt("changehpbg") then
-			g = g or 0
-			b = b or 0
-			bgr, bgg, bgb = (r + 0.3)/3, (g + 0.3)/3, (b + 0.3)/3
 		end
 	end
 	
@@ -605,7 +592,7 @@ function util:createobj(name, layout, parent)
 	if not objtype then return end
 
 	inherit = layout.uitemp or nil
-
+	
 	if objtype == "Texture" then
 		obj = parent:CreateTexture(name, (layout.layer or "ARTWORK"), inherit)
 	elseif objtype == "FontString" then
