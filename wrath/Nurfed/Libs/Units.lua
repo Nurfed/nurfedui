@@ -3439,5 +3439,5 @@ function Nurfed_ReplaceUnitVars()
 		Nurfed_Replace = nil
 	end
 end
-Nurfed:setver("$Date$")
-Nurfed:setrev("$Rev$")
+
+Nurfed:setversion("Nurfed-Core", "$Date$", "$Rev$")

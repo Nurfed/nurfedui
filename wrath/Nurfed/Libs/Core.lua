@@ -773,7 +773,7 @@ function util:unschedule(func, isloop)
 	end
 end
 
-local onupdate = function(self, e)
+local function onupdate(self, e)
 	local update, val
 	if timers and #timers > 0 then
 		for i = #timers, 1, -1 do
@@ -940,198 +940,48 @@ local addonmsg = function(event, ...)
 end
 
 ----------------------------------------------------------------
--- Addon Color Settings
---## TODO: Convert to Metatable usage!
-local classLst = {}
-function util:GetClassByName(name)
-	if name and not classLst[name] then
-		local i, fname, class
-		local numfriends = GetNumFriends()
-		if name == UnitName("player") then
-			classLst[name] = select(2, UnitClass("player"))
-		end
-		if numfriends > 0 then
-			i=1
-			while i <= numfriends do
-				fname, _, class, _, connected = GetFriendInfo(i)
-				if fname and connected  then
-					class = class == "Death Knight" and "DeathKnight" or class
-					classLst[fname] = string.upper(class)
-				end
-				i=i+1
-			end
-		end
-		
-		local numGuildMembers = GetNumGuildMembers(true)
-		if numGuildMembers > 0 then
-			i=1
-			while i <= numGuildMembers do
-				fname, _, _, _, class = GetGuildRosterInfo(i)
-				if fname and class then
-					class = class == "Death Knight" and "DeathKnight" or class
-					classLst[fname] = string.upper(class)
-				end
-				i=i+1
-			end
-		end
-		
-		if GetNumPartyMembers() > 0 then
-			i=1
-			while i <= 5 do
-				local fname, class = UnitName("party"..i), select(2, UnitClass("party"..i))
-				if fname and class then
-					class = class == "Death Knight" and "DeathKnight" or class
-					classLst[fname] = string.upper(class)
-				end
-				i=i+1
-			end
-		end
-		
-		if UnitInRaid("player") then
-			i=1
-			local numraid = GetNumRaidMembers()
-			while i <= numraid do
-				local fname, class = UnitName("raid"..i), select(2, UnitClass("raid"..i))
-				if fname and class then
-					class = class == "Death Knight" and "DeathKnight" or class
-					classLst[fname] = string.upper(class)
-				end
-				i=i+1
-			end
-		end
-	end
-	return name and classLst[name] or nil
-end
-
-function util:AddUnitClassByUnit(unit)
-	if unit and UnitExists(unit) and UnitIsPlayer(unit) then
-		local name = UnitName(unit)
-		if not classLst[name] then
-			local class = UnitClass(unit)
-			classLst[UnitName(unit)] = class
-		end
-	end
-end
-
-function util:GetUnitClassByUnit(unit)
-	return unit and UnitExists(unit) and classLst[UnitName(unit)] or nil
-end
-	
-function util:GetHexClassColorByName(name)
-	if not name then return end
-	name = self:GetClassByName(name)
-	return name and RAID_CLASS_COLORS[name] and RAID_CLASS_COLORS[name].hex or nil
-end
-
-function util:GetRGBClassColorByName(name)
-	if not name then return end
-	local class = self:GetClassByName(name)
-	if class then
-		return RAID_CLASS_COLORS[class].r, RAID_CLASS_COLORS[class].g, RAID_CLASS_COLORS[class].b
-	end
-end
-
-----------------------------------------------------------------
 -- Addon versioning system 
 -- TODO: Find a better way to track this, ie: fix the svn to update the toc file anytime a commit is made
 do
-	local nrf_ver, nrfo_ver, nrfa_ver, nrf_rev, nrfo_rev, nrfa_ver, nrfcl_ver, nrfcl_rev, nrfrm_ver, nrfrm_rev
-	-- no opt = Core, 1 = Options, 2 = Arena, 3 = Combat Log
-	function util:setver(ver, opt)
+
+	local verLst = {}
+	-- format:
+	--[[
+		verLst = {
+			["Nurfed-Core"] = { ver, rev },
+			["Nurfed-Options"] = { ver, rev },
+		}
+	]]
+	
+	function util:setversion(name, ver, rev)
+		if not name or not ver or not rev then return end
+		name = name:gsub("Nurfed%-", "")
+		if not verLst[name] then
+			verLst[name] = { }
+		end
 		ver = ver:gsub("^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1")
 		ver = ver:match("-%d%d"):gsub("-", "").."."..ver:match("-%d%d", 6):gsub("-", "").."."..ver:match("%d%d%d%d")
-		if opt then
-			if opt == 1 then
-				if not nrfo_ver or ver > nrfo_ver then
-					nrfo_ver = ver
-				end
-			elseif opt == 2 then
-				if not nrfa_ver or ver > nrfa_ver then
-					nrfa_ver = ver
-				end
-			
-			elseif opt == 3 then
-				if not nrfcl_ver or ver > nrfcl_ver then
-					nrfcl_ver = ver
-				end
-			elseif opt == 4 then
-				if not nrfrm_ver or ver > nrfrm_ver then
-					nrfrm_ver = ver
-				end
-			end
-		else
-			if not nrf_ver or ver > nrf_ver then
-				nrf_ver = ver
-			end
-		end
-	end
-
-	function util:getver(opt)
-		if opt then
-			if opt == 1 then
-				return nrfo_ver or "Not Installed"
-			elseif opt == 2 then
-				return nrfa_ver or "Not Installed"
-			elseif opt == 3 then
-				return nrfcl_ver or "Not Installed"
-			elseif opt == 4 then
-				return nrfrm_ver or "Not Installed"
-			end
-		end
-		return nrf_ver or "Unknown"
-	end
-
-	function util:setrev(rev, opt)
 		rev = rev:gsub("%$", ""):gsub("%s$", "", 1):gsub("^%S+%:", "", 1)
 		rev = tonumber(rev)
-		if opt then
-			if opt == 1 then
-				if not nrfo_rev or rev > nrfo_rev then
-					nrfo_rev = rev
-				end
-			elseif opt == 2 then
-				if not nrfa_rev or rev > nrfa_rev then
-					nrfa_rev = rev
-				end
-			elseif opt == 3 then
-				if not nrfcl_rev or rev > nrfcl_rev then
-					nrfcl_rev = rev
-				end
-			elseif opt == r then
-				if not nrfrm_rev or rev > nrfrm_rev then
-					nrfrm_rev = rev
-				end
-			end
-		else
-			if not nrf_rev or rev > nrf_rev then
-				nrf_rev = rev
-			end
+		if not verLst[name][1] or verLst[name][1] < ver then
+			verLst[name][1] = ver
 		end
+		if not verLst[name][2] or verLst[name][2] < rev then
+			verLst[name][2] = rev
+		end
+		table.sort(verLst, function(a,b) return a < b end)
 	end
-
-	function util:getrev(opt)
-		if opt then
-			if opt == 1 then
-				return nrfo_rev or 0
-			elseif opt == 2 then
-				return nrfa_rev or 0
-			elseif opt == 3 then
-				return nrfcl_rev or 0
-			elseif opt == 4 then
-				return nrfrm_rev or 0
-			end
-		end
-		return nrf_rev or 0
+	function util:getversion(name)
+		return verLst[name] and unpack(verLst[name]) or L["Not Enabled"]
+	end
+	
+	function util:getallversions()
+		return verLst
 	end
 end
 
 util:regevent("CHAT_MSG_ADDON", addonmsg)
-Nurfed:setver("$Date$")
-Nurfed:setrev("$Rev$")
-
-util:regevent("UPDATE_MOUSEOVER_UNIT", function(unit)
-	Nurfed:AddUnitClassByUnit("mouseover")
-end)
+Nurfed:setversion("Nurfed-Core", "$Date$", "$Rev$")
 
 -- debug function I jacked from my RBM mod.  <3
 -- used by apoco for beta, remove before final push

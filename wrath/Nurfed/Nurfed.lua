@@ -108,54 +108,6 @@ local function onupdate(self)
 		self:SetPoint("TOPLEFT", "Minimap", "TOPLEFT", 52-xpos, ypos-52)
 	end
 end
-local function updateFriendsColors()
-	-- if not Nurfed:getopt("ColorFriendsList") then return end
-	local numfriends = GetNumFriends()
-	if numfriends > 0 then
-		local friendOffset = FauxScrollFrame_GetOffset(FriendsFrameFriendsScrollFrame)
-		local name, level, class, area, connected, status, note, nameString
-		for i=1, numfriends, 1 do
-			name, level, class, area, connected, status, note = GetFriendInfo(i)
-			if connected then
-				class = class == "Death Knight" and "DeathKnight" or class
-				for i=1, FRIENDS_TO_DISPLAY, 1 do
-					nameString = getglobal("FriendsFrameFriendButton"..(i-friendOffset).."ButtonTextName");
-					if nameString and class then
-						nameString:SetTextColor(RAID_CLASS_COLORS[string.upper(class)].r, RAID_CLASS_COLORS[string.upper(class)].g, RAID_CLASS_COLORS[string.upper(class)].b)
-						break
-					end
-				end
-			end
-		end
-	end
-end
-local function updateGuildColors()
-	--if not Nurfed:getopt("ColorGuildList") or false then return end
-	local numGuildMembers = GetNumGuildMembers()
-	if numGuildMembers > 0 then
-		local name, rank, rankIndex, level, class, zone, note, officernote, online, status, color, nameString
-		for i=1, numGuildMembers, 1 do
-			name, rank, rankIndex, level, class, zone, note, officernote, online = GetGuildRosterInfo(i)
-			if name and class then
-				class = class == "Death Knight" and "DeathKnight" or class
-				for i=1, GUILDMEMBERS_TO_DISPLAY, 1 do
-					nameString = _G["GuildFrameGuildStatusButton"..i.."Name"]
-					color = RAID_CLASS_COLORS[string.upper(class)]
-					if color then
-						if nameString and nameString:GetText() == name then
-							nameString:SetTextColor(color.r, color.g, color.b)
-						end
-						nameString = _G["GuildFrameButton"..i.."Name"]
-						if nameString and nameString:GetText() == name then
-							nameString:SetTextColor(color.r, color.g, color.b)
-							break
-						end
-					end
-				end
-			end
-		end
-	end
-end
 
 local function onevent(self, event, arg1, arg2, arg3)
 	if event == "CHAT_MSG_WHISPER" and Nurfed:getopt("autoinvite") then
@@ -340,12 +292,6 @@ local function onevent(self, event, arg1, arg2, arg3)
 			NURFED_SAVED["happiness"] = NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS]
 			NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS] = nil
 		end
-		GuildRoster()	-- fire the guild roster to get the list!
-		hooksecurefunc("FriendsList_Update", updateFriendsColors)
-		hooksecurefunc("GuildStatus_Update", updateGuildColors)
-		GuildListScrollFrame:HookScript("OnVerticalScroll", updateGuildColors)
-		FriendsFrameFriendsScrollFrame:HookScript("OnVerticalScroll", updateFriendsColors)
-		
 		
 	elseif event == "VARIABLES_LOADED" then
 		if self:IsUserPlaced() then
@@ -492,7 +438,7 @@ local function message(self, msg, r, g, b, id)
 				end
 			end
 		end
-    
+		--[[
 		if Nurfed:getopt("classcolortext") then
 			for internal, displayed in msg:gmatch("|Hplayer:(.-)|h%[(.-)%]|h") do
 				local color = Nurfed:GetHexClassColorByName(displayed)
@@ -500,7 +446,7 @@ local function message(self, msg, r, g, b, id)
 					msg = msg:gsub("|Hplayer:"..internal.."|h%["..displayed.."%]|h", "|Hplayer:"..internal.."|h%["..color..displayed.."|r%]|h")
 				end
 			end
-		end
+		end]]
 		table.insert(messageText, msg)
 		self:O_AddMessage(table.concat(messageText, " "), r, g, b, id)
 	end
@@ -758,7 +704,13 @@ Nurfed:createtemp("uipanel", {
 local panel = Nurfed:create("NurfedHeader", "uipanel")
 panel:SetScript("OnShow", function(self)
     LoadAddOn("Nurfed_Options")
-    NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")\r|cffddeeffCombatLog Version:|r "..Nurfed:getver(3).."("..Nurfed:getrev(3)..")\r|cffddeeffRaidMod Version:|r "..Nurfed:getver(4).."("..Nurfed:getrev(4)..")")
+    --NurfedHeaderVerText:SetText("|cffbbccddNurfed Version:|r "..Nurfed:getver().."("..Nurfed:getrev()..")\r|cffaabbccConfig Version:|r "..Nurfed:getver(1).."("..Nurfed:getrev(1)..")\r|cffccddeeArena Version:|r "..Nurfed:getver(2).."("..Nurfed:getrev(2)..")\r|cffddeeffCombatLog Version:|r "..Nurfed:getver(3).."("..Nurfed:getrev(3)..")\r|cffddeeffRaidMod Version:|r "..Nurfed:getver(4).."("..Nurfed:getrev(4)..")")
+    local verlst = Nurfed:getallversions()
+    local txt = ""
+    for name, v in pairs(verlst) do
+		txt = txt.."\n|cffbbccdd"..name.." "..L["Version:"].."|r|cffddeeff "..v[1].." ("..v[2]..")|r"
+	end
+	NurfedHeaderVerText:SetText(txt)
     self:SetScript("OnShow", nil)
 end)
 panel.name = "Nurfed"
@@ -894,5 +846,4 @@ button:SetHeight(24)
 button:SetPoint("BOTTOMRIGHT", -5, 5)
 button:SetScript("OnClick", function() StaticPopup_Show("NRF_RELOADUI") end)
 
-Nurfed:setver("$Date$")
-Nurfed:setrev("$Rev$")
+Nurfed:setversion("Nurfed-Core", "$Date$", "$Rev$")
