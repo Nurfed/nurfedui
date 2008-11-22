@@ -2352,7 +2352,7 @@ end
 
 local function updatehighlight(self)
 	local unit = SecureButton_GetUnit(self)
-	if UnitExists("target") and UnitName("target") == UnitName(unit) then
+	if UnitExists("target") and UnitIsUnit("target", unit) then
 		self:LockHighlight()
 	else
 		self:UnlockHighlight()
@@ -2614,7 +2614,7 @@ local function updateframe(self, notext)
 	if self.threat then formattext(self.threat) end
 	if self.text then updatetext(self) end
 	if self.alphaRange then updaterangealpha(self, unit) end
-	if self.GetHighlightTexture and self:GetHighlightTexture() then updatehighlight(self) end
+	if self.highlight and not self.highlight.nolock then updatehighlight(self) end
 	if self.model then self.model:SetUnit(self.unit)  end
 	if self.rune then
 		for i,v in ipairs(self.rune) do
@@ -2830,9 +2830,11 @@ function Nurfed:unitimbue(frame)
 	if found == 1 then
 		frame.isParty = true
 		frame:SetID(tonumber(id))
-		frame:SetScript("OnAttributeChanged", showparty)
-		ntinsert(events, "UNIT_COMBAT")
-		ntinsert(events, "PARTY_MEMBERS_CHANGED")
+		if not frame.noEvents then
+			frame:SetScript("OnAttributeChanged", showparty)
+			ntinsert(events, "UNIT_COMBAT")
+			ntinsert(events, "PARTY_MEMBERS_CHANGED")
+		end
 		
 	elseif frame.unit == "target" then
 		ntinsert(events, "PLAYER_TARGET_CHANGED")
@@ -3180,6 +3182,7 @@ function Nurfed:unitimbue(frame)
 						ntinsert(events, "PLAYER_TARGET_CHANGED")
 						if (not frame:GetHighlightTexture()) then
 							frame:SetHighlightTexture(child)
+							frame.highlight = child
 						end
 					elseif texture == "Interface\\TargetingFrame\\UI-RaidTargetingIcons" then
 						ntinsert(events, "RAID_TARGET_UPDATE")
@@ -3192,6 +3195,14 @@ function Nurfed:unitimbue(frame)
 					elseif texture == "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Races" then
 						frame.race = child
 					end
+					if child.isHighlight then
+						ntinsert(events, "PLAYER_TARGET_CHANGED")
+						if (not frame:GetHighlightTexture()) then
+							frame:SetHighlightTexture(child)
+							frame.highlight = child
+						end
+					end
+					
 				elseif childname:find("^portrait") or child.isportrait then
 					ntinsert(events, "UNIT_PORTRAIT_UPDATE")
 					frame.portrait = child
