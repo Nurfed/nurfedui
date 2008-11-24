@@ -2311,7 +2311,7 @@ local function updateauras(self)
 				local btn = _G[self:GetName().."debuff"..i]
 				btn:SetScale(scale)
 				if btn.isMine and useIsMine then
-					btn:SetScale(scale*1.25)
+					btn:SetScale(scale*Nurfed:getopt("bigdebuffscale"))
 				end
 			end
 		elseif useIsMine then

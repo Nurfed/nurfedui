@@ -356,8 +356,16 @@ local function btnenter(self)
 			end
 		
 		elseif self.type == "macro" and GetMacroBody(self.spell) then
-			local action = SecureCmdOptionParse(GetMacroBody(self.spell))
+			local bdy = GetMacroBody(self.spell)
+			local action = SecureCmdOptionParse(bdy)
 			if action then
+				if bdy:find("/cast") then
+					local taction = bdy:match("/ca%a+ [%a%s]+")
+					if taction then
+						taction = taction:gsub("/ca%a+ ", ""):gsub("%c", "")
+						action = taction
+					end
+				end
 				if companionList and companionList[action] then
 					GameTooltip:SetHyperlink("spell:"..companionList[action])
 				
