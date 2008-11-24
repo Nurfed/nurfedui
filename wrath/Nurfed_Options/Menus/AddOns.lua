@@ -10,7 +10,7 @@ Nurfed:createtemp("nrf_addons_row", {
       size = { 16, 16 },
       uitemp = "UICheckButtonTemplate",
       Anchor = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 2, 0 },
-      OnClick = function() Nurfed_ToggleAddOn() end,
+      OnClick = function(self) Nurfed_ToggleAddOn(self) end,
     },
     name = {
       type = "FontString",
@@ -42,16 +42,16 @@ Nurfed:createtemp("nrf_addons_row", {
   },
 })
 
-function Nurfed_ToggleAddOn(self)
-  if (self:GetChecked()) then
-    EnableAddOn(self:GetID())
-    PlaySound("igMainMenuOptionCheckBoxOn")
-  else
-    DisableAddOn(self:GetID())
-    PlaySound("igMainMenuOptionCheckBoxOff")
-  end
-  local reload = getglobal(self:GetParent():GetName().."reload")
-  reload:SetText("(Reload UI)")
+function Nurfed_ToggleAddOn(self)	
+	if (self:GetChecked()) then
+		EnableAddOn(self:GetID())
+		PlaySound("igMainMenuOptionCheckBoxOn")
+	else
+		DisableAddOn(self:GetID())
+		PlaySound("igMainMenuOptionCheckBoxOff")
+	end
+	local reload = getglobal(self:GetParent():GetName().."reload")
+	reload:SetText("(Reload UI)")
 end
 
 function Nurfed_ScrollAddOns()

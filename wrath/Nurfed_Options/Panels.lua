@@ -1581,6 +1581,21 @@ local panels = {
 				Point = { "TOPRIGHT", "$parentcheck1point3", "BOTTOMRIGHT", 0, -5 },
 				vars = { text = L["Big Debuffs"], option = "usebigdebuffs", page = 1, hint = L["Toggle enlarging your debuffs versus others"], },
 			},
+			slider1point5 = {
+				template = "nrf_slider",
+				Point = { "TOPRIGHT", "$parentcheck1point4", "BOTTOMRIGHT", 0, -25 },
+				vars = {
+					text = L["Big Debuff Scale"],
+					option = "bigdebuffscale",
+					min = 0.01,
+					max = 5,
+					step = 0.1,
+					bigStep = 1,
+					deci = 2,
+					format = "%.2f",
+					page = 1,
+				},
+			},
 			check2 = {
 				template = "nrf_check",
 				Point = { "TOPLEFT", "$parentcheck1", "BOTTOMLEFT", 0, 0 },
@@ -1593,7 +1608,7 @@ local panels = {
 			},
 			swatch1 = {
 				template = "nrf_color",
-				Point = { "TOPLEFT", "$parentcheck3", "BOTTOMLEFT", 5, -5 },
+				Point = { "TOPLEFT", "$parentcheck3", "BOTTOMLEFT", 0, -5 },
 				vars = { text = MANA, option = "mana", func = setmana, page = 1 },
 			},
 			swatch2 = {
@@ -1618,7 +1633,7 @@ local panels = {
 			},
 			button1 = {
 				template = "nrf_optbutton",
-				Anchor = { "TOPLEFT", "$parentswatch3", "BOTTOMLEFT", 55, -5 },
+				Anchor = { "TOPLEFT", "$parentswatch3", "BOTTOMLEFT", 45, -5 },
 				OnClick = function(self) Nurfed_DropMenu(self, mptype) end,
 				vars = { text = L["MP Color"], option = "mpcolor", func = setmp, page = 1, nohitrect = true, },
 			},
@@ -1631,7 +1646,7 @@ local panels = {
 			hpscript = {
 				template = "nrf_multiedit",
 				size = { 350, 160 },
-				Point = { "TOPLEFT", "$parentbutton1", "BOTTOMLEFT", -70, -7 },
+				Point = { "TOPLEFT", "$parentbutton1", "BOTTOMLEFT", -50, -7 },
 				vars = { option = "hpscript", func = sethp, page = 1 },
 			},
 			button3 = {
