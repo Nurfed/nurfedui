@@ -2165,6 +2165,12 @@ local removeLst = {
 	},
 }
 
+local debuffPoint, buffPoint
+Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
+	debuffPoint = { Nurfed_targetdebuff1:GetPoint() }
+	buffPoint = { Nurfed_targetbuff1:GetPoint() }
+end)
+
 local function updateauras(self)
 	local unit = SecureButton_GetUnit(self)
 	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd, isMine, isStealable
@@ -2313,12 +2319,23 @@ local function updateauras(self)
 				if btn.isMine and useIsMine then
 					btn:SetScale(scale*Nurfed:getopt("bigdebuffscale"))
 				end
+				if i == 1 and unit == "target" and Nurfed:getopt("onelinedebuffs") then
+					local btn = _G[self:GetName().."debuff1"]
+					if btn:IsShown() then
+						btn:ClearAllPoints()
+						if _G[self:GetName().."buff1"] and _G[self:GetName().."buff1"]:IsShown() then
+							btn:SetPoint(unpack(debuffPoint))
+						else
+							btn:SetPoint(unpack(buffPoint))
+						end
+					end
+				end
 			end
 		elseif useIsMine then
 			for i = 1, total do
 				local btn = _G[self:GetName().."debuff"..i]
 				if btn.isMine then
-					btn:SetScale(1.25)
+					btn:SetScale(Nurfed:getopt("bigdebuffscale"))
 				else
 					btn:SetScale(1)
 				end
