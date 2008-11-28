@@ -26,7 +26,6 @@ do	-- keep local dropmenu local...rofl?
 				if parent:GetScript("OnEnterPressed") then
 					parent:GetScript("OnEnterPressed")(parent)
 				end
-				--btn:GetParent():SetText(self.value)
 			end
 		else
 			func = function(self) 
@@ -36,7 +35,11 @@ do	-- keep local dropmenu local...rofl?
 				else
 					btn:SetText(self.value) 
 				end
-				saveopt(btn) 
+				if btn.opt and btn.ofunc then
+					btn.ofunc(btn.opt, self.value)
+				else
+					saveopt(btn) 
+				end
 			end
 		end
 		dropmenu.initialize = function()
@@ -191,13 +194,19 @@ onshow = function(self)
 	end
 	if self.textpos then
 		text:ClearAllPoints()
-		text:SetPoint(unpack(self.textpos))
+		local p1, p2, p3, p4, p5 = unpack(self.textpos)
+		if type(p2) == "string" then	
+			p2 = p2:gsub("$parent", self:GetName())
+		end
+		text:SetPoint(p1, p2, p3, p4, p5)
 	end
 	local opt
 	if self.option then
 		opt = Nurfed:getopt(self.option)
 	elseif self.default then
 		opt = self.default
+	elseif self.opt and self.getopt then
+		opt = self.getopt(self.opt, true)
 	end
 
 	if objtype == "CheckButton" and opt then
@@ -296,6 +305,9 @@ saveopt = function(self)
 	if self.func then
 		self.func(value)
 	end
+	if self.ofunc and self.opt then
+		self.ofunc(self.opt, value)
+	end
 	if self.funcself then
 		self.funcself(self)
 	end
@@ -353,6 +365,16 @@ local templates = {
 			self:SetWidth(valtext:GetStringWidth()+12)
 			self:SetScript("OnShow", nil)
 		end,
+		OnEnter = function(self)
+			if self.hint then
+				GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT", 0, -10)
+				GameTooltip:ClearLines()
+				GameTooltip:AddLine(L["Hint:"], nil, nil, nil, true)
+				GameTooltip:AddLine(self.hint, nil, nil, nil, true)
+				GameTooltip:Show()
+			end
+		end,
+		OnLeave = function() GameTooltip:Hide() end,
 	},
 	nrf_slider = {
 		type = "Slider",
@@ -361,7 +383,7 @@ local templates = {
 			value = {
 				template = "nrf_editbox",
 				FontObject = "GameFontNormalSmall",
-				size = { 35, 18 },
+				size = { 45, 18 },
 				Anchor = { "TOP", "$parent", "BOTTOM", 0, 0 },
 				Backdrop = {
 					bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
@@ -386,7 +408,15 @@ local templates = {
 				OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
 			},
 		},
-		OnShow = function(self) self:SetFrameLevel(30); self:EnableMouseWheel(true); onshow(self) end,
+		OnShow = function(self) 
+			self:SetFrameLevel(30)
+			self:EnableMouseWheel(true)
+			if self.numText then
+				_G[self:GetName().."High"]:SetText(self.max)
+				_G[self:GetName().."Low"]:SetText(self.min)
+			end
+			onshow(self) 
+		end,
 		OnMouseUp = function(self) 
 			local editbox = _G[self:GetName().."value"]
 			editbox:SetCursorPosition(0)
