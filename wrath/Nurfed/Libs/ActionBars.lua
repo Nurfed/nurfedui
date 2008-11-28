@@ -184,7 +184,7 @@ end
 --nrfcooldowntext = function(btn)
 function nrfcooldowntext(btn)
 	local cd = _G[btn:GetName().."Cooldown"]
-	if cd.text and cd.cool then
+	if cd and cd.text and cd.cool then
 		local cdscale = cd:GetScale()
 		local r, g, b = 1, 0, 0
 		local height = floor(20 / cdscale)

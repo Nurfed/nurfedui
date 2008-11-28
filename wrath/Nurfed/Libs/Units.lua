@@ -2001,6 +2001,9 @@ local function updatecombo(self, unit, force)
 				end
 			end
 			comboPoints = GetComboPoints(unit, child.unit2)
+			if comboPoints == 0 and GetRealZoneText() == "The Eye of Enernity" then
+				comboPoints = GetComboPoints("pet", child.unit2)
+			end
 			if comboPoints > 0 then
 				local objtype = child:GetObjectType()
 				if objtype == "FontString" then
