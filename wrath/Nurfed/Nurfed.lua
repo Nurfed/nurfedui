@@ -330,6 +330,32 @@ local function onevent(self, event, arg1, arg2, arg3)
 				Nurfed:unitimbue(f)
 			end
 		end
+		do
+			local origChatFrameOHS = ChatFrame_OnHyperlinkShow
+ 
+			function ChatFrame_OnHyperlinkShow(self, link, text, button, ...)
+				local linkType, linkValue = string.split(":", link);
+				if linkType == "item" and IsModifiedClick("DRESSUP") then 
+					return DressUpItemLink(linkValue);
+				end
+				if not IsModifiedClick("CHATLINK") then 
+					return origChatFrameOHS(self, link, text, button, ...);
+				end
+				if linkType == "player" then
+					if ChatFrameEditBox:IsVisible() then
+						return ChatEdit_InsertLink(linkValue)
+					else
+						return SendWho(linkValue)
+					end
+				end
+				if linkType == "spell" then 
+					text = GetSpellLink(linkValue) 
+				end
+		 
+				ChatFrameEditBox:Show()
+				ChatEdit_InsertLink(text)
+			end
+		end
 		CameraPanelOptions.cameraDistanceMaxFactor.maxValue = 4
 	end
 end
