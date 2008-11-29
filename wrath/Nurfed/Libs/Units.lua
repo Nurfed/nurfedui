@@ -919,6 +919,15 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -40, -4 },
 					Hide = true,
 				},
+				combo = {
+					type = "FontString",
+					layer = "OVERLAY",
+					Font = { NRF_FONT.."framd.ttf", 22, "OUTLINE" },
+					TextHeight = 22,
+					JustifyH = "RIGHT",
+					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMLEFT", 2, 3 },
+					vars = { unit1 = "pet", unit2 = "target" },
+				},
 				buff1 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "TOPLEFT", "$parent", "BOTTOMLEFT", 4, 2 } },
 				buff2 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff1", "RIGHT", 0, 0 } },
 				buff3 = { type = "Button", uitemp = "TargetDebuffButtonTemplate", Anchor = { "LEFT", "$parentbuff2", "RIGHT", 0, 0 } },
@@ -2001,9 +2010,6 @@ local function updatecombo(self, unit, force)
 				end
 			end
 			comboPoints = GetComboPoints(unit, child.unit2)
-			if comboPoints == 0 and GetRealZoneText() == "The Eye of Enernity" then
-				comboPoints = GetComboPoints("pet", child.unit2)
-			end
 			if comboPoints > 0 then
 				local objtype = child:GetObjectType()
 				if objtype == "FontString" then

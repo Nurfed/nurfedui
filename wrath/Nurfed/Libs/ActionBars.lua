@@ -1250,7 +1250,7 @@ local blizzbars = {
 	["stance"] = 36,
 	["petbar"] = 30,
 	["possessbar"] = 30,
-	["vehiclemenubar"] = 60,
+	--["vehiclemenubar"] = 60,
 }
 
 function nrf_updatemainbar(bar)
@@ -1288,7 +1288,7 @@ function nrf_updatemainbar(bar)
 			end
 		end
 	
-	elseif bar == Nurfed_vehiclemenubar then
+	--[[elseif bar == Nurfed_vehiclemenubar then
 		for i=2, 6 do
 			local btn = _G["VehicleMenuBarActionButton"..i]
 			btn:ClearAllPoints();
@@ -1298,7 +1298,7 @@ function nrf_updatemainbar(bar)
 				btn:SetPoint("LEFT", "VehicleMenuBarActionButton"..(i-1), "RIGHT", offset, 0)
 			end
 		end
-		
+		]]
 	elseif bar == Nurfed_stance then
 		for i = 2, 10 do
 			local btn = _G["ShapeshiftButton"..i]
@@ -1330,15 +1330,15 @@ function nrf_updatemainbar(bar)
 		end
 	end
 	if show then
-		if bar == Nurfed_vehiclemenubar then
+		--[[if bar == Nurfed_vehiclemenubar then
 			if UnitHasVehicleUI("player") then
 				bar:Show()
 			else
 				bar:Hide()
 			end
-		else
+		else]]
 			bar:Show()
-		end
+		--end
 	else
 		bar:Hide()
 	end
@@ -1395,7 +1395,7 @@ Nurfed:regevent("PLAYER_LOGIN", function()
 	SaveBindings(GetCurrentBindingSet())
 	NurfedActionBarsUpdateColors()
 end)
-
+--[[
 Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
 	-- vehicle bar stuff
 	if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") or IsAddOnLoaded("Bongos3_ActionBar") or IsAddOnLoaded("Dominos") then
@@ -1475,7 +1475,7 @@ Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
 		end
 	end
 end)
-
+]]
 Nurfed:regevent("NURFED_LOCK", function()
 	if NRF_LOCKED then
 		Nurfed_bagsdrag:Hide()
@@ -1483,14 +1483,14 @@ Nurfed:regevent("NURFED_LOCK", function()
 		Nurfed_stancedrag:Hide()
 		Nurfed_petbardrag:Hide()
 		Nurfed_possessbardrag:Hide()
-		Nurfed_vehiclemenubardrag:Hide()
+--		Nurfed_vehiclemenubardrag:Hide()
 	else
 		Nurfed_bagsdrag:Show()
 		Nurfed_microdrag:Show()
 		Nurfed_stancedrag:Show()
 		Nurfed_petbardrag:Show()
 		Nurfed_possessbardrag:Show()
-		Nurfed_vehiclemenubardrag:Show()
+--		Nurfed_vehiclemenubardrag:Show()
 	end
 end)
 
@@ -1644,6 +1644,7 @@ function nrf_mainmenu()
 			end
 			_G["PossessButton"..i.."NormalTexture"]:Hide()
 		end
+		--[[
 		for i=1,6 do
 			local btn = _G["VehicleMenuBarActionButton"..i]
 			local cooldown = _G["VehicleMenuBarActionButton"..i.."Cooldown"]
@@ -1658,6 +1659,24 @@ function nrf_mainmenu()
 				btn:ClearAllPoints()
 				btn:SetPoint("BOTTOMLEFT")
 			end
+		end]]
+		if not NurfedVehicleHeader then
+			local f = CreateFrame("Frame", "NurfedVehicleHeader", nil, "SecureHandlerStateTemplate SecureHandlerClickTemplate")
+			for i=1,6 do
+				f:SetFrameRef("btn"..i, _G["VehicleMenuBarActionButton"..i])
+			end
+			f:SetAttribute("_onstate-actionsettings", [[
+								if newstate == "s1" then
+									for i=1,6 do
+										self:SetBindingClick(true, i, self:GetFrameRef("btn"..i))
+									end
+								else
+									self:ClearBindings()
+								end]]
+							)
+			RegisterStateDriver(f, "actionsettings", "[target=vehicle,exists]s1;s2");
+			MainMenuBar_ToPlayerArt_O = MainMenuBar_ToPlayerArt
+			MainMenuBar_ToPlayerArt = function() end
 		end
 		
 		
@@ -1666,7 +1685,7 @@ function nrf_mainmenu()
 		nrf_updatemainbar("stance")
 		nrf_updatemainbar("petbar")
 		nrf_updatemainbar("possessbar")
-		nrf_updatemainbar("vehiclemenubar")
+		--nrf_updatemainbar("vehiclemenubar")
 		ShapeshiftBar_Update = function() end
 		MainMenuBar:Hide()
 		if not MainMenuBar.nrfScriptSet then
