@@ -2050,6 +2050,14 @@ local function updateleader(self)
 			else
 				icon:Hide()
 			end
+			
+		elseif unit == "target" then
+			if UnitIsPartyLeader(unit) then
+				icon:Show()
+			else
+				icon:Hide()
+			end
+			
 		elseif found == 1 then
 			if GetPartyLeaderIndex() == tonumber(id) then
 				icon:Show()
