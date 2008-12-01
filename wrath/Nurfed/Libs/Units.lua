@@ -2190,11 +2190,10 @@ end)
 
 local function updateauras(self)
 	local unit = SecureButton_GetUnit(self)
-	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd, isMine, isStealable
-	local isFriend, filterList, check
+	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd, isMine, isStealable,isFriend, filterList, check, setbuff, debuffline
 	local showdur = Nurfed:getopt("showdurationlist")
 	local oldBuffs = Nurfed:getopt("olddebuffstyle")
-	
+
 	isFriend = UnitIsFriend("player", unit)
 	if self.buff then
 		filterList = Nurfed:getopt("bufffilterlist")
@@ -2222,6 +2221,7 @@ local function updateauras(self)
 					count:Hide()
 				end
 				button.filter = self.bfilter
+				setbuff = true
 				button:Show()
 				cd = _G[button:GetName().."Cooldown"]
 				if duration and duration > 0 then
@@ -2293,6 +2293,9 @@ local function updateauras(self)
 				_G[button:GetName().."Border"]:SetVertexColor(color.r, color.g, color.b)
 				button.filter = self.dfilter
 				button:Show()
+				if not debuffline then
+					debuffline = button
+				end
 
 				cd = _G[button:GetName().."Cooldown"]
 				if duration and duration > 0 then
@@ -2337,13 +2340,12 @@ local function updateauras(self)
 					btn:SetScale(scale*Nurfed:getopt("bigdebuffscale"))
 				end
 				if i == 1 and unit == "target" and Nurfed:getopt("onelinedebuffs") then
-					local btn = _G[self:GetName().."debuff1"]
-					if btn:IsShown() then
-						btn:ClearAllPoints()
-						if _G[self:GetName().."buff1"] and _G[self:GetName().."buff1"]:IsShown() then
-							btn:SetPoint(unpack(debuffPoint))
+					if debuffline then
+						debuffline:ClearAllPoints()
+						if setbuff then
+							debuffline:SetPoint(unpack(debuffPoint))
 						else
-							btn:SetPoint(unpack(buffPoint))
+							debuffline:SetPoint(unpack(buffPoint))
 						end
 					end
 				end
@@ -2844,7 +2846,10 @@ function Nurfed:unitimbue(frame)
 		frame:SetMovable(true)
 		frame:EnableMouseWheel(true)
 		frame:SetScript("OnDragStart", function(self) if not NRF_LOCKED then self:StartMoving() end end)
-		frame:SetScript("OnDragStop", function(self) NURFED_FRAMES.frames[self:GetName()].Point = { self:GetPoint() } self:StopMovingOrSizing() end)
+		frame:SetScript("OnDragStop", function(self) 
+			self:StopMovingOrSizing() 
+			NURFED_FRAMES.frames[self:GetName()].Point = { self:GetPoint() } 
+		end)
 		frame:SetScript("OnMouseWheel", function(self)
 				if not NRF_LOCKED then
 					local scale = self:GetScale()
@@ -3287,7 +3292,7 @@ function Nurfed:unitimbue(frame)
 					
 					local width = floor(child:GetWidth() * .65)
 					cd.text:SetFont("Fonts\\FRIZQT__.TTF", width, "OUTLINE")
-					
+
 					local border = _G[child:GetName().."Border"]
 					local count = _G[child:GetName().."Count"]
 					local icon = _G[child:GetName().."Icon"]

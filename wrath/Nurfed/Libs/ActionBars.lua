@@ -947,7 +947,7 @@ function Nurfed:updatebar(hdr)
 			break
 		end
 	end
-	local unitLst	
+	local unitLst
 	if vals.statemaps then
 		for k, v in pairs(vals.statemaps) do
 			if k:find("%-") then
@@ -1565,6 +1565,9 @@ function nrf_mainmenu()
 			end
 		end
 		ShapeshiftBar_Update = old_ShapeshiftBar_Update
+		if MainMenuBar_ToPlayerArt_O then
+			MainMenuBar_ToPlayerArt = MainMenuBar_ToPlayerArt_O
+		end
 		MainMenuBar:Show()
 	else
 		KeyRingButton:SetParent(MainMenuBarBackpackButton)
@@ -1644,22 +1647,6 @@ function nrf_mainmenu()
 			end
 			_G["PossessButton"..i.."NormalTexture"]:Hide()
 		end
-		--[[
-		for i=1,6 do
-			local btn = _G["VehicleMenuBarActionButton"..i]
-			local cooldown = _G["VehicleMenuBarActionButton"..i.."Cooldown"]
-			if not cooldown.text then
-				cooldown.text = cooldown:CreateFontString(nil, "OVERLAY")
-				cooldown.text:SetPoint("CENTER")
-				cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", 36, "OUTLINE")
-			end
-			btn:SetScript("OnUpdate", nrfcooldowntext)
-			btn:SetParent(Nurfed_vehiclemenubar)
-			if i == 1 then
-				btn:ClearAllPoints()
-				btn:SetPoint("BOTTOMLEFT")
-			end
-		end]]
 		if not NurfedVehicleHeader then
 			local f = CreateFrame("Frame", "NurfedVehicleHeader", nil, "SecureHandlerStateTemplate SecureHandlerClickTemplate")
 			for i=1,6 do
@@ -1685,7 +1672,6 @@ function nrf_mainmenu()
 		nrf_updatemainbar("stance")
 		nrf_updatemainbar("petbar")
 		nrf_updatemainbar("possessbar")
-		--nrf_updatemainbar("vehiclemenubar")
 		ShapeshiftBar_Update = function() end
 		MainMenuBar:Hide()
 		if not MainMenuBar.nrfScriptSet then

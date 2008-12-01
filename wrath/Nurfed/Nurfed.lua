@@ -334,7 +334,10 @@ local function onevent(self, event, arg1, arg2, arg3)
 			local origChatFrameOHS = ChatFrame_OnHyperlinkShow
  
 			function ChatFrame_OnHyperlinkShow(self, link, text, button, ...)
-				local linkType, linkValue = string.split(":", link);
+				link = tostring(link)
+				link = string.gsub(link, "|H", "")
+				local linkType, linkValue, _ = string.split(":", link)
+				
 				if linkType == "item" and IsModifiedClick("DRESSUP") then 
 					return DressUpItemLink(linkValue);
 				end
