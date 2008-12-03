@@ -2339,15 +2339,14 @@ local function updateauras(self)
 				if btn.isMine and useIsMine then
 					btn:SetScale(scale*Nurfed:getopt("bigdebuffscale"))
 				end
-				if i == 1 and unit == "target" and Nurfed:getopt("onelinedebuffs") then
-					if debuffline then
-						debuffline:ClearAllPoints()
-						if setbuff then
-							debuffline:SetPoint(unpack(debuffPoint))
-						else
-							debuffline:SetPoint(unpack(buffPoint))
-						end
+				if debuffline and unit == "target" and Nurfed:getopt("onelinedebuffs") then
+					debuffline:ClearAllPoints()
+					if setbuff then
+						debuffline:SetPoint(unpack(debuffPoint))
+					else
+						debuffline:SetPoint(unpack(buffPoint))
 					end
+					debuffline = nil
 				end
 			end
 		elseif useIsMine then
