@@ -330,35 +330,6 @@ local function onevent(self, event, arg1, arg2, arg3)
 				Nurfed:unitimbue(f)
 			end
 		end
-		do
-			local origChatFrameOHS = ChatFrame_OnHyperlinkShow
- 
-			function ChatFrame_OnHyperlinkShow(self, link, text, button, ...)
-				link = tostring(link)
-				link = string.gsub(link, "|H", "")
-				local linkType, linkValue, _ = string.split(":", link)
-				
-				if linkType == "item" and IsModifiedClick("DRESSUP") then 
-					return DressUpItemLink(linkValue);
-				end
-				if not IsModifiedClick("CHATLINK") then 
-					return origChatFrameOHS(self, link, text, button, ...);
-				end
-				if linkType == "player" then
-					if ChatFrameEditBox:IsVisible() then
-						return ChatEdit_InsertLink(linkValue)
-					else
-						return SendWho(linkValue)
-					end
-				end
-				if linkType == "spell" then 
-					text = GetSpellLink(linkValue) 
-				end
-		 
-				ChatFrameEditBox:Show()
-				ChatEdit_InsertLink(text)
-			end
-		end
 		CameraPanelOptions.cameraDistanceMaxFactor.maxValue = 4
 	end
 end
@@ -445,39 +416,25 @@ end
 
 local messageText = {}
 local ACHIEVEMENT_BROADCAST_NURFED = ACHIEVEMENT_BROADCAST:gsub("%%s", "%%S+", 1):gsub("%s%%s!", "")
-local function message(self, msg, r, g, b, id)
+local replaceChan = function(msg, num, chan)
+	if chan then
+		return Nurfed:getopt("chat-"..chan:lower()) or nil
+	end
+end
+
+local function message(self, msg, ...)
 	if (msg and type(msg) == "string") then
 		if Nurfed:getopt("hideachievements") and msg:match(ACHIEVEMENT_BROADCAST_NURFED) then return end
-		messageText[1] = nil; messageText[2] = nil;
+		table.wipe(messageText)
 
 		if Nurfed:getopt("timestamps") then
 			table.insert(messageText, date(Nurfed:getopt("timestampsformat")))
 		end
-
-		if not Nurfed:getopt("chatprefix") then
-			local channel = msg:match("^|Hchannel:%S+|h%[(.-)%]")
-			if channel then
-				if channel:match("^%d%.%s") then
-					if not Nurfed:getopt("numchatprefix") then
-						msg = msg:gsub("%.%s%a+%]", "]", 1)
-					end
-
-				elseif not msg:match("^|Hchannel:%S+|h%[%d") then
-					msg = msg:gsub("%["..channel.."%]|h ", "", 1)
-				end
-			end
+		if self ~= COMBATLOG then-- dont do this for the combat log
+			msg = msg:gsub("(%[([%d. ]*)([^%]]+)%])|h ", replaceChan)
 		end
-		--[[
-		if Nurfed:getopt("classcolortext") then
-			for internal, displayed in msg:gmatch("|Hplayer:(.-)|h%[(.-)%]|h") do
-				local color = Nurfed:GetHexClassColorByName(displayed)
-				if color then
-					msg = msg:gsub("|Hplayer:"..internal.."|h%["..displayed.."%]|h", "|Hplayer:"..internal.."|h%["..color..displayed.."|r%]|h")
-				end
-			end
-		end]]
 		table.insert(messageText, msg)
-		self:O_AddMessage(table.concat(messageText, " "), r, g, b, id)
+		return self:O_AddMessage(table.concat(messageText, " "), ...)
 	end
 end
 

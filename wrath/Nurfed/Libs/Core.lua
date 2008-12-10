@@ -920,6 +920,30 @@ util:addslash(function()
 		Swatter.errorOrder = {}
 		ReloadUI()
 end, "/rls")
+util:addslash(function()
+	local Strip_Order = {16, 17, 18, 5, 7, 1, 3, 10, 8, 6, 9};
+	for i=1, 16 do
+		local buff, _ = GetPlayerBuffName(i);
+		if buff == "Feign Death" or not UnitAffectingCombat("player") then
+			local start = 1
+			local finish = table.getn(Strip_Order)
+			for bag=0, 4 do
+				for slot=1, GetContainerNumSlots(bag) do
+					if not GetContainerItemLink(bag, slot) then
+						for i=start, finish do
+							if GetInventoryItemLink("player", Strip_Order[i]) then
+								PickupInventoryItem(Strip_Order[i])
+								PickupContainerItem(bag, slot)
+								start = i + 1
+								break
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end, "/strip")
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
