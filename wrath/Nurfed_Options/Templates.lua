@@ -233,8 +233,8 @@ onshow = function(self)
 				text = text..name.."\r"
 			end
 			self:SetText(text)
-		else		
-			self:SetText(opt or "")
+		else
+			self:SetText(opt or self.default or "")
 		end
 	elseif objtype == "Button" then
 		local swatch = _G[self:GetName().."bg"]
@@ -279,6 +279,10 @@ saveopt = function(self)
 	elseif objtype == "EditBox" then
 		if not self.focus then return end
 		value = self:GetText()
+		if value == L["Default"] or value == L["default"] then
+			value = nil
+		end
+		
 	elseif objtype == "Button" then
 		local valtext = _G[self:GetName().."valtext"]
 		if valtext then
@@ -293,7 +297,7 @@ saveopt = function(self)
 		if type(NURFED_DEFAULT[opt]) == "boolean" then
 			value = value == 1 and true or false
 		end
-		if value == NURFED_DEFAULT[opt] then
+		if not value or value == NURFED_DEFAULT[opt] then
 			NURFED_SAVED[opt] = nil
 		else
 			NURFED_SAVED[opt] = value
@@ -485,7 +489,18 @@ local templates = {
 		OnEnterPressed = function(self) if self.option and self.saveopt then saveopt(self) end self:ClearFocus(); end,
 		OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
 		OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,
-		OnTextChanged = function(self) end,
+		OnEnter = function(self)
+			if self.hint then
+				GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT", 0, -10)
+				GameTooltip:ClearLines()
+				GameTooltip:AddLine(L["Hint:"], nil, nil, nil, true)
+				GameTooltip:AddLine(self.hint, nil, nil, nil, true)
+				GameTooltip:Show()
+			end
+		end,
+		OnLeave = function() GameTooltip:Hide() end,
+
+		--OnTextChanged = function(self) end,
 	},
 	nrf_options = {
 		type = "Frame",

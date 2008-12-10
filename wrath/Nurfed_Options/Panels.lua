@@ -686,7 +686,32 @@ local panels = {
 			input1 = {
 				template = "nrf_editbox",
 				Anchor = { "TOPRIGHT", "$parentslider1", "BOTTOMRIGHT", 0, -32 },
-				vars = { text = L["Timestamp Format"], option = "timestampsformat" },
+				vars = { text = L["Timestamp Format"], option = "timestampsformat", saveopt = true, },
+			},
+			input10 = {
+				template = "nrf_editbox",
+				Anchor = { "TOPRIGHT", "$parentinput1", "BOTTOMRIGHT", 0, -12 },
+				vars = { text = TRADE, option = "chat-"..TRADE:lower(), hint =  L["Type \"Default\" to reset."], default = L["Default"], saveopt = true },
+			},
+			input11 = {
+				template = "nrf_editbox",
+				Anchor = { "TOPRIGHT", "$parentinput10", "BOTTOMRIGHT", 0, -12 },
+				vars = { text = GUILD, option = "chat-"..GUILD:lower(), hint =  L["Type \"Default\" to reset."], default = L["Default"], saveopt = true },
+			},
+			input12 = {
+				template = "nrf_editbox",
+				Anchor = { "TOPRIGHT", "$parentinput11", "BOTTOMRIGHT", 0, -12 },
+				vars = { text = GENERAL, option = "chat-"..GENERAL:lower(), hint =  L["Type \"Default\" to reset."], default = L["Default"], saveopt = true },
+			},
+			input13 = {
+				template = "nrf_editbox",
+				Anchor = { "TOPRIGHT", "$parentinput12", "BOTTOMRIGHT", 0, -12 },
+				vars = { text = PARTY, option = "chat-"..PARTY:lower(), hint =  L["Type \"Default\" to reset."], default = L["Default"], saveopt = true },
+			},
+			input14 = {
+				template = "nrf_editbox",
+				Anchor = { "TOPRIGHT", "$parentinput13", "BOTTOMRIGHT", 0, -12 },
+				vars = { text = RAID, option = "chat-"..RAID:lower(), hint =  L["Type \"Default\" to reset."], default = L["Default"], saveopt = true },
 			},
 		},
 	},
@@ -1721,7 +1746,7 @@ local panels = {
 				Point = { "TOP", "$parenteditbox5", "BOTTOM", 0, -15 },
 				vars = {
 					text = L["Alpha Value"],
-					tooltip = L["Adjust how transparent your frames become when they are out of range."],
+					hint =  L["Adjust how transparent your frames become when they are out of range."],
 					option = "alphahidevalue",
 					min = 0.01,
 					max = 1.0,
