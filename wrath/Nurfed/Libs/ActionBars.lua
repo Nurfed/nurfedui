@@ -1600,6 +1600,13 @@ function nrf_mainmenu()
 				child:SetParent(Nurfed_micro)
 			end
 		end
+		local children = { VehicleMenuBarArtFrame:GetChildren() }
+		for _, child in ipairs(children) do
+			local name = child:GetName()
+			if name:find("MicroButton", 1, true) then 
+				child:SetParent(Nurfed_micro)
+			end
+		end
 
 		for i = 1, 10 do
 			local btn = _G["ShapeshiftButton"..i]
@@ -1663,7 +1670,7 @@ function nrf_mainmenu()
 							)
 			RegisterStateDriver(f, "actionsettings", "[target=vehicle,exists]s1;s2");
 			MainMenuBar_ToPlayerArt_O = MainMenuBar_ToPlayerArt
-			MainMenuBar_ToPlayerArt = function() end
+			MainMenuBar_ToPlayerArt = nrf_mainmenu
 		end
 		
 		
@@ -1675,7 +1682,6 @@ function nrf_mainmenu()
 		ShapeshiftBar_Update = function() end
 		MainMenuBar:Hide()
 		if not MainMenuBar.nrfScriptSet then
-			MainMenuBar.nrfScriptSet = true
 			MainMenuBar.nrfScriptSet = true
 			if MainMenuBar:GetScript("OnShow") then
 				MainMenuBar:HookScript("OnShow", nrf_mainmenu)
