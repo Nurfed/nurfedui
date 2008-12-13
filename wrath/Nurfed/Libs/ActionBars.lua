@@ -1565,7 +1565,7 @@ function nrf_mainmenu()
 			end
 		end
 		ShapeshiftBar_Update = old_ShapeshiftBar_Update
-		if MainMenuBar_ToPlayerArt_O then
+		if MainMenuBar_ToPlayerArt_O and MainMenuBar_ToPlayerArt == nrf_mainmenu then
 			MainMenuBar_ToPlayerArt = MainMenuBar_ToPlayerArt_O
 		end
 		MainMenuBar:Show()
@@ -1669,6 +1669,8 @@ function nrf_mainmenu()
 								end]]
 							)
 			RegisterStateDriver(f, "actionsettings", "[target=vehicle,exists]s1;s2");
+		end
+		if MainMenuBar_ToPlayerArt ~= nrf_mainmenu then
 			MainMenuBar_ToPlayerArt_O = MainMenuBar_ToPlayerArt
 			MainMenuBar_ToPlayerArt = nrf_mainmenu
 		end

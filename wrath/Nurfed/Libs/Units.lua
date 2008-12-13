@@ -1435,6 +1435,9 @@ local function castevent(self, event)
 	local barText = _G[self:GetName().."text"]
 	local barIcon = _G[self:GetName().."icon"]
 	local orient = self:GetOrientation()
+	if event == "UNIT_SPELLCAST_SENT" then
+		self.sendTime = GetTime()
+	end
 	if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_SENT" then
 		local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitCastingInfo(self.unit)
 		if not name then
@@ -1590,6 +1593,21 @@ local function castevent(self, event)
 			self:SetMinMaxValues(self.startTime, self.endTime)
 		end
 	end
+	if self.lag then
+		local timeDiff = GetTime() - self.sendTime
+		local castlength = self.endTime - self.startTime
+		
+		timeDiff = timeDiff > castlength and castlength or timeDiff
+		if (self.channeling) then
+			self.lag:ClearAllPoints()
+			self.lag:SetPoint("LEFT", self, "LEFT", 0, 0)
+		else
+			self.lag:ClearAllPoints()
+			self.lag:SetPoint("RIGHT", self, "RIGHT", 0, 0)
+		end
+		self.lag:SetWidth(self:GetWidth() * (timeDiff / castlength))
+		self.lag:Show()
+	end
 end
 
 local function castupdate(self)
@@ -1663,6 +1681,27 @@ local function castupdate(self)
 			self:Hide()
 			if parent then parent:Hide() end
 		end
+	end
+	if self.lag then
+		do return end
+		local down, up, lag = GetNetStats();
+		local castingmin, castingmax = self:GetMinMaxValues()
+		local lagvalue = (lag / 1000) / (castingmax - castingmin)
+		
+		if (lagvalue < 0) then 
+			lagvalue = 0
+		elseif (lagvalue > 1) then
+			lagvalue = 1
+		end
+		if (self.channeling) then
+			self.lag:ClearAllPoints()
+			self.lag:SetPoint("LEFT", self, "LEFT", 0, 0)
+		else
+			self.lag:ClearAllPoints()
+			self.lag:SetPoint("RIGHT", self, "RIGHT", 0, 0)
+		end
+			
+		self.lag:SetWidth(self:GetWidth() * lagvalue)
 	end
 end
 
@@ -3240,6 +3279,9 @@ function Nurfed:unitimbue(frame)
 							frame.highlight = child
 						end
 					end
+					if childname:find("lag") then
+						child:GetParent().lag = child
+					end
 					
 				elseif childname:find("^portrait") or child.isportrait then
 					ntinsert(events, "UNIT_PORTRAIT_UPDATE")
@@ -3247,6 +3289,8 @@ function Nurfed:unitimbue(frame)
 					
 				elseif childname:find("^rank") then
 					frame.rank = child
+				elseif childname:find("lag") then
+					child:GetParent().lag = child
 				end
 
 			elseif objtype == "PlayerModel" then
