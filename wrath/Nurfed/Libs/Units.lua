@@ -1593,7 +1593,7 @@ local function castevent(self, event)
 			self:SetMinMaxValues(self.startTime, self.endTime)
 		end
 	end
-	if self.lag then
+	if self.lag and self.sendTime then
 		local timeDiff = GetTime() - self.sendTime
 		local castlength = self.endTime - self.startTime
 		
