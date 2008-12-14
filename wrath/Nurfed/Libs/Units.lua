@@ -1413,17 +1413,18 @@ end
 
 ----------------------------------------------------------------
 -- Casting bar functions
-local function castevent(self, event)
+local lbsendTime
+local function castevent(self, event, unit, spell)
 	local parent = self.parent
 	if event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_TARGET_CHANGED" or event == "PARTY_MEMBERS_CHANGED" or event == "PLAYER_FOCUS_CHANGED" then
 		local nameChannel  = UnitChannelInfo(self.unit)
 		local nameSpell  = UnitCastingInfo(self.unit)
 		if nameChannel then
 			event = "UNIT_SPELLCAST_CHANNEL_START"
-			arg1 = self.unit
+			unit = self.unit
 		elseif nameSpell then
 			event = "UNIT_SPELLCAST_START"
-			arg1 = self.unit
+			unit = self.unit
 		else
 			self:Hide()
 			if parent then parent:Hide() end
@@ -1431,12 +1432,12 @@ local function castevent(self, event)
 		end
 	end
 
-	if arg1 ~= self.unit then return end
+	if unit ~= self.unit then return end
 	local barText = _G[self:GetName().."text"]
 	local barIcon = _G[self:GetName().."icon"]
 	local orient = self:GetOrientation()
 	if event == "UNIT_SPELLCAST_SENT" then
-		self.sendTime = GetTime()
+		lbsendTime = GetTime()
 	end
 	if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_SENT" then
 		local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitCastingInfo(self.unit)
@@ -1450,7 +1451,7 @@ local function castevent(self, event)
 		self.startTime = startTime / 1000
 		self.endTime = endTime / 1000
 		self.maxValue = endTime / 1000
-
+		
 		self:SetMinMaxValues(self.startTime, self.maxValue)
 		self:SetValue(self.startTime)
 		self:SetAlpha(1.0)
@@ -1482,6 +1483,32 @@ local function castevent(self, event)
 			parent:Show()
 			parent:SetAlpha(1.0)
 		end
+		if event == "UNIT_SPELLCAST_START" and self.lag and lbsendTime then
+			local startTime = self.startTime
+			local endTime = self.endTime
+				if not endTime then return end
+			
+			local timeDiff = GetTime() - lbsendTime
+			local castlength = endTime - startTime
+			
+			timeDiff = timeDiff > castlength and castlength or timeDiff
+			local perc = timeDiff / castlength
+			
+			self.lag:SetDrawLayer("BACKGROUND")
+			self.lag:ClearAllPoints()
+			self.lag:SetPoint("RIGHT", self, "RIGHT", 0, 0)
+			self.lag:SetTexCoord(1-perc,1,0,1)
+			self.lag:SetWidth(self:GetWidth() * perc)
+			self.lag:Show()
+			local lgt = _G[self.lag:GetName().."text"] 
+			if lgt then
+				lgt:ClearAllPoints()
+				lgt:SetPoint("LEFT", self.lag, "LEFT", 0, 0)
+				lgt:SetText(string.format("%dms", timeDiff * 1000))
+				lgt:Show()
+			end
+		end
+			
 
 	elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
 		if not self:IsVisible() then self:Hide() end
@@ -1579,6 +1606,31 @@ local function castevent(self, event)
 			parent:Show()
 			parent:SetAlpha(1.0)
 		end
+		if self.lag and lbsendTime then
+			local startTime = self.startTime
+			local endTime = self.endTime
+				if not endTime then return end
+			
+			local timeDiff = GetTime() - lbsendTime
+			local castlength = endTime - startTime
+			
+			timeDiff = timeDiff > castlength and castlength or timeDiff
+			local perc = timeDiff / castlength
+			self.lag:SetDrawLayer("OVERLAY")
+			self.lag:ClearAllPoints()
+			self.lag:SetPoint("LEFT", self, "LEFT", 0, 0)
+			self.lag:SetTexCoord(perc,1,0,1)
+			self.lag:SetWidth(self:GetWidth() * perc)
+			self.lag:Show()
+			local lgt = _G[self.lag:GetName().."text"] 
+			if lgt then
+				lgt:ClearAllPoints()
+				lgt:SetPoint("RIGHT", self.lag, "RIGHT", 0, 0)
+				lgt:SetText(string.format("%dms", timeDiff * 1000))
+				lgt:Show()
+			end
+		end
+		
 	elseif event == "UNIT_SPELLCAST_CHANNEL_UPDATE" then
 		if self:IsShown() then
 			local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitChannelInfo(self.unit)
@@ -1592,21 +1644,6 @@ local function castevent(self, event)
 			self.maxValue = self.startTime
 			self:SetMinMaxValues(self.startTime, self.endTime)
 		end
-	end
-	if self.lag and self.sendTime then
-		local timeDiff = GetTime() - self.sendTime
-		local castlength = self.endTime - self.startTime
-		
-		timeDiff = timeDiff > castlength and castlength or timeDiff
-		if (self.channeling) then
-			self.lag:ClearAllPoints()
-			self.lag:SetPoint("LEFT", self, "LEFT", 0, 0)
-		else
-			self.lag:ClearAllPoints()
-			self.lag:SetPoint("RIGHT", self, "RIGHT", 0, 0)
-		end
-		self.lag:SetWidth(self:GetWidth() * (timeDiff / castlength))
-		self.lag:Show()
 	end
 end
 
@@ -1681,27 +1718,6 @@ local function castupdate(self)
 			self:Hide()
 			if parent then parent:Hide() end
 		end
-	end
-	if self.lag then
-		do return end
-		local down, up, lag = GetNetStats();
-		local castingmin, castingmax = self:GetMinMaxValues()
-		local lagvalue = (lag / 1000) / (castingmax - castingmin)
-		
-		if (lagvalue < 0) then 
-			lagvalue = 0
-		elseif (lagvalue > 1) then
-			lagvalue = 1
-		end
-		if (self.channeling) then
-			self.lag:ClearAllPoints()
-			self.lag:SetPoint("LEFT", self, "LEFT", 0, 0)
-		else
-			self.lag:ClearAllPoints()
-			self.lag:SetPoint("RIGHT", self, "RIGHT", 0, 0)
-		end
-			
-		self.lag:SetWidth(self:GetWidth() * lagvalue)
 	end
 end
 
@@ -3279,7 +3295,7 @@ function Nurfed:unitimbue(frame)
 							frame.highlight = child
 						end
 					end
-					if childname:find("lag") then
+					if childname:find("lag") and not childname:find("lagtext") then
 						child:GetParent().lag = child
 					end
 					
@@ -3289,7 +3305,7 @@ function Nurfed:unitimbue(frame)
 					
 				elseif childname:find("^rank") then
 					frame.rank = child
-				elseif childname:find("lag") then
+				elseif childname:find("lag") and not childname:find("lagtext")then
 					child:GetParent().lag = child
 				end
 
