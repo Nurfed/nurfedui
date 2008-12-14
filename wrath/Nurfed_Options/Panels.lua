@@ -603,12 +603,7 @@ local panels = {
 			check6 = {
 				template = "nrf_check",
 				Anchor = { "TOPLEFT", "$parentcheck5", "BOTTOMLEFT", 0, -8 },
-				vars = { text = L["Show Chat Prefix"], option = "chatprefix" },
-			},
-			check7 = {
-				template = "nrf_check",
-				Anchor = { "TOPLEFT", "$parentcheck6", "BOTTOMLEFT", 0, -8 },
-				vars = { text = L["Show Number Prefix Text"], option = "numchatprefix" },
+				vars = { text = L["Hide Achievements"], option = "hideachievements" },
 			},
 			check8 = {
 				template = "nrf_check",
@@ -639,16 +634,6 @@ local panels = {
 					end
 				end },
 			},
-			check9 = {
-				template = "nrf_check",
-				Anchor = { "TOPLEFT", "$parentcheck7", "BOTTOMLEFT", 0, -8 },
-				vars = { text = L["Hide Achievements"], option = "hideachievements" },
-			},
-			check10 = {
-				template = "nrf_check",
-				Anchor = { "TOPLEFT", "$parentcheck9", "BOTTOMLEFT", 0, -8 },
-				vars = { text = L["Class Color Names"], option = "classcolortext" },
-			}, 
 			slider1 = {
 				template = "nrf_slider",
 				Anchor = { "TOPRIGHT", "$parentcheck8", "BOTTOMRIGHT", 0, -24 },

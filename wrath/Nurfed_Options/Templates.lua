@@ -297,7 +297,7 @@ saveopt = function(self)
 		if type(NURFED_DEFAULT[opt]) == "boolean" then
 			value = value == 1 and true or false
 		end
-		if not value or value == NURFED_DEFAULT[opt] then
+		if type(value) == "nil" or value == NURFED_DEFAULT[opt] then
 			NURFED_SAVED[opt] = nil
 		else
 			NURFED_SAVED[opt] = value
