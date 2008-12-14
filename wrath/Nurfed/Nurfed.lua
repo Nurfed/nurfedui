@@ -16,6 +16,7 @@ local dnsLst = {
 	[29024] = true,
 	[32823] = true,
 }
+local nameList = {}
 -- Default Options
 NURFED_SAVED = NURFED_SAVED or {}
 NURFED_TALENTBINDINGS = NURFED_TALENTBINDINGS or {}
@@ -292,7 +293,28 @@ local function onevent(self, event, arg1, arg2, arg3)
 			NURFED_SAVED["happiness"] = NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS]
 			NURFED_SAVED[HAPPINESS_POINTS or HAPPINESS] = nil
 		end
+		if Nurfed:getopt("raidclass") or Nurfed:getopt("raidgroup") then
+			for i=1, GetNumRaidMembers() do
+				local name, _, subgroup, _, class = GetRaidRosterInfo(i)
+				if not nameList[name] then
+					nameList[name] = {}
+				end
+				nameList[name].group = subgroup
+				nameList[name].class = class
+			end
+		end
 		
+	elseif event == "RAID_ROSTER_UPDATE" and (Nurfed:getopt("raidgroup") or Nurfed:getopt("raidclass")) then
+		for i=1, GetNumRaidMembers() do
+			local name, _, subgroup, _, class = GetRaidRosterInfo(i)
+			if not nameList[name] then
+				nameList[name] = {}
+			end
+			nameList[name].group = subgroup
+			nameList[name].class = class
+		end
+
+			
 	elseif event == "VARIABLES_LOADED" then
 		if self:IsUserPlaced() then
 			self:SetUserPlaced(nil)
@@ -350,6 +372,7 @@ Nurfed:create("Nurfed_LockButton", {
 		"PLAYER_ENTERING_WORLD",
 		"VARIABLES_LOADED",
 		"PARTY_INVITE_REQUEST",
+		"RAID_ROSTER_UPDATE",
 	},
 	children = {
 		dropdown = { type = "Frame" },
@@ -416,9 +439,27 @@ end
 
 local messageText = {}
 local ACHIEVEMENT_BROADCAST_NURFED = ACHIEVEMENT_BROADCAST:gsub("%%s", "%%S+", 1):gsub("%s%%s!", "")
-local replaceChan = function(msg, num, chan)
+local replaceChannel = function(msg, num, chan)
 	if chan then
-		return Nurfed:getopt("chat-"..chan:lower()) or nil
+		return chan and Nurfed:getopt("chat-"..chan:lower()) or nil
+	end
+end
+local function changeName(msgHeader, name, msgCnt, displayName, msgBody)
+	if nameList[name] then
+		if displayName:find("|r") and Nurfed:getopt("raidclass") then
+			displayName = displayName:gsub("|r", "")
+			if Nurfed:getopt("raidgroup") then
+				return ("|Hplayer:%s%s|h%s%s%s|h%s"):format(name, msgCnt, "[", displayName..":"..nameList[name].class.."|r", "]["..nameList[name].group.."]", msgBody)
+			end
+			return ("|Hplayer:%s%s|h%s%s%s|h%s"):format(name, msgCnt, "[", displayName..":"..nameList[name].class.."|r", "]", msgBody)
+		end
+		if Nurfed:getopt("raidclass") then
+			if Nurfed:getopt("raidgroup") then
+				return ("|Hplayer:%s%s|h%s%s%s|h%s"):format(name, msgCnt, "[", displayName..":"..nameList[name].class, "]["..nameList[name].group.."]", msgBody)
+			end
+			return ("|Hplayer:%s%s|h%s%s%s|h%s"):format(name, msgCnt, "[", displayName..":"..nameList[name].class, "]", msgBody)
+		end
+		return ("|Hplayer:%s%s|h%s%s%s|h%s"):format(name, msgCnt, "[", displayName, "]["..nameList[name].group.."]", msgBody)
 	end
 end
 
@@ -431,7 +472,11 @@ local function message(self, msg, ...)
 			table.insert(messageText, date(Nurfed:getopt("timestampsformat")))
 		end
 		if self ~= COMBATLOG then-- dont do this for the combat log
-			msg = msg:gsub("(%[([%d. ]*)([^%]]+)%])|h ", replaceChan)
+			local chan = select(3, msg:match("(%[([%d. ]*)([^%]]+)%])|h "))
+			msg = msg:gsub("(%[([%d. ]*)([^%]]+)%])|h ", replaceChannel)
+			if (Nurfed:getopt("raidgroup") or Nurfed:getopt("raidclass")) and chan and chan:find("^"..RAID) then
+				msg = msg:gsub("(|Hplayer:([^|:]+)([:%d+]*)|h%[([^%]]+)%]|h)(.-)$", changeName)
+			end
 		end
 		table.insert(messageText, msg)
 		return self:O_AddMessage(table.concat(messageText, " "), ...)
