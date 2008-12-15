@@ -1660,7 +1660,7 @@ function nrf_mainmenu()
 				f:SetFrameRef("btn"..i, _G["VehicleMenuBarActionButton"..i])
 			end
 			f:SetAttribute("_onstate-actionsettings", [[
-								if newstate == "s1" then
+								if newstate == "s1" and select(2, PlayerPetSummary()) ~= "Hover Disk" then
 									for i=1,6 do
 										self:SetBindingClick(true, i, self:GetFrameRef("btn"..i))
 									end
