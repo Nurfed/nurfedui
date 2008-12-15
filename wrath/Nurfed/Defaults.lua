@@ -101,6 +101,11 @@ NURFED_DEFAULT["vehiclemenubarscale"] = 1
 NURFED_DEFAULT["vehiclemenubarvert"] = false
 NURFED_DEFAULT["vehiclemenubaroffset"] = 3
 
+NURFED_DEFAULT["possessactionbarshow"] = true
+NURFED_DEFAULT["possessactionbarscale"] = 1
+NURFED_DEFAULT["possessactionbarvert"] = false
+NURFED_DEFAULT["possessactionbaroffset"] = 3
+
 NURFED_DEFAULT["microshow"] = false
 NURFED_DEFAULT["microscale"] = 1
 NURFED_DEFAULT["microvert"] = false

@@ -923,7 +923,7 @@ end, "/rls")
 util:addslash(function()
 	local Strip_Order = {16, 17, 18, 5, 7, 1, 3, 10, 8, 6, 9};
 	for i=1, 16 do
-		local buff, _ = GetPlayerBuffName(i);
+		local buff = UnitBuff("player", i);
 		if buff == "Feign Death" or not UnitAffectingCombat("player") then
 			local start = 1
 			local finish = table.getn(Strip_Order)

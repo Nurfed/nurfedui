@@ -559,7 +559,9 @@ local function saveattrib(self, name, value)
 		local parent = self:GetParent():GetName()
 		for _,tbl in ipairs(NURFED_ACTIONBARS) do
 			if tbl.name == parent then
-				tbl.buttons[self:GetID()][name] = value
+				if not self:GetAttribute("possessButton") then
+					tbl.buttons[self:GetID()][name] = value
+				end
 				name = "state-parent"
 				break
 			end
@@ -577,7 +579,8 @@ local function getbtn(hdr)
 	else
 		local new = #live + 1
 		--btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate ActionButtonTemplate")
-		btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate ActionButtonTemplate")
+		btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate  ActionButtonTemplate")
+		RegisterStateDriver(btn, "possesstest", "[bonusbar:5]s1;s2")
 
 		--hdr:SetAttribute("_adopt", btn)
 		btn:RegisterForClicks("AnyUp")
@@ -1036,7 +1039,6 @@ function Nurfed:updatebar(hdr)
 			count = count + 1;
 		end
 	end
-
 	for _, v in ipairs(btns) do
 		delbtn(v);
 	end
@@ -1250,7 +1252,7 @@ local blizzbars = {
 	["stance"] = 36,
 	["petbar"] = 30,
 	["possessbar"] = 30,
-	--["vehiclemenubar"] = 60,
+	["possessactionbar"] = 60,
 }
 
 function nrf_updatemainbar(bar)
@@ -1288,6 +1290,16 @@ function nrf_updatemainbar(bar)
 			end
 		end
 	
+	elseif bar == Nurfed_possessactionbar then
+		for i=2, NUM_BONUS_ACTION_SLOTS do
+			local btn = _G["BonusActionButton"..i]
+			btn:ClearAllPoints();
+			if vert then
+				btn:SetPoint("TOP", "BonusActionButton"..(i-1), "BOTTOM", 0, offset)
+			else
+				btn:SetPoint("LEFT", "BonusActionButton"..(i-1), "RIGHT", offset, 0)
+			end
+		end
 	--[[elseif bar == Nurfed_vehiclemenubar then
 		for i=2, 6 do
 			local btn = _G["VehicleMenuBarActionButton"..i]
@@ -1395,87 +1407,7 @@ Nurfed:regevent("PLAYER_LOGIN", function()
 	SaveBindings(GetCurrentBindingSet())
 	NurfedActionBarsUpdateColors()
 end)
---[[
-Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
-	-- vehicle bar stuff
-	if IsAddOnLoaded("Bartender3") or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("TrinityBars") or IsAddOnLoaded("Bongos2_ActionBar") or IsAddOnLoaded("Bongos3_ActionBar") or IsAddOnLoaded("Dominos") then
-	else
-		MainMenuBar_ToVehicleArt_Orig = MainMenuBar_ToVehicleArt
-		MainMenuBar_ToVehicleArt = function(self)	-- replace this function so the shit, doesn't hit the fan
-			MainMenuBar.state = "vehicle";
-			
-			MultiBarLeft:Hide();
-			MultiBarRight:Hide();
-			MultiBarBottomLeft:Hide();
-			MultiBarBottomRight:Hide();
-			
-			MainMenuBar:Hide();
-			--VehicleMenuBar:SetPoint(MainMenuBar_GetAnimPos(VehicleMenuBar, 1))
-			--VehicleMenuBar_SetSkin(VehicleMenuBar.skin, IsVehicleAimAngleAdjustable());
-			--VehicleMenuBar:Show();
-			PossessBar_Update(true);
-			ShowBonusActionBar(true);	--Now, when we are switching to vehicle art we will ALWAYS be using the BonusActionBar
-			UIParent_ManageFramePositions();	--This is called in PossessBar_Update, but it doesn't actually do anything but change an attribute, so it is worth keeping
-			--SetUpAnimation(VehicleMenuBar, AnimDataTable.MenuBar_Slide, nil, true);
-			Nurfed_vehiclemenubar:Show()
-			VehicleMenuBar_SetSkin()
-			local btn = getglobal("VehicleMenuBarLeaveButton")
-			btn:SetParent(Nurfed_vehiclemenubar)
-			btn:ClearAllPoints();
-			btn:SetPoint("TOPRIGHT", getglobal("VehicleMenuBarActionButton1"), "TOPLEFT", -4, 0)
-			btn:SetWidth(60)
-			btn:SetHeight(60)
-			btn:Show()
-			btn = getglobal("VehicleMenuBarPitchSlider")
-			btn:SetParent(Nurfed_vehiclemenubar)
-			btn:ClearAllPoints();
-			btn:SetPoint("TOPRIGHT", VehicleMenuBarLeaveButton, "TOPLEFT", -4, 0)
-			btn:SetHeight(60)
-			btn:EnableMouseWheel(true)
-			btn:SetScript("OnMouseWheel", function(self, val)
-				if val == 1 then
-					VehicleAimRequestNormAngle(VehicleAimGetNormAngle()+0.05)
-				else
-					VehicleAimRequestNormAngle(VehicleAimGetNormAngle()-0.05)
-				end
-			end)
-			if IsVehicleAimAngleAdjustable() then
-				btn:Show()
-			else
-				btn:Hide()
-			end
-			btn = getglobal("VehicleMenuBarPitchUpButton")
-			btn:SetParent(Nurfed_vehiclemenubar)
-			btn:ClearAllPoints()
-			btn:SetHeight(30)
-			btn:SetWidth(30)
-			btn:SetPoint("TOPRIGHT", VehicleMenuBarPitchSlider, "TOPLEFT", -4, 0)
-			if IsVehicleAimAngleAdjustable() then
-				btn:Show()
-			else
-				btn:Hide()
-			end
-			btn = getglobal("VehicleMenuBarPitchDownButton")
-			btn:SetParent(Nurfed_vehiclemenubar)
-			btn:ClearAllPoints()
-			btn:SetHeight(30)
-			btn:SetWidth(30)
-			btn:SetPoint("BOTTOMRIGHT", VehicleMenuBarPitchSlider, "BOTTOMLEFT", -4, 0)
-			if IsVehicleAimAngleAdjustable() then
-				btn:Show()
-			else
-				btn:Hide()
-			end
-		end
-		hooksecurefunc("MainMenuBar_ToPlayerArt", function() Nurfed_vehiclemenubar:Hide() end)
-		if UnitHasVehicleUI("player") then
-			MainMenuBar_ToVehicleArt()
-		else
-			MainMenuBar_ToPlayerArt()
-		end
-	end
-end)
-]]
+
 Nurfed:regevent("NURFED_LOCK", function()
 	if NRF_LOCKED then
 		Nurfed_bagsdrag:Hide()
@@ -1483,14 +1415,14 @@ Nurfed:regevent("NURFED_LOCK", function()
 		Nurfed_stancedrag:Hide()
 		Nurfed_petbardrag:Hide()
 		Nurfed_possessbardrag:Hide()
---		Nurfed_vehiclemenubardrag:Hide()
+		Nurfed_possessactionbardrag:Hide()
 	else
 		Nurfed_bagsdrag:Show()
 		Nurfed_microdrag:Show()
 		Nurfed_stancedrag:Show()
 		Nurfed_petbardrag:Show()
 		Nurfed_possessbardrag:Show()
---		Nurfed_vehiclemenubardrag:Show()
+		Nurfed_possessactionbardrag:Show()
 	end
 end)
 
@@ -1564,6 +1496,17 @@ function nrf_mainmenu()
 				end
 			end
 		end
+		for i = 1, NUM_BONUS_ACTION_SLOTS do
+			local btn = _G["BonusActionButton"..i]
+			btn:SetParent(BonusActionBarFrame);
+			btn:ClearAllPoints();
+			if i == 1 then
+				btn:SetPoint("BOTTOMLEFT", 36, 2)
+			else
+				btn:SetPoint("LEFT", "BonusActionButton"..(i-1), "RIGHT", 8, 0)
+			end
+		end
+
 		ShapeshiftBar_Update = old_ShapeshiftBar_Update
 		if MainMenuBar_ToPlayerArt_O and MainMenuBar_ToPlayerArt == nrf_mainmenu then
 			MainMenuBar_ToPlayerArt = MainMenuBar_ToPlayerArt_O
@@ -1654,15 +1597,74 @@ function nrf_mainmenu()
 			end
 			_G["PossessButton"..i.."NormalTexture"]:Hide()
 		end
+		for i = 1, NUM_BONUS_ACTION_SLOTS do
+			local btn = _G["BonusActionButton"..i]
+			local cooldown = _G["BonusActionButton"..i.."Cooldown"]
+			if not cooldown.text then
+				cooldown.text = cooldown:CreateFontString(nil, "OVERLAY")
+				cooldown.text:SetPoint("CENTER")
+				cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
+			end
+			btn:SetParent(Nurfed_possessactionbar)
+			btn:SetScript("OnUpdate", nrfcooldowntext)
+			if i == 1 then
+				btn:ClearAllPoints()
+				btn:SetPoint("BOTTOMLEFT")
+			end
+			_G["BonusActionButton"..i.."NormalTexture"]:Hide()
+		end
+		if not NurfedPossessHeader then
+			local f = CreateFrame("Frame", "NurfedPossessHeader", nil, "SecureHandlerStateTemplate SecureHandlerClickTemplate")
+			for i = 1, NUM_BONUS_ACTION_SLOTS do
+				local btn = _G["BonusActionButton"..i]
+				f:SetFrameRef("btn"..i, btn)
+			end
+			f:SetAttribute("_onstate-actionsettings", [[
+								if newstate == "s1" then
+									for i=1,12 do
+										local key
+										if i == 10 then key = 0
+										elseif i == 11 then key = "-"
+										elseif i == 12 then key = "="
+										else key = i end
+										self:SetBindingClick(true, key, self:GetFrameRef("btn"..i))
+										self:GetFrameRef("btn"..i):Show()
+									end
+								else
+									for i=1,12 do
+										self:GetFrameRef("btn"..i):Hide()
+									end
+									self:ClearBindings()
+								end]]
+							)
+			RegisterStateDriver(f, "actionsettings", "[bonusbar:5]s1;s2");
+		end		
+		
+		
 		if not NurfedVehicleHeader then
 			local f = CreateFrame("Frame", "NurfedVehicleHeader", nil, "SecureHandlerStateTemplate SecureHandlerClickTemplate")
 			for i=1,6 do
-				f:SetFrameRef("btn"..i, _G["VehicleMenuBarActionButton"..i])
+				local btn = _G["VehicleMenuBarActionButton"..i]
+				local cooldown = _G["VehicleMenuBarActionButton"..i.."Cooldown"]
+				if not cooldown.text then
+					cooldown.text = cooldown:CreateFontString(nil, "OVERLAY")
+					cooldown.text:SetPoint("CENTER")
+					cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
+				end
+				if btn:GetScript("OnUpdate") then
+					btn:HookScript("OnUpdate", nrfcooldowntext)
+				else
+					btn:SetScript("OnUpdate", nrfcooldowntext)
+				end
+				f:SetFrameRef("btn"..i, btn)
 			end
 			f:SetAttribute("_onstate-actionsettings", [[
 								if newstate == "s1" and select(2, PlayerPetSummary()) ~= "Hover Disk" then
 									for i=1,6 do
 										self:SetBindingClick(true, i, self:GetFrameRef("btn"..i))
+									end
+									for i=1,12 do
+										self:GetFrameRef("btn"..i):Hide()
 									end
 								else
 									self:ClearBindings()
@@ -1675,12 +1677,12 @@ function nrf_mainmenu()
 			MainMenuBar_ToPlayerArt = nrf_mainmenu
 		end
 		
-		
 		nrf_updatemainbar("bags")
 		nrf_updatemainbar("micro")
 		nrf_updatemainbar("stance")
 		nrf_updatemainbar("petbar")
 		nrf_updatemainbar("possessbar")
+		nrf_updatemainbar("possessactionbar")
 		ShapeshiftBar_Update = function() end
 		MainMenuBar:Hide()
 		if not MainMenuBar.nrfScriptSet then
