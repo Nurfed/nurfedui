@@ -1595,8 +1595,7 @@ function nrf_mainmenu()
 				btn:ClearAllPoints()
 				btn:SetPoint("BOTTOMLEFT")
 			end
-			--_G["PossessButton"..i.."NormalTexture"]:Hide()
-			btn:SetNormalTexture(nil) -- remove that pos graphic!
+			_G["PossessButton"..i.."NormalTexture"]:Hide()
 		end
 		for i = 1, NUM_BONUS_ACTION_SLOTS do
 			local btn = _G["BonusActionButton"..i]
@@ -1612,8 +1611,8 @@ function nrf_mainmenu()
 				btn:ClearAllPoints()
 				btn:SetPoint("BOTTOMLEFT")
 			end
-			--_G["BonusActionButton"..i.."NormalTexture"]:Hide()
-			btn:SetNormalTexture(nil) -- remove that pos graphic!
+			_G["BonusActionButton"..i.."NormalTexture"]:Hide()
+			_G["BonusActionButton"..i.."NormalTexture"]:SetAlpha(0)
 		end
 		if not NurfedPossessHeader then
 			local f = CreateFrame("Frame", "NurfedPossessHeader", nil, "SecureHandlerStateTemplate SecureHandlerClickTemplate")
@@ -1665,13 +1664,16 @@ function nrf_mainmenu()
 			end
 			f:SetAttribute("_onstate-actionsettings", [[
 								if newstate == "s1" and select(2, PlayerPetSummary()) ~= "Hover Disk" then
-									for i=1,6 do
-										self:SetBindingClick(true, i, self:GetFrameRef("btn"..i))
-									end
 									for i=1,12 do
 										self:GetFrameRef("bonus"..i):Hide()
 									end
+									for i=1,6 do
+										self:SetBindingClick(true, i, self:GetFrameRef("btn"..i))
+									end
 								else
+									for i=1,12 do
+										self:GetFrameRef("bonus"..i):Hide()
+									end
 									self:ClearBindings()
 								end]]
 							)
