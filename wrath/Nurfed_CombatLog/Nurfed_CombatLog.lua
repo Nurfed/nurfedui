@@ -7,6 +7,7 @@ local SPELLCASTGOOTHER = "%s casts %s."
 local AURAADDEDOTHERHELPFUL = "%s gains %s."
 local COMBATLOG_OBJECT_REACTION_HOSTILE = _G.COMBATLOG_OBJECT_REACTION_HOSTILE
 local COMBATLOG_OBJECT_CONTROL_PLAYER = _G.COMBATLOG_OBJECT_CONTROL_PLAYER
+local classLst = {}
 NURFED_COMBATLOG_SAVED = NURFED_COMBATLOG_SAVED or {
 	spell = {
 		enabled = true,
@@ -38,11 +39,17 @@ local function onevent(_, _, event, srcGUID, srcName, srcFlags, dstGUID, dstName
 	if not eventLst[event] then return end
 	if event == "SPELL_CAST_SUCCESS" or event == "SPELL_CAST_START" then	-- both use source
 		if bitband(COMBATLOG_OBJECT_REACTION_HOSTILE, srcFlags) ~= 0 and bitband(COMBATLOG_OBJECT_CONTROL_PLAYER, srcFlags) ~= 0 then
+			if classLst[srcName] then
+				srcName = classLst[srcName]..srcName.."|r"
+			end
 			Nurfed_SpellAlert:AddMessage("|T"..select(3, GetSpellInfo(id))..":24:24:-5|t"..SPELLCASTGOOTHER:format(srcName, "|c"..CombatLog_Color_ColorStringBySchool(spellSchool)..spellName.."|r"))
 		end
 		
 	elseif event == "SPELL_AURA_APPLIED" and spellType == "BUFF" then	-- uses destFlags
 		if bitband(COMBATLOG_OBJECT_REACTION_HOSTILE, dstFlags) ~= 0 and bitband(COMBATLOG_OBJECT_CONTROL_PLAYER, dstFlags) ~= 0 then
+			if classLst[dstName] then
+				dstName = classLst[dstName]..dstName.."|r"
+			end
 			Nurfed_BuffAlert:AddMessage("|T"..select(3, GetSpellInfo(id))..":24:24:-5|t"..AURAADDEDOTHERHELPFUL:format(dstName, "|c"..CombatLog_Color_ColorStringBySchool(spellSchool)..spellName.."|r"))
 		end
 	end
@@ -88,7 +95,28 @@ Nurfed:regevent("NURFED_COMBATLOG_SETTINGS_CHANGED", function()
 		eventLst["SPELL_AURA_APPLIED"] = false
 	end
 end)
-
+local unittbl = {
+	[1] = "mouseover",
+	[2] = "target",
+	[3] = "focus",
+}
+local function nameupdate()
+	local unit = "mouseover";
+	for _, unit in ipairs(unittbl) do
+		if UnitExists(unit) and UnitIsPlayer(unit) and UnitCanAttack("player", unit) then
+			local name = UnitName(unit)
+			if name and not classLst[name] then
+				classLst[name] = RAID_CLASS_COLORS[select(2, UnitClass(unit))].hex
+				break
+			end
+		end
+	end
+end
+			
+			
+Nurfed:regevent("PLAYER_TARGET_CHANGED", nameupdate)
+Nurfed:regevent("PLAYER_FOCUS_CHANGED", nameupdate)
+Nurfed:regevent("UPDATE_MOUSEOVER_UNIT", nameupdate)
 
 local function createhandle(name, title)
 	if not name or not title then return end
