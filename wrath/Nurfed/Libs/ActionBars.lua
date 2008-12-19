@@ -1378,7 +1378,12 @@ local function createbars(bars)
 			if k == "possessbar" then
 				bar:SetAttribute("unit", "player")
 			end
-			_G["Nurfed_"..k.."dragtext"]:SetText("Nurfed_"..k)
+			--_G["Nurfed_"..k.."dragtext"]:SetText("Nurfed_"..k)
+			local text = k:gsub("bar", " %1"):gsub("action", " %1")
+			text = text:gsub("(%a)([%w_']*)", function(first, rest) return first:upper()..rest:lower() end)
+			local dragtxt = _G["Nurfed_"..k.."dragtext"]
+			dragtxt:SetText(text)
+			dragtxt:GetParent():SetWidth(dragtxt:GetStringWidth()+5)
 		end
 	end
 end
