@@ -578,7 +578,7 @@ local templates = {
 				NormalTexture = "Interface\\Buttons\\UI-PlusButton-Up",
 				PushedTexture = "Interface\\Buttons\\UI-PlusButton-Down",
 				HighlightTexture = "Interface\\Buttons\\UI-PlusButton-Hilight",
-				OnClick = Nurfed_ExpandBar,
+				OnClick = function(...) Nurfed_ExpandBar(...) end,
 			},
 			name = {
 				type = "FontString",
@@ -599,7 +599,7 @@ local templates = {
 					GameTooltip:Show()
 				end,
 				OnLeave = function() GameTooltip:Hide() end,
-				OnClick = Nurfed_ToggleStates,
+				OnClick = function(...) Nurfed_ToggleStates(...) end,
 			},
 			delete = {
 				type = "Button",
@@ -625,7 +625,7 @@ local templates = {
 				Anchor = "all",
 			},
 		},
-		OnClick = function() Nurfed_ActionBar_OnClick(arg1) end,
+		OnClick = function(self, val) Nurfed_ActionBar_OnClick(val) end,
 		Hide = true,
 	},
 	nrf_color = {
