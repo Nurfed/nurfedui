@@ -2514,6 +2514,7 @@ local function showparty(self)
 	end
 end
 
+
 local function updateRunesOnUpdate(self)
 	local start, duration = self.start, self.duration
 	local time = GetTime()
@@ -2547,26 +2548,83 @@ local function updateRunesOnUpdate(self)
 	end
 end
 
+local runeColors = {
+	[1] = { 1, 0, 0 },		-- Blood
+	[2] = { 0, 0.5, 0 },	-- Unholy
+	[3] = { 0, 1, 1 },		-- Frost
+	[4] = { 0.8, 0.1, 1 },	-- Death
+}
+
+local function updateRune_Cooldown(self, rune, usable)
+	local type = self:GetObjectType()
+	local rtype = GetRuneType(self.rune)
+	local start, dur, runeReady = GetRuneCooldown(self.rune)
+	
+	if type == "StatusBar" then
+		self:SetStatusBarColor(unpack(runeColors[rtype]))
+		self:SetMinMaxValues(0, dur)
+		self.start = start
+		self.duration = dur
+		updateRunesOnUpdate(self, rune)
+	elseif type == "Texture" then
+		local cd = _G[self:GetName().."Cooldown"]
+		if cd then
+			CooldownFrame_SetTimer(cd, start, dur, (runeReady and 0) or 1);
+		end
+	end
+end
+
+local function updateRune_Usable(self, rune, usable)
+	local type = self:GetObjectType()
+	local rtype = GetRuneType(rune)
+	if type == "StatusBar" then
+		-- statusbar shit
+	elseif type == "Texture" then
+		-- texture shit
+	end
+	local text = _G[self:GetName().."text"]
+	if text then
+		text:SetText(text.defaultText or "Ready")
+		text:Show()
+	end
+	self:Show()
+	self:SetScript("OnUpdate", nil)
+end
+
+local function updateRune_Type(self, newrune)
+	local type = self:GetObjectType()
+	if type == "StatusBar" then
+		self:SetStatusBarColor(unpack(runeColors[GetRuneType(newrune)]))
+	elseif type == "Texture" then
+		-- texture shit
+	end
+end
 local function updateRunes(self, rune, usable)
-	if rune <= 6 then
+	--if rune <= 6 then
+	if rune then
 		local start, duration, runeReady = GetRuneCooldown(rune);
 		local frame = _G[self:GetName().."rune"..rune]
 		if frame then
-			if rune == 1 or rune == 2 then
-				frame:SetStatusBarColor(1, 0, 0)
-			elseif rune == 5 or rune == 6 then
-				frame:SetStatusBarColor(0, 0, 1)
-			elseif rune == 3 or rune == 4 then
-				frame:SetStatusBarColor(0, 1, 0)
+			local runeType = GetRuneType(rune)
+			if not runeType then
+				return frame:Hide()
 			end
-			frame:SetMinMaxValues(0, duration)
+			local ftype = frame:GetObjectType()
+			frame:Show()
+			if ftype == "StatusBar" then
+				frame:SetStatusBarColor(unpack(runeColors[runeType]))
+				frame:SetMinMaxValues(0, duration)
+				frame.start = start
+				frame.duration = duration
+
+			elseif ftype == "Texture" then
+				-- texture shit
+			end
 			frame.rune = rune
-			frame.start = start
-			frame.duration = duration
 			if runeReady then
 				local text = _G[frame:GetName().."text"]
 				if text then
-					text:SetText(text.defaultText)
+					text:SetText(text.defaultText or "Ready")
 					text:Show()
 				end
 				frame:SetScript("OnUpdate", nil)
@@ -2794,8 +2852,21 @@ local events = {
 	["UNIT_DYNAMIC_FLAGS"] = function(self) formattext(self.name, self) end,
 	["UNIT_CLASSIFICATION_CHANGED"] = function(self) formattext(self.level, self) end,
 	["UNIT_HAPPINESS"] = updatehappiness,
-	["RUNE_POWER_UPDATE"] = updateRunes,
-	["RUNE_TYPE_UPDATE"] = updateRunes,
+	["RUNE_POWER_UPDATE"] = function(self, rune, usable)
+		if rune and self.runes[rune] then
+			if not usable then
+				self.runes[rune]:Show()
+				self.runes[rune]:SetScript("OnUpdate", updateRune_Cooldown)
+			else -- usable
+				updateRune_Usable(self.runes[rune], rune)
+			end
+		end
+	end,
+	["RUNE_TYPE_UPDATE"] = function(self, rune)
+		if rune then
+			updateRune_Type(self.runes[rune], rune)
+		end
+	end,
 	["UNIT_ENTERED_VEHICLE"] = updateframe,
 	["UNIT_EXITED_VEHICLE"] = updateframe,
 }
@@ -3092,7 +3163,6 @@ function Nurfed:unitimbue(frame)
 			elseif pre == "rune" then
 				ntinsert(events, "RUNE_POWER_UPDATE");
 				ntinsert(events, "RUNE_TYPE_UPDATE");
-				child:GetParent().runes = {}
 			end
 			if child.hideFrame then
 				local f = child.hideFrame
@@ -3211,6 +3281,14 @@ function Nurfed:unitimbue(frame)
 			elseif childname:find("^rune") then
 				if playerClass == "DEATHKNIGHT" and child:GetParent().unit == "player" then
 					regstatus("rune", child)
+					if not child:GetParent().runes then
+						child:GetParent().runes = {}
+					end
+					local num = tonumber(child:GetName():match("%d"))
+					if num then
+						child:GetParent().runes[num] = child
+						child.rune = num
+					end
 				else
 					child:Hide()
 				end
