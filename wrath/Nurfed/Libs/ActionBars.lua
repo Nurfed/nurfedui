@@ -1668,7 +1668,7 @@ function nrf_mainmenu()
 				f:SetFrameRef("bonus"..i, _G["BonusActionButton"..i])
 			end
 			f:SetAttribute("_onstate-actionsettings", [[
-								if newstate == "s1" and select(2, PlayerPetSummary()) ~= "Hover Disk" then
+								if newstate == "s1" and PlayerPetSummary() and select(2, PlayerPetSummary()) ~= "Hover Disk" then
 									for i=1,12 do
 										self:GetFrameRef("bonus"..i):Hide()
 									end
