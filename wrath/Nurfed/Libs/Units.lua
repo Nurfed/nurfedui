@@ -1348,8 +1348,9 @@ local function fade(frame)
 	local name = texture:GetTexture()
 	frame.texture = name
 	frame.old = 0
-	frame:HookScript("SetValue", nrf_fading)
-	--hooksecurefunc(frame, "SetValue", nrf_fading)
+	--yes, this is redundant, but apparently its causing issues with some layouts
+	--	frame:HookScript("SetValue", nrf_fading)
+	hooksecurefunc(frame, "SetValue", nrf_fading)
 end
 
 local function updatedamage(self, unit, event, flags, amount, type, ...)

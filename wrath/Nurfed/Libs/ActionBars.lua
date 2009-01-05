@@ -1602,6 +1602,7 @@ function nrf_mainmenu()
 			end
 			_G["PossessButton"..i.."NormalTexture"]:Hide()
 		end
+		
 		for i = 1, NUM_BONUS_ACTION_SLOTS do
 			local btn = _G["BonusActionButton"..i]
 			local cooldown = _G["BonusActionButton"..i.."Cooldown"]
@@ -1619,35 +1620,116 @@ function nrf_mainmenu()
 			_G["BonusActionButton"..i.."NormalTexture"]:Hide()
 			_G["BonusActionButton"..i.."NormalTexture"]:SetAlpha(0)
 		end
+		
 		if not NurfedPossessHeader then
 			local f = CreateFrame("Frame", "NurfedPossessHeader", nil, "SecureHandlerStateTemplate SecureHandlerClickTemplate")
 			for i = 1, NUM_BONUS_ACTION_SLOTS do
 				local btn = _G["BonusActionButton"..i]
 				f:SetFrameRef("btn"..i, btn)
 			end
+			f:SetFrameRef("LeaveButton", _G["VehicleMenuBarLeaveButton"])
 			f:SetAttribute("_onstate-actionsettings", [[
 								if newstate == "s1" then
-									for i=1,12 do
-										local key
-										if i == 10 then key = 0
-										elseif i == 11 then key = "-"
-										elseif i == 12 then key = "="
-										else key = i end
-										self:SetBindingClick(true, key, self:GetFrameRef("btn"..i))
-										self:GetFrameRef("btn"..i):Show()
+									if select(2, PlayerPetSummary()) and select(2, PlayerPetSummary()) ~= "Hover Disk" then
+										for i=1,12 do
+											local key
+											if i == 10 then key = 0
+											elseif i == 11 then key = "-"
+											elseif i == 12 then key = "="
+											else key = i end
+											self:SetBindingClick(true, key, self:GetFrameRef("btn"..i))
+											self:GetFrameRef("btn"..i):Show()
+										end
+										self:GetFrameRef("LeaveButton"):Show()
 									end
 								else
 									for i=1,12 do
 										self:GetFrameRef("btn"..i):Hide()
 									end
+									self:GetFrameRef("LeaveButton"):Hide()
 									self:ClearBindings()
 								end]]
 							)
 			RegisterStateDriver(f, "actionsettings", "[bonusbar:5]s1;s2");
+			-- old vehicle bar code
+			local btn
+			-- setup leave button
+			btn = getglobal("VehicleMenuBarLeaveButton")
+			btn:GetNormalTexture():SetTexture("Interface\\Vehicles\\UI-Vehicles-Button-Exit-Up")
+			btn:GetNormalTexture():SetTexCoord(0.140625, 0.859375, 0.140625, 0.859375)
+			btn:GetPushedTexture():SetTexture("Interface\\Vehicles\\UI-Vehicles-Button-Exit-Down")
+			btn:GetPushedTexture():SetTexCoord(0.140625, 0.859375, 0.140625, 0.859375)
+			btn:SetParent(Nurfed_possessactionbar)
+			btn:ClearAllPoints();
+			btn:SetPoint("RIGHT", _G["BonusActionButton1"], "LEFT", -4, 0)
+			btn:SetWidth(36)
+			btn:SetHeight(36)
+			btn:SetScript("OnShow", function(self)
+				if IsVehicleAimAngleAdjustable() or IsVehicleAimPowerAdjustable() then
+					_G["VehicleMenuBarPitchSlider"]:Show()
+					_G["VehicleMenuBarPitchUpButton"]:Show()
+					_G["VehicleMenuBarPitchDownButton"]:Show()
+				end
+			end)
+			btn:SetScript("OnHide", function(self)
+				_G["VehicleMenuBarPitchSlider"]:Hide()
+				_G["VehicleMenuBarPitchUpButton"]:Hide()
+				_G["VehicleMenuBarPitchDownButton"]:Hide()
+			end)
+			--btn:Show()
+			-- setup pitch slider
+			btn = getglobal("VehicleMenuBarPitchSlider")
+			btn:SetParent(Nurfed_possessactionbar)
+			btn:ClearAllPoints();
+			btn:SetPoint("TOPRIGHT", VehicleMenuBarLeaveButton, "TOPLEFT", -4, 0)
+			btn:SetHeight(60)
+			btn:EnableMouseWheel(true)
+			btn:SetScript("OnMouseWheel", function(self, val)
+				if val == 1 then
+					VehicleAimRequestNormAngle(VehicleAimGetNormAngle()+0.05)
+				else
+					VehicleAimRequestNormAngle(VehicleAimGetNormAngle()-0.05)
+				end
+			end)
+			if IsVehicleAimAngleAdjustable() then
+				btn:Show()
+			else
+				btn:Hide()
+			end
+			btn = getglobal("VehicleMenuBarPitchUpButton")
+			btn:SetParent(Nurfed_possessactionbar)
+			btn:GetNormalTexture():SetTexture("Interface\\Vehicles\\UI-Vehicles-Button-Pitch-Up")
+			btn:GetNormalTexture():SetTexCoord(0.21875, 0.765625, 0.234375, 0.78125)
+			btn:GetPushedTexture():SetTexture("Interface\\Vehicles\\UI-Vehicles-Button-Pitch-Down")
+			btn:GetPushedTexture():SetTexCoord(0.21875, 0.765625, 0.234375, 0.78125)
+			btn:ClearAllPoints()
+			btn:SetHeight(30)
+			btn:SetWidth(30)
+			btn:SetPoint("TOPRIGHT", VehicleMenuBarPitchSlider, "TOPLEFT", -4, 0)
+			if IsVehicleAimAngleAdjustable() then
+				btn:Show()
+			else
+				btn:Hide()
+			end
+			btn = getglobal("VehicleMenuBarPitchDownButton")
+			btn:SetParent(Nurfed_possessactionbar)
+			btn:GetNormalTexture():SetTexture("Interface\\Vehicles\\UI-Vehicles-Button-PitchDown-Up")
+			btn:GetNormalTexture():SetTexCoord(0.21875, 0.765625, 0.234375, 0.78125)
+			btn:GetPushedTexture():SetTexture("Interface\\Vehicles\\UI-Vehicles-Button-PitchDown-Down")
+			btn:GetPushedTexture():SetTexCoord(0.21875, 0.765625, 0.234375, 0.78125)
+			btn:ClearAllPoints()
+			btn:SetHeight(30)
+			btn:SetWidth(30)
+			btn:SetPoint("BOTTOMRIGHT", VehicleMenuBarPitchSlider, "BOTTOMLEFT", -4, 0)
+			if IsVehicleAimAngleAdjustable() then
+				btn:Show()
+			else
+				btn:Hide()
+			end
 		end		
 		
 		
-		if not NurfedVehicleHeader then
+		if not NurfedVehicleHeader and false then
 			local f = CreateFrame("Frame", "NurfedVehicleHeader", nil, "SecureHandlerStateTemplate SecureHandlerClickTemplate")
 			for i=1,6 do
 				local btn = _G["VehicleMenuBarActionButton"..i]
@@ -1669,24 +1751,26 @@ function nrf_mainmenu()
 			end
 			f:SetAttribute("_onstate-actionsettings", [[
 								if newstate == "s1" and PlayerPetSummary() and select(2, PlayerPetSummary()) ~= "Hover Disk" then
-									for i=1,12 do
-										self:GetFrameRef("bonus"..i):Hide()
-									end
 									for i=1,6 do
 										self:SetBindingClick(true, i, self:GetFrameRef("btn"..i))
 									end
-								else
 									for i=1,12 do
 										self:GetFrameRef("bonus"..i):Hide()
 									end
+								else
 									self:ClearBindings()
-								end]]
+									for i=1,12 do
+										self:GetFrameRef("bonus"..i):Hide()
+									end
+								end
+								]]
 							)
 			RegisterStateDriver(f, "actionsettings", "[target=vehicle,exists]s1;s2");
 		end
 		if MainMenuBar_ToPlayerArt ~= nrf_mainmenu then
 			MainMenuBar_ToPlayerArt_O = MainMenuBar_ToPlayerArt
 			MainMenuBar_ToPlayerArt = nrf_mainmenu
+			MainMenuBar_ToVehicleArt = function() end
 		end
 		
 		nrf_updatemainbar("bags")
