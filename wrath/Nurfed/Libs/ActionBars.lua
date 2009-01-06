@@ -1628,6 +1628,9 @@ function nrf_mainmenu()
 				f:SetFrameRef("btn"..i, btn)
 			end
 			f:SetFrameRef("LeaveButton", _G["VehicleMenuBarLeaveButton"])
+			f:SetFrameRef("Pitch1", _G["VehicleMenuBarPitchSlider"])
+			f:SetFrameRef("Pitch2", _G["VehicleMenuBarPitchUpButton"])
+			f:SetFrameRef("Pitch3", _G["VehicleMenuBarPitchDownButton"])
 			f:SetAttribute("_onstate-actionsettings", [[
 								if newstate == "s1" then
 									if select(2, PlayerPetSummary()) and select(2, PlayerPetSummary()) ~= "Hover Disk" then
@@ -1640,13 +1643,21 @@ function nrf_mainmenu()
 											self:SetBindingClick(true, key, self:GetFrameRef("btn"..i))
 											self:GetFrameRef("btn"..i):Show()
 										end
-										self:GetFrameRef("LeaveButton"):Show()
+										if UnitExists("vehicle") then
+											self:GetFrameRef("LeaveButton"):Show()
+											self:GetFrameRef("Pitch1"):Show()
+											self:GetFrameRef("Pitch2"):Show()
+											self:GetFrameRef("Pitch3"):Show()
+										end
 									end
 								else
 									for i=1,12 do
 										self:GetFrameRef("btn"..i):Hide()
 									end
 									self:GetFrameRef("LeaveButton"):Hide()
+									self:GetFrameRef("Pitch1"):Hide()
+									self:GetFrameRef("Pitch2"):Hide()
+									self:GetFrameRef("Pitch3"):Hide()
 									self:ClearBindings()
 								end]]
 							)
@@ -1665,16 +1676,25 @@ function nrf_mainmenu()
 			btn:SetWidth(36)
 			btn:SetHeight(36)
 			btn:SetScript("OnShow", function(self)
-				if IsVehicleAimAngleAdjustable() or IsVehicleAimPowerAdjustable() then
-					_G["VehicleMenuBarPitchSlider"]:Show()
-					_G["VehicleMenuBarPitchUpButton"]:Show()
-					_G["VehicleMenuBarPitchDownButton"]:Show()
+				if not InCombatLockdown() then
+					if IsVehicleAimAngleAdjustable() or IsVehicleAimPowerAdjustable() then
+						_G["VehicleMenuBarPitchSlider"]:Show()
+						_G["VehicleMenuBarPitchUpButton"]:Show()
+						_G["VehicleMenuBarPitchDownButton"]:Show()
+					else
+						_G["VehicleMenuBarPitchSlider"]:Hide()
+						_G["VehicleMenuBarPitchUpButton"]:Hide()
+						_G["VehicleMenuBarPitchDownButton"]:Hide()
+					end
 				end
+					
 			end)
 			btn:SetScript("OnHide", function(self)
-				_G["VehicleMenuBarPitchSlider"]:Hide()
-				_G["VehicleMenuBarPitchUpButton"]:Hide()
-				_G["VehicleMenuBarPitchDownButton"]:Hide()
+				if not InCombatLockdown() then
+					_G["VehicleMenuBarPitchSlider"]:Hide()
+					_G["VehicleMenuBarPitchUpButton"]:Hide()
+					_G["VehicleMenuBarPitchDownButton"]:Hide()
+				end
 			end)
 			--btn:Show()
 			-- setup pitch slider
