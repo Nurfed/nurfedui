@@ -2240,7 +2240,8 @@ local removeLst = {
 
 local debuffPoint, buffPoint
 Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
-	debuffPoint = { Nurfed_targetdebuff1:GetPoint() }
+ 	debuffPoint = { Nurfed_targetdebuff1:GetPoint() }
+ 	debuffPoint[5] = debuffPoint[5]-3
 	buffPoint = { Nurfed_targetbuff1:GetPoint() }
 end)
 

@@ -53,6 +53,9 @@ local Nurfed = _G.Nurfed
 local L = _G.Nurfed:GetTranslations()
 local nrfCompanionID, nrfCompanionType, nrfCompanionSlot
 local companionList
+local lbf = _G.LibStub("LibButtonFacade", true)
+local lbfg, lbfg_virtual, lbfg_blizzard
+
 NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
 	[1] = {
 		name = "Nurfed_Bar1",
@@ -940,6 +943,9 @@ function Nurfed:updatebar(hdr)
 	for _, child in ipairs({ hdr:GetChildren() }) do
 		if child:GetName():find("^Nurfed_Button") then
 			table.insert(btns, child:GetID(), child);
+			if hdr.lbf then
+				hdr.lbf:AddButton(child)
+			end
 		end
 	end
 
@@ -1097,6 +1103,9 @@ function Nurfed:createbar(frame)
 		end
 		--TODO: Find a better way, event possibly, that fires after the states change.  ^_^;
 		hdr:HookScript("OnAttributeChanged", function() Nurfed:sendevent("NURFED_UPDATE_ICONS") end);
+		if lbfg then
+			hdr.lbf = lbf:Group("Nurfed", "Virtual Bars", hdr:GetName())
+		end
 	end
 end
 
@@ -1356,7 +1365,62 @@ function nrf_updatemainbar(bar)
 	end
 end
 
+local function updateSkins(updateall, skinID, gloss, backdrop, group, button, colors)
+	if group and button then
+		if group == "Virtual Bars" then
+			for i,v in ipairs(NURFED_ACTIONBARS) do
+				if v.name == button then
+					if skinID == "Blizzard" then
+						v.skin = nil
+					else
+						v.skin = { skinID, gloss, backdrop }
+					end
+				end
+			end
+		elseif group == "Blizzard Bars" then
+			if skinID == "Blizzard" then
+				NURFED_SAVED[button.."skin"] = nil
+			else
+				NURFED_SAVED[button.."skin"] = { skinID, gloss, backdrop }
+			end
+		end
+	end
+	if updateall then
+		for _,v in ipairs(NURFED_ACTIONBARS) do
+			if v.skin and _G[v.name] and _G[v.name].lbf then
+				_G[v.name].lbf:Skin(unpack(v.skin))
+			end
+		end
+		for k, v in pairs(blizzbars) do
+			local bar = "Nurfed_"..k
+			if _G[bar] and NURFED_SAVED[bar.."skin"] and _G[bar].lbf then
+				_G[bar].lbf:Skin(unpack(NURFED_SAVED[bar.."skin"]))
+				print("setting shit")
+			end
+		end
+	end
+end
+
 local function createbars(bars)
+	if lbf then
+		if not lbfg then
+			lbfg = lbf:Group("Nurfed")
+			if lbfg then
+			--[[
+				lbf:RegisterSkinCallback("Nurfed", function(self, skin, gloss, backdrop, group)
+					if skin then
+						--SaveOpt("buttonfacade", { skin, gloss, backdrop }, true)
+						print("newskin", group, skin, gloss, backdrop)
+					end
+				end, self)
+				]]
+				lbf:RegisterSkinCallback("Nurfed", updateSkins)
+				lbf:Group("Nurfed", "Virtual Bars")
+				lbf:Group("Nurfed", "Blizzard Bars")
+			end
+		
+		end
+	end
 	for i,v in ipairs(NURFED_ACTIONBARS) do
 		Nurfed:createbar(v.name)
 	end
@@ -1365,6 +1429,9 @@ local function createbars(bars)
 	for k, v in pairs(blizzbars) do
 		bar = Nurfed:create("Nurfed_"..k, "actionbar")
 		if bar then
+			if lbfg then
+				bar.lbf = lbf:Group("Nurfed", "Blizzard Bars", bar:GetName())
+			end
 			bar:SetHeight(v)
 			if NURFED_SAVED[bar:GetName()] then
 				bar:SetPoint(unpack(NURFED_SAVED[bar:GetName()]))
@@ -1386,6 +1453,7 @@ local function createbars(bars)
 			dragtxt:GetParent():SetWidth(dragtxt:GetStringWidth()+5)
 		end
 	end
+	updateSkins(true)
 end
 
 Nurfed:regevent("VARIABLES_LOADED", function()
@@ -1399,7 +1467,17 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 			end
 		end
 	end
+	if not lbf then
+		lbf = _G.LibStub("LibButtonFacade", true)
+	end
 	createbars()
+	if _G.ButtonFacade then
+		hooksecurefunc(ButtonFacade, "OpenOptions", function()
+			_G["ButtonFacade"]:ElementListUpdate("Nurfed")
+			_G["ButtonFacade"]:ElementListUpdate("Nurfed", "Virtual Bars")
+			_G["ButtonFacade"]:ElementListUpdate("Nurfed", "Blizzard Bars")
+		end)
+	end
 end)
 
 Nurfed:regevent("PLAYER_LOGIN", function()
@@ -1570,6 +1648,9 @@ function nrf_mainmenu()
 				btn:ClearAllPoints()
 				btn:SetPoint("BOTTOMLEFT")
 			end
+			if Nurfed_stance.lbf then
+				Nurfed_stance.lbf:AddButton(btn)
+			end
 
 			btn = _G["PetActionButton"..i]
 			cooldown = _G["PetActionButton"..i.."Cooldown"]
@@ -1583,6 +1664,9 @@ function nrf_mainmenu()
 			if i == 1 then
 				btn:ClearAllPoints()
 				btn:SetPoint("BOTTOMLEFT")
+			end
+			if Nurfed_petbar.lbf then
+				Nurfed_petbar.lbf:AddButton(btn)
 			end
 		end
 		
@@ -1601,6 +1685,9 @@ function nrf_mainmenu()
 				btn:SetPoint("BOTTOMLEFT")
 			end
 			_G["PossessButton"..i.."NormalTexture"]:Hide()
+			if Nurfed_possessbar.lbf then
+				Nurfed_possessbar.lbf:AddButton(btn)
+			end
 		end
 		
 		for i = 1, NUM_BONUS_ACTION_SLOTS do
@@ -1619,6 +1706,9 @@ function nrf_mainmenu()
 			end
 			_G["BonusActionButton"..i.."NormalTexture"]:Hide()
 			_G["BonusActionButton"..i.."NormalTexture"]:SetAlpha(0)
+			if Nurfed_possessactionbar.lbf then
+				Nurfed_possessactionbar.lbf:AddButton(btn)
+			end
 		end
 		
 		if not NurfedPossessHeader then
@@ -1633,7 +1723,7 @@ function nrf_mainmenu()
 			f:SetFrameRef("Pitch3", _G["VehicleMenuBarPitchDownButton"])
 			f:SetAttribute("_onstate-actionsettings", [[
 								if newstate == "s1" then
-									if select(2, PlayerPetSummary()) and select(2, PlayerPetSummary()) ~= "Hover Disk" then
+									if (select(2, PlayerPetSummary()) and select(2, PlayerPetSummary()) ~= "Hover Disk") or not select(2, PlayerPetSummary()) then
 										for i=1,12 do
 											local key
 											if i == 10 then key = 0
