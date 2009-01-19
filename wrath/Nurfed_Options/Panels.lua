@@ -1142,32 +1142,6 @@ local panels = {
 							Nurfed_CreateDefaultActionBar("warriorStance")
 						end,
 					},
-					
-					petbarconfig = {
-						template = "nrf_editbox",
-						size = { 125, 18 },
-						Point = { "TOPLEFT", "$parentwarriorstancebar", "BOTTOMLEFT", 0, -30 },
-						OnTextChanged = function(self) 
-							local opt = self.option
-							local value = tonumber(self:GetText())
-							if value == NURFED_DEFAULT[opt] then
-								NURFED_SAVED[opt] = nil
-							else
-								NURFED_SAVED[opt] = value
-							end
-						end,
-						OnEnterPressed = function(self) 
-							local opt = self.option
-							local value = tonumber(self:GetText())
-							if value == NURFED_DEFAULT[opt] then
-								NURFED_SAVED[opt] = nil
-							else
-								NURFED_SAVED[opt] = value
-							end
-							self:ClearFocus()
-						end,
-						vars = { val = "petbarstartbutton", option = "petbarstartbutton", text = L["Pet Bar Start Button"] },
-					},
 				},
 			},
 			bar = {
