@@ -1734,21 +1734,21 @@ function nrf_mainmenu()
 											self:GetFrameRef("btn"..i):Show()
 										end
 										if UnitExists("vehicle") then
-											self:GetFrameRef("LeaveButton"):Show()
+											--self:GetFrameRef("LeaveButton"):Show()
 											self:GetFrameRef("Pitch1"):Show()
 											self:GetFrameRef("Pitch2"):Show()
 											self:GetFrameRef("Pitch3"):Show()
 										end
 									end
 								else
+									self:ClearBindings()
 									for i=1,12 do
 										self:GetFrameRef("btn"..i):Hide()
 									end
-									self:GetFrameRef("LeaveButton"):Hide()
+									--self:GetFrameRef("LeaveButton"):Hide()
 									self:GetFrameRef("Pitch1"):Hide()
 									self:GetFrameRef("Pitch2"):Hide()
 									self:GetFrameRef("Pitch3"):Hide()
-									self:ClearBindings()
 								end]]
 							)
 			RegisterStateDriver(f, "actionsettings", "[bonusbar:5]s1;s2");
