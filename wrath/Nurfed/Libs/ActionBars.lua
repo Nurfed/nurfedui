@@ -1786,6 +1786,7 @@ function nrf_mainmenu()
 					_G["VehicleMenuBarPitchDownButton"]:Hide()
 				end
 			end)
+			btn:Hide()
 			--btn:Show()
 			-- setup pitch slider
 			btn = getglobal("VehicleMenuBarPitchSlider")
@@ -1796,9 +1797,9 @@ function nrf_mainmenu()
 			btn:EnableMouseWheel(true)
 			btn:SetScript("OnMouseWheel", function(self, val)
 				if val == 1 then
-					VehicleAimRequestNormAngle(VehicleAimGetNormAngle()+0.05)
+					VehicleAimRequestNormAngle(VehicleAimGetNormAngle() + 0.05)
 				else
-					VehicleAimRequestNormAngle(VehicleAimGetNormAngle()-0.05)
+					VehicleAimRequestNormAngle(VehicleAimGetNormAngle() - 0.05)
 				end
 			end)
 			if IsVehicleAimAngleAdjustable() then
@@ -1838,45 +1839,6 @@ function nrf_mainmenu()
 			end
 		end		
 		
-		
-		if not NurfedVehicleHeader and false then
-			local f = CreateFrame("Frame", "NurfedVehicleHeader", nil, "SecureHandlerStateTemplate SecureHandlerClickTemplate")
-			for i=1,6 do
-				local btn = _G["VehicleMenuBarActionButton"..i]
-				local cooldown = _G["VehicleMenuBarActionButton"..i.."Cooldown"]
-				if not cooldown.text then
-					cooldown.text = cooldown:CreateFontString(nil, "OVERLAY")
-					cooldown.text:SetPoint("CENTER")
-					cooldown.text:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
-				end
-				if btn:GetScript("OnUpdate") then
-					btn:HookScript("OnUpdate", nrfcooldowntext)
-				else
-					btn:SetScript("OnUpdate", nrfcooldowntext)
-				end
-				f:SetFrameRef("btn"..i, btn)
-			end
-			for i=1,NUM_BONUS_ACTION_SLOTS do
-				f:SetFrameRef("bonus"..i, _G["BonusActionButton"..i])
-			end
-			f:SetAttribute("_onstate-actionsettings", [[
-								if newstate == "s1" and PlayerPetSummary() and select(2, PlayerPetSummary()) ~= "Hover Disk" then
-									for i=1,6 do
-										self:SetBindingClick(true, i, self:GetFrameRef("btn"..i))
-									end
-									for i=1,12 do
-										self:GetFrameRef("bonus"..i):Hide()
-									end
-								else
-									self:ClearBindings()
-									for i=1,12 do
-										self:GetFrameRef("bonus"..i):Hide()
-									end
-								end
-								]]
-							)
-			RegisterStateDriver(f, "actionsettings", "[target=vehicle,exists]s1;s2");
-		end
 		if MainMenuBar_ToPlayerArt ~= nrf_mainmenu then
 			MainMenuBar_ToPlayerArt_O = MainMenuBar_ToPlayerArt
 			MainMenuBar_ToPlayerArt = nrf_mainmenu

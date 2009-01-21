@@ -3578,20 +3578,22 @@ function Nurfed:unitimbue(frame)
 end
 
 local function combat(self)
-	local dropdownFrame = _G[UIDROPDOWNMENU_INIT_MENU]
-	local button = self.value
-	local unit = dropdownFrame.unit
-	local name = dropdownFrame.name
-	local server = dropdownFrame.server
-	if button == "NRF_COMBATLOG" and combatlog[unit] then
-		local name = UnitName(unit)
-		Nurfed:print("-------Combat History: "..name.."-------------------")
-		for k, v in ipairs(combatlog[unit]) do
-			if name == v[1] then
-				Nurfed:print(v[2])
+	local dropdownFrame = _G[UIDROPDOWNMENU_INIT_MENU] or _G.UIDROPDOWNMENU_INIT_MENU or UIDROPDOWNMENU_INIT_MENU
+	if dropdownFrame then
+		local button = self.value
+		local unit = dropdownFrame.unit
+		local name = dropdownFrame.name
+		local server = dropdownFrame.server
+		if button == "NRF_COMBATLOG" and combatlog[unit] then
+			local name = UnitName(unit)
+			Nurfed:print("-------Combat History: "..name.."-------------------")
+			for k, v in ipairs(combatlog[unit]) do
+				if name == v[1] then
+					Nurfed:print(v[2])
+				end
 			end
+			Nurfed:print("-------End--------------------------------------")
 		end
-		Nurfed:print("-------End--------------------------------------")
 	end
 end
 
