@@ -77,9 +77,9 @@ end
 function Nurfed_MouseWheelBindings(self, val)
 	if NurfedBindingsPanelList.spell then
 		if val > 0 then
-			Nurfed_Binding_OnKeyDown("MOUSEWHEELUP")
+			Nurfed_Binding_OnKeyDown(self, "MOUSEWHEELUP")
 		else
-			Nurfed_Binding_OnKeyDown("MOUSEWHEELDOWN")
+			Nurfed_Binding_OnKeyDown(self, "MOUSEWHEELDOWN")
 		end
 	else
 		ScrollFrameTemplate_OnMouseWheel(self, val)
@@ -212,6 +212,15 @@ function Nurfed_ScrollBindings()
 	CloseDropDownMenus()
 end
 
+local noPressLst = {
+	["UNKNOWN"] = true,
+	["LSHIFT"] = true,
+	["RSHIFT"] = true,
+	["LCTRL"] = true,
+	["RCTRL"] = true,
+	["LALT"] = true,
+	["RALT"] = true,
+}
 function Nurfed_Binding_OnKeyDown(self, keyPressed)
 	local screenshotKey = GetBindingKey("SCREENSHOT")
 	if screenshotKey and keyPressed == screenshotKey then
@@ -222,11 +231,10 @@ function Nurfed_Binding_OnKeyDown(self, keyPressed)
 		HideUIPanel(Nurfed_Menu)
 		return
 	end
+	print(keyPressed)
 
 	if NurfedBindingsPanelList.spell then
-		if keyPressed == "UNKNOWN" or keyPressed == "SHIFT" or keyPressed == "CTRL" or keyPressed == "ALT" then
-		  return
-		end
+		if noPressLst[keyPressed] then return end
 		
 		if keyPressed == "MiddleButton" then keyPressed = "BUTTON3"
 		elseif keyPressed == "Button4" then keyPressed = "BUTTON4"
@@ -236,7 +244,15 @@ function Nurfed_Binding_OnKeyDown(self, keyPressed)
 		if IsShiftKeyDown() then keyPressed = "SHIFT-"..keyPressed end
 		if IsControlKeyDown() then keyPressed = "CTRL-"..keyPressed end
 		if IsAltKeyDown() then keyPressed = "ALT-"..keyPressed end
-		
+		--[[
+		if IsLeftShiftKeyDown() then keyPressed = "LSHIFT-"..keyPressed
+		elseif IsRightShiftKeyDown() then keyPressed = "RSHIFT-"..keyPressed
+		elseif IsLeftControlKeyDown() then keyPressed = "LCTRL-"..keyPressed
+		elseif IsRightControlKeyDown() then keyPressed = "RCTRL-"..keyPressed
+		elseif IsLeftAltKeyDown() then keyPressed = "LALT-"..keyPressed
+		elseif IsRightAltKeyDown() then keyPressed = "RALT-"..keyPressed
+		end
+		]]
 		local spell = NurfedBindingsPanelList.spell
 		if NurfedBindingsPanelList[spell] then
 			spell = spell.."("..RANK.." "..NurfedBindingsPanelList[spell]..")"
@@ -375,8 +391,7 @@ StaticPopupDialogs["NRF_BINDKEY"] = {
 	button1 = TEXT(ACCEPT),
 	button2 = TEXT(CANCEL),
 	OnAccept = function()
-		local info = NurfedBindingsPanelList.data
-		Nurfed_Binding_Save(unpack(info))
+		Nurfed_Binding_Save(unpack(NurfedBindingsPanelList.data))
 		NurfedBindingsPanelList.data = nil
 		NurfedBindingsPanelList.spell = nil
 		Nurfed_ScrollBindings()

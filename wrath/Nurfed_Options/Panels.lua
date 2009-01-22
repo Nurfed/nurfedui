@@ -1714,14 +1714,6 @@ local panels = {
 			},
 		},
 	},
-	-- Combat Log Panel
-	{
-		name = "CombatLog",
-		subtext = "Options that affect the combat log appearance.",
-		addon = "Nurfed_CombatLog",
-		menu = {},
-	},
-
 -- Frames Panel
 	{ 
 		name = L["Frames"],
@@ -1729,15 +1721,10 @@ local panels = {
 		menu = {
 			Frames = {
 				type = "Frame",
-				--size = { 375, 332 },
-				--Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -14, 0 },
 				size = { 375, 332 },
 				Anchor = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -14, 0 },
 				Backdrop = { bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = true, tileSize = 16, edgeSize = 8, insets = { left = 2, right = 2, top = 2, bottom = 2 }, },
-				--BackdropColor = { 0, 0, 0, 0.95 },
 				BackdropColor = { 0, 0, 0, 0 },
-				--Alpha = ,
-				--Hide = true,
 				children = {
 					scroll = {
 						type = "ScrollFrame",
@@ -1745,7 +1732,6 @@ local panels = {
 						Point = { "TOPRIGHT", "$parent", "TOPRIGHT", -20, 0 },
 						uitemp = "FauxScrollFrameTemplate",
 						OnVerticalScroll = function(self, val) 
-							--FauxScrollFrame_OnVerticalScroll(14, Nurfed_ScrollFrames) 
 							FauxScrollFrame_OnVerticalScroll(self, val, 14, Nurfed_ScrollFrames) 
 						end,
 						OnShow = function(self) 
@@ -1753,7 +1739,6 @@ local panels = {
 								do
 									local menu = "Frames"
 									local parent = getglobal("Nurfed"..menu.."Panel")
-									--local temp = "nrf_"..string.lower(menu).."_row"
 									local temp = {
 										type = "Button",
 										size = { 350, 14 },
@@ -1788,16 +1773,13 @@ local panels = {
 										OnClick = function(self, arg1) Nurfed_Frame_OnClick(self, arg1) end,
 									}
 									for i = 1, 22 do
-										--local row = nrf:create("Nurfed_"..menu.."Row"..i, temp, parent)
 										local row = Nurfed:create("Nurfed"..menu.."PanelFramesRow"..i, temp, parent)
 										if (row:GetObjectType() == "Button") then
 											row:RegisterForClicks("AnyUp")
 										end
 										if (i == 1) then
-											--row:SetPoint("TOPLEFT", "Nurfed_OptionsFrame"..menu.."scroll", "TOPLEFT", 0, -3)
 											row:SetPoint("TOPLEFT", "Nurfed"..menu.."PanelFramesscroll", "TOPLEFT", 20, -3)
 										else
-											--row:SetPoint("TOPLEFT", "Nurfed_"..menu.."Row"..i - 1, "BOTTOMLEFT", 0, 0)
 											row:SetPoint("TOPLEFT", "Nurfed"..menu.."PanelFramesRow"..i - 1, "BOTTOMLEFT", 0, 0)
 										end
 									end
@@ -1813,47 +1795,6 @@ local panels = {
 			},
 		},
 	},
-	{
-		name = "Beta Shit",
-		subtext = "Configure hidding settings for the beta.  Use at your own risk.",
-		menu = {
-			shadows = {
-				template = "nrf_slider",
-				Anchor = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", 0, -24 },
-				vars = {
-					text = "Shadows",
-					--option = "chatfadetime",
-					low = 0,
-					high = 6,
-					min = 0,
-					max = 6,
-					step = 1,
-					format = "%.0f",
-					--func = function() nrf_togglechat() end,
-					func = function(val) SetCVar("extShadowQuality", val) end,
-				},
-			},
-			threatbar = {
-				template = "nrf_check",
-				Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 0, -8 },
-				vars = { 
-					text = "Enable Threat Menu",
-					--option = "threatmenu", 
-					func = function(val) 
-						debug(val)
-						if val then
-							IsThreatWarningEnabled = function() return true end
-							SetCVar("showThreatMeter", 1)
-						else
-							IsThreatWarningEnabled = function() return false end
-							SetCVar("showThreatMeter", 0)
-						end
-					end,
-				},
-			},
-		},
-	},
-
   -- AddOns Panel
 	{
 		name = L["AddOns"],
