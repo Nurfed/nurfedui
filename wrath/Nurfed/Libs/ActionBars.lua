@@ -53,7 +53,7 @@ local Nurfed = _G.Nurfed
 local L = _G.Nurfed:GetTranslations()
 local nrfCompanionID, nrfCompanionType, nrfCompanionSlot
 local companionList
-local lbf = _G.LibStub("LibButtonFacade", true)
+local lbf = _G["LibStub"] and _G.LibStub("LibButtonFacade", true) or nil
 local lbfg, lbfg_virtual, lbfg_blizzard
 
 NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
@@ -1395,7 +1395,6 @@ local function updateSkins(updateall, skinID, gloss, backdrop, group, button, co
 			local bar = "Nurfed_"..k
 			if _G[bar] and NURFED_SAVED[bar.."skin"] and _G[bar].lbf then
 				_G[bar].lbf:Skin(unpack(NURFED_SAVED[bar.."skin"]))
-				print("setting shit")
 			end
 		end
 	end
@@ -1468,7 +1467,7 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 		end
 	end
 	if not lbf then
-		lbf = _G.LibStub("LibButtonFacade", true)
+		lbf = _G["LibStub"] and _G.LibStub("LibButtonFacade", true) or nil
 	end
 	createbars()
 	if _G.ButtonFacade then

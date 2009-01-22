@@ -120,7 +120,7 @@ local function onevent(self, event, arg1, arg2, arg3)
 				lastinvite = GetTime()
 			end
 		end
-    
+		    
 	elseif event == "MINIMAP_PING" and Nurfed:getopt("ping") then
 		local name = UnitName(arg1)
 		if name ~= UnitName("player") and not pingflood[name] then
