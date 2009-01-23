@@ -28,7 +28,6 @@ end
 local updateoptions = function()
 	local bar = NurfedActionBarsPanel.bar
 	if bar then
-		--local vals = NURFED_ACTIONBARS[bar]
 		local vals
 		for i in ipairs(NURFED_ACTIONBARS) do
 			if NURFED_ACTIONBARS[i].name == bar then
@@ -51,7 +50,6 @@ end
 local addstate = function()
 	local bar = NurfedActionBarsPanel.bar
 	if bar then
-		--local statemaps = NURFED_ACTIONBARS[bar].statemaps
 		local statemaps
 		for i in ipairs(NURFED_ACTIONBARS) do
 			if NURFED_ACTIONBARS[i].name == bar then
@@ -177,19 +175,6 @@ local addnew = function()
 			buttons = {},
 			statemaps = {},
 		})
-		--[[NURFED_ACTIONBARS[text] = {
-			unit = unit,
-			rows = NurfedActionBarsPanelbarrows:GetValue(),
-			cols = NurfedActionBarsPanelbarcols:GetValue(),
-			scale = NurfedActionBarsPanelbarscale:GetValue(),
-			alpha = NurfedActionBarsPanelbaralpha:GetValue(),
-			xgap = NurfedActionBarsPanelbarxgap:GetValue(),
-			ygap = NurfedActionBarsPanelbarygap:GetValue(),
-			visible = NurfedActionBarsPanelbarvisible:GetText(),
-			useunit = NurfedActionBarsPanelbaruseunit:GetChecked(),
-			buttons = {},
-			statemaps = {},
-		}]]
 		Nurfed:createbar(text)
 		this:SetText("")
 		Nurfed_ScrollActionBars()
@@ -214,7 +199,6 @@ local updatebar = function(self)
 		elseif objtype == "Button" then
 			value = self:GetText()
 		end
-		--NURFED_ACTIONBARS[bar][self.val] = value
 		for i,v in ipairs(NURFED_ACTIONBARS) do
 			if v.name == bar then
 				NURFED_ACTIONBARS[i][self.val] = value
@@ -364,12 +348,6 @@ local onkeydown = function(self, arg1)
 end
 
 local setmana = function()
-	--[[for i = 0, 4 do
-		local color = Nurfed:getopt(ManaBarColor[i].prefix)
-		ManaBarColor[i].r = color[1]
-		ManaBarColor[i].g = color[2]
-		ManaBarColor[i].b = color[3]
-	end]]
 	for i = 0, 6 do
 		local color = Nurfed:getopt(i == 0 and "mana" or i == 1 and "rage" or i == 2 and "focus" or i == 3 and "energy" or i == 4 and "happiness" or i == 5 and "runes" or i == 6 and "runic_power")
 		if color then
@@ -896,16 +874,6 @@ local panels = {
 				template = "nrf_check",
 				Anchor = { "TOPLEFT", "$parentcheck18", "BOTTOMLEFT", 0, -2 },
 				vars = { text = L["Vertical Possess Bar"], option = "possessbarvert", func = function() nrf_updatemainbar("possessbar") end, page = 2 },
-			},
-			check20 = {
-				template = "nrf_check",
-				Anchor = { "TOPLEFT", "$parentcheck19", "BOTTOMLEFT", 0, -2 },
-				vars = { text = L["Show Vehicle Bar"], option = "vehiclemenubarshow", func = function() nrf_updatemainbar("vehiclemenubar") end, page = 2 },
-			},
-			check21 = {
-				template = "nrf_check",
-				Anchor = { "TOPLEFT", "$parentcheck20", "BOTTOMLEFT", 0, -2 },
-				vars = { text = L["Vertical Vehicle Bar"], option = "vehiclemenubarvert", func = function() nrf_updatemainbar("vehiclemenubar") end, page = 2 },
 			},
 			slider5 = {
 				template = "nrf_slider",
@@ -1966,7 +1934,6 @@ end
 function Nurfed_ScrollActionBarsStates(self)
 	local states = {}
 	local bar = NurfedActionBarsPanel.bar
-	--local tbl = NURFED_ACTIONBARS[bar].statemaps
 	local tbl
 	for i,v in ipairs(NURFED_ACTIONBARS) do
 		if v.name == bar then
@@ -2003,9 +1970,6 @@ end
 
 function Nurfed_ScrollActionBars()
 	local bars = {}
-	--[[for k in pairs(NURFED_ACTIONBARS) do
-		table.insert(bars, k)
-	end]]
 	for i in ipairs(NURFED_ACTIONBARS) do
 		table.insert(bars, NURFED_ACTIONBARS[i].name)
 	end
@@ -2074,7 +2038,6 @@ function Nurfed_ScrollActionBars()
 end
 
 function Nurfed_ToggleStates(self)
-	print("RWAR")
 	local bar = NurfedActionBarsPanel.bar
 	local pbar = self:GetParent().bar
 	if bar and bar == pbar and getglobal(bar):GetID() == 0 then
@@ -2146,7 +2109,6 @@ function Nurfed_DeleteBar()
 	Nurfed:deletebar(bar)
 	for i in ipairs(NURFED_ACTIONBARS) do
 		if NURFED_ACTIONBARS[i].name == bar then
-			--NURFED_ACTIONBARS[i] = nil
 			table.remove(NURFED_ACTIONBARS, i)
 			break
 		end
