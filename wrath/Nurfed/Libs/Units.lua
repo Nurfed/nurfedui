@@ -2240,9 +2240,11 @@ local removeLst = {
 
 local debuffPoint, buffPoint
 Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
- 	debuffPoint = { Nurfed_targetdebuff1:GetPoint() }
- 	debuffPoint[5] = debuffPoint[5]-3
-	buffPoint = { Nurfed_targetbuff1:GetPoint() }
+	if Nurfed_targetdebuff1 and Nurfed_targetbuff1 then
+ 		debuffPoint = { Nurfed_targetdebuff1:GetPoint() }
+ 		debuffPoint[5] = debuffPoint[5]-3
+		buffPoint = { Nurfed_targetbuff1:GetPoint() }
+	end
 end)
 
 local function updateauras(self)
@@ -2396,7 +2398,7 @@ local function updateauras(self)
 				if btn.isMine and useIsMine then
 					btn:SetScale(scale*Nurfed:getopt("bigdebuffscale"))
 				end
-				if debuffline and unit == "target" and Nurfed:getopt("onelinedebuffs") then
+				if debuffline and unit == "target" and Nurfed:getopt("onelinedebuffs") and debuffPoint and buffPoint then
 					debuffline:ClearAllPoints()
 					if setbuff then
 						debuffline:SetPoint(unpack(debuffPoint))
