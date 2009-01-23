@@ -353,6 +353,9 @@ local function onevent(self, event, arg1, arg2, arg3)
 			end
 		end
 		CameraPanelOptions.cameraDistanceMaxFactor.maxValue = 4
+		if Nurfed:getopt("blizztime") then
+			SecondsToTimeAbbrev = SecondsToTimeAbbrev_Orig
+		end
 	end
 end
 
@@ -439,13 +442,13 @@ end
 
 local messageText = {}
 local ACHIEVEMENT_BROADCAST_NURFED = ACHIEVEMENT_BROADCAST:gsub("%%s", "%%S+", 1):gsub("%s%%s!", "")
-local replaceChannel = function(msg, num, chan)
-	if chan then
-		return chan and Nurfed:getopt("chat-"..chan:lower()) or nil
-	end
+local replaceChannel = function(chan)
+	return chan and Nurfed:getopt("chat-"..chan:lower()) or nil
 end
+
 local function changeName(msgHeader, name, msgCnt, displayName, msgBody)
 	if nameList[name] then
+		--[[
 		if displayName:find("|r") and Nurfed:getopt("raidclass") then
 			displayName = displayName:gsub("|r", "")
 			if Nurfed:getopt("raidgroup") then
@@ -460,6 +463,20 @@ local function changeName(msgHeader, name, msgCnt, displayName, msgBody)
 			return ("|Hplayer:%s%s|h%s%s%s|h%s"):format(name, msgCnt, "[", displayName..":"..nameList[name].class, "]", msgBody)
 		end
 		return ("|Hplayer:%s%s|h%s%s%s|h%s"):format(name, msgCnt, "[", displayName, "]["..nameList[name].group.."]", msgBody)
+		]]
+		local postBracket, postName = "", ""
+		if Nurfed:getopt("raidclass") then
+			if displayName:find("|r") then
+				displayName = displayName:gsub("|r", "")
+				postName = ":"..nameList[name].class.."|r"
+			else
+				postName = ":"..nameList[name].class
+			end
+		end
+		if Nurfed:getopt("raidgroup") then
+			postBracket = "["..nameList[name].group.."]"
+		end
+		return ("|Hplayer:%s%s|h%s%s%s|h%s"):format(name, msgCnt, "[", displayName..postName, "]"..postBracket, msgBody)
 	end
 end
 
@@ -472,8 +489,13 @@ local function message(self, msg, ...)
 			table.insert(messageText, date(Nurfed:getopt("timestampsformat")))
 		end
 		if self ~= COMBATLOG then-- dont do this for the combat log
+			--local chan = select(3, msg:match("(%[([%d. ]*)([^%]]+)%])|h "))
+			--msg = msg:gsub("(%[([%d. ]*)([^%]]+)%])|h ", replaceChannel)
+			--if (Nurfed:getopt("raidgroup") or Nurfed:getopt("raidclass")) and chan and chan:find("^"..RAID) then
+			--	msg = msg:gsub("(|Hplayer:([^|:]+)([:%d+]*)|h%[([^%]]+)%]|h)(.-)$", changeName)
+			--end
 			local chan = select(3, msg:match("(%[([%d. ]*)([^%]]+)%])|h "))
-			msg = msg:gsub("(%[([%d. ]*)([^%]]+)%])|h ", replaceChannel)
+			msg = msg:gsub("^|Hchannel:(%S-)|h(%[([%d. ]*)([^%]]+)%])|h ", replaceChannel)
 			if (Nurfed:getopt("raidgroup") or Nurfed:getopt("raidclass")) and chan and chan:find("^"..RAID) then
 				msg = msg:gsub("(|Hplayer:([^|:]+)([:%d+]*)|h%[([^%]]+)%]|h)(.-)$", changeName)
 			end
@@ -541,6 +563,7 @@ for i = 1, 7, 1 do
 end
 
 -- Overwrite Blizzard seconds conversion
+SecondsToTimeAbbrev_Orig = SecondsToTimeAbbrev
 function SecondsToTimeAbbrev(seconds)
 	local time
 	if seconds > 86400 then

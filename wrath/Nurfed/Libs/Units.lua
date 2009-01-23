@@ -1047,19 +1047,6 @@ local cure = {
 	},
 }
 
-local damage = {
-	[1] = { (255/255), (100/255), (100/255) },-- 1 - physical
-	[2] = { (255/255), (255/255), (0/255) },-- 2 - holy
-	[4] = { (255/255), (0/255), (0/255) },-- 4 - fire
-	[8] = { (0/255), (102/255), (0/255) }, -- 8 - nature
-	[16] = { (0/255), (102/255), (255/255) }, -- 16 - frost
-	[24] = { (255/255), (76/255), (178/255) }, -- 24 - Shadow + fire (corehound)
-	[32] = { (202/255), (76/255), (217/255) },-- 32 - shadow
-	[40] = { (202/255), (178/255), (217/255) }, -- 40 - nature + shadow? lol?
-	[64] = { (153/255), (204/255), (255/255) }, -- 64 - arcane
-	[127] = { (255/255), (100/255), (100/255) }, -- 127 - Used by Chaos Rain, unknown damage type
-}
-
 local classification = {
 	["rareelite"] = ITEM_QUALITY3_DESC.."-"..ELITE,
 	["rare"] = ITEM_QUALITY3_DESC,
@@ -2232,12 +2219,6 @@ local function aurafade(self, time)
 	cooldowntext(self)
 end
 
-local removeLst = {
-	["Enrage"] = {
-		["HUNTER"] = true,
-	},
-}
-
 local debuffPoint, buffPoint
 Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
 	if Nurfed_targetdebuff1 and Nurfed_targetbuff1 then
@@ -2292,17 +2273,8 @@ local function updateauras(self)
 				else
 					cd:Hide()
 				end
-				if not isFriend and dtype and removeLst[dtype] and removeLst[dtype][playerClass] then
-					if not button:GetScript("OnUpdate") then
-						button.flashtime = GetTime()
-						button.update = 0
-						button.flashdct = 1
-						button:SetScript("OnUpdate", aurafade)
-					end
-				else
-					button:SetScript("OnUpdate", cooldowntext)
-					button:SetAlpha(1)
-				end
+				button:SetScript("OnUpdate", cooldowntext)
+				button:SetAlpha(1)
 			else
 				button:SetScript("OnUpdate", nil)
 				button:Hide()

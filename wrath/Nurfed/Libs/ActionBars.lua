@@ -1405,14 +1405,6 @@ local function createbars(bars)
 		if not lbfg then
 			lbfg = lbf:Group("Nurfed")
 			if lbfg then
-			--[[
-				lbf:RegisterSkinCallback("Nurfed", function(self, skin, gloss, backdrop, group)
-					if skin then
-						--SaveOpt("buttonfacade", { skin, gloss, backdrop }, true)
-						print("newskin", group, skin, gloss, backdrop)
-					end
-				end, self)
-				]]
 				lbf:RegisterSkinCallback("Nurfed", updateSkins)
 				lbf:Group("Nurfed", "Virtual Bars")
 				lbf:Group("Nurfed", "Blizzard Bars")
@@ -1498,6 +1490,7 @@ Nurfed:regevent("NURFED_LOCK", function()
 		Nurfed_petbardrag:Hide()
 		Nurfed_possessbardrag:Hide()
 		Nurfed_possessactionbardrag:Hide()
+		Nurfed_vehiclecontrolsdrag:Hide()
 	else
 		Nurfed_bagsdrag:Show()
 		Nurfed_microdrag:Show()
@@ -1505,6 +1498,7 @@ Nurfed:regevent("NURFED_LOCK", function()
 		Nurfed_petbardrag:Show()
 		Nurfed_possessbardrag:Show()
 		Nurfed_possessactionbardrag:Show()
+		Nurfed_vehiclecontrolsdrag:Show()
 	end
 end)
 
@@ -1716,27 +1710,16 @@ function nrf_mainmenu()
 				local btn = _G["BonusActionButton"..i]
 				f:SetFrameRef("btn"..i, btn)
 			end
-			f:SetFrameRef("LeaveButton", _G["VehicleMenuBarLeaveButton"])
-			f:SetFrameRef("Pitch1", _G["VehicleMenuBarPitchSlider"])
-			f:SetFrameRef("Pitch2", _G["VehicleMenuBarPitchUpButton"])
-			f:SetFrameRef("Pitch3", _G["VehicleMenuBarPitchDownButton"])
 			f:SetAttribute("_onstate-actionsettings", [[
 								if newstate == "s1" then
 									if (select(2, PlayerPetSummary()) and select(2, PlayerPetSummary()) ~= "Hover Disk") or not select(2, PlayerPetSummary()) then
-										for i=1,12 do
+										local btn
+										for i=1, 12 do
 											local key
-											if i == 10 then key = 0
-											elseif i == 11 then key = "-"
-											elseif i == 12 then key = "="
-											else key = i end
-											self:SetBindingClick(true, key, self:GetFrameRef("btn"..i))
-											self:GetFrameRef("btn"..i):Show()
-										end
-										if UnitExists("vehicle") then
-											--self:GetFrameRef("LeaveButton"):Show()
-											self:GetFrameRef("Pitch1"):Show()
-											self:GetFrameRef("Pitch2"):Show()
-											self:GetFrameRef("Pitch3"):Show()
+											if i == 10 then key = 0 elseif i == 11 then key = "-" elseif i == 12 then key = "=" else key = i end
+											btn = self:GetFrameRef("btn"..i)
+											btn:Show()
+											self:SetBindingClick(true, key, btn)
 										end
 									end
 								else
@@ -1744,103 +1727,86 @@ function nrf_mainmenu()
 									for i=1,12 do
 										self:GetFrameRef("btn"..i):Hide()
 									end
-									--self:GetFrameRef("LeaveButton"):Hide()
-									self:GetFrameRef("Pitch1"):Hide()
-									self:GetFrameRef("Pitch2"):Hide()
-									self:GetFrameRef("Pitch3"):Hide()
 								end]]
 							)
 			RegisterStateDriver(f, "actionsettings", "[bonusbar:5]s1;s2");
-			-- old vehicle bar code
-			local btn
-			-- setup leave button
+
+			-- new vehicle bar code! woot!
+			local nvb = Nurfed:create("Nurfed_vehiclecontrols", "actionbar");
+			_G["Nurfed_vehiclecontrolsdragtext"]:SetText("Vehicle Controls")
+			nvb:SetAttribute("_onstate-vehicleupdate", [[
+								if newstate == "s1" then
+									self:Show()
+								else
+									self:Hide()
+								end]]
+							)
+			RegisterStateDriver(nvb, "vehicleupdate", "[target=vehicle,exists]s1;s2")
+			nvb:SetWidth(56)
+			nvb:SetHeight(80)
+			if NURFED_SAVED["Nurfed_vehiclecontrols"] then
+				nvb:ClearAllPoints()
+				nvb:SetPoint(unpack(NURFED_SAVED["Nurfed_vehiclecontrols"]))
+			else
+				nvb:SetPoint("CENTER")
+			end
+			
+			-- hijack exit button
 			btn = getglobal("VehicleMenuBarLeaveButton")
+			btn:SetParent(nvb)
+			btn:ClearAllPoints()
+			btn:SetPoint("TOPLEFT", nvb, "TOPLEFT", 0, 0)
 			btn:GetNormalTexture():SetTexture("Interface\\Vehicles\\UI-Vehicles-Button-Exit-Up")
 			btn:GetNormalTexture():SetTexCoord(0.140625, 0.859375, 0.140625, 0.859375)
 			btn:GetPushedTexture():SetTexture("Interface\\Vehicles\\UI-Vehicles-Button-Exit-Down")
 			btn:GetPushedTexture():SetTexCoord(0.140625, 0.859375, 0.140625, 0.859375)
-			btn:SetParent(Nurfed_possessactionbar)
-			btn:ClearAllPoints();
-			btn:SetPoint("RIGHT", _G["BonusActionButton1"], "LEFT", -4, 0)
-			btn:SetWidth(36)
-			btn:SetHeight(36)
-			btn:SetScript("OnShow", function(self)
-				if not InCombatLockdown() then
-					if IsVehicleAimAngleAdjustable() or IsVehicleAimPowerAdjustable() then
-						_G["VehicleMenuBarPitchSlider"]:Show()
-						_G["VehicleMenuBarPitchUpButton"]:Show()
-						_G["VehicleMenuBarPitchDownButton"]:Show()
-					else
-						_G["VehicleMenuBarPitchSlider"]:Hide()
-						_G["VehicleMenuBarPitchUpButton"]:Hide()
-						_G["VehicleMenuBarPitchDownButton"]:Hide()
-					end
-				end
-					
-			end)
-			btn:SetScript("OnHide", function(self)
-				if not InCombatLockdown() then
-					_G["VehicleMenuBarPitchSlider"]:Hide()
-					_G["VehicleMenuBarPitchUpButton"]:Hide()
-					_G["VehicleMenuBarPitchDownButton"]:Hide()
-				end
-			end)
-			btn:Hide()
-			--btn:Show()
-			-- setup pitch slider
+			btn:SetWidth(24)
+			btn:SetHeight(24)
+			btn:Show()
+			nvb.exit = btn
+			--
+			-- hijack pitch slider
 			btn = getglobal("VehicleMenuBarPitchSlider")
-			btn:SetParent(Nurfed_possessactionbar)
+			btn:SetParent(nvb)
 			btn:ClearAllPoints();
-			btn:SetPoint("TOPRIGHT", VehicleMenuBarLeaveButton, "TOPLEFT", -4, 0)
-			btn:SetHeight(60)
-			btn:EnableMouseWheel(true)
-			btn:SetScript("OnMouseWheel", function(self, val)
-				if val == 1 then
-					VehicleAimRequestNormAngle(VehicleAimGetNormAngle() + 0.05)
-				else
-					VehicleAimRequestNormAngle(VehicleAimGetNormAngle() - 0.05)
-				end
-			end)
-			if IsVehicleAimAngleAdjustable() then
-				btn:Show()
-			else
-				btn:Hide()
-			end
+			btn:SetPoint("TOPRIGHT", nvb, "TOPLEFT", 0, 2)
+			btn:Show()
+			nvb.slider = btn
+			nvb:SetFrameRef("slider", nvb.slider)
+			--
+			-- hijack pitchup button
 			btn = getglobal("VehicleMenuBarPitchUpButton")
-			btn:SetParent(Nurfed_possessactionbar)
+			btn:SetParent(nvb)
 			btn:GetNormalTexture():SetTexture("Interface\\Vehicles\\UI-Vehicles-Button-Pitch-Up")
 			btn:GetNormalTexture():SetTexCoord(0.21875, 0.765625, 0.234375, 0.78125)
 			btn:GetPushedTexture():SetTexture("Interface\\Vehicles\\UI-Vehicles-Button-Pitch-Down")
 			btn:GetPushedTexture():SetTexCoord(0.21875, 0.765625, 0.234375, 0.78125)
+			btn:SetWidth(24)
+			btn:SetHeight(24)
 			btn:ClearAllPoints()
-			btn:SetHeight(30)
-			btn:SetWidth(30)
-			btn:SetPoint("TOPRIGHT", VehicleMenuBarPitchSlider, "TOPLEFT", -4, 0)
-			if IsVehicleAimAngleAdjustable() then
-				btn:Show()
-			else
-				btn:Hide()
-			end
+			btn:SetPoint("TOPRIGHT", nvb.exit, "BOTTOMRIGHT", 0, -2)
+			btn:Show()
+			nvb.pitchup = btn
+			--
+			-- hijack pitch down
 			btn = getglobal("VehicleMenuBarPitchDownButton")
-			btn:SetParent(Nurfed_possessactionbar)
+			btn:SetParent(nvb)
 			btn:GetNormalTexture():SetTexture("Interface\\Vehicles\\UI-Vehicles-Button-PitchDown-Up")
 			btn:GetNormalTexture():SetTexCoord(0.21875, 0.765625, 0.234375, 0.78125)
 			btn:GetPushedTexture():SetTexture("Interface\\Vehicles\\UI-Vehicles-Button-PitchDown-Down")
 			btn:GetPushedTexture():SetTexCoord(0.21875, 0.765625, 0.234375, 0.78125)
+			btn:SetWidth(24)
+			btn:SetHeight(24)
 			btn:ClearAllPoints()
-			btn:SetHeight(30)
-			btn:SetWidth(30)
-			btn:SetPoint("BOTTOMRIGHT", VehicleMenuBarPitchSlider, "BOTTOMLEFT", -4, 0)
-			if IsVehicleAimAngleAdjustable() then
-				btn:Show()
-			else
-				btn:Hide()
-			end
-		end		
+			btn:SetPoint("TOPRIGHT", nvb.pitchup, "BOTTOMRIGHT", 0, -2)
+			btn:Show()
+			nvb.pitchdown = btn
+		end
 		
 		if MainMenuBar_ToPlayerArt ~= nrf_mainmenu then
 			MainMenuBar_ToPlayerArt_O = MainMenuBar_ToPlayerArt
 			MainMenuBar_ToPlayerArt = nrf_mainmenu
+			MainMenuBar_ToVehicleArt_O = MainMenuBar_ToVehicleArt
 			MainMenuBar_ToVehicleArt = function() end
 		end
 		
