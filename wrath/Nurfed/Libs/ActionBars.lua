@@ -83,14 +83,24 @@ local function updateCompanionList()
 	if mnum and mnum > 0 then
 		for i=1, mnum do
 			local _, name, id = GetCompanionInfo("MOUNT", i)
-			companionList[name] = id
+			if name and id then
+				companionList[name] = id
+			else
+				-- if there isnt a name, and there should be, stop updating and rerun func.
+				return updateCompanionList()
+			end
 		end
 	end
 	mnum = GetNumCompanions("CRITTER")
 	if mnum and mnum > 0 then
 		for i=1, mnum do
 			local _, name, id = GetCompanionInfo("CRITTER", i)
-			companionList[name] = id
+			if name and id then
+				companionList[name] = id
+			else
+				-- if there isnt a name, and there should be, stop updating and rerun func.
+				return updateCompanionList()
+			end
 		end
 	end
 end
