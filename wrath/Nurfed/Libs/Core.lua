@@ -955,6 +955,9 @@ function util:addmsg(cmd, func)
 end
 
 local addonmsg = function(event, ...)
+	if ndmam then
+		print(...)
+	end
 	if arg4 ~= UnitName("player") then
 		local check, cmd = string.split(":", arg1)
 		if check and check == "Nurfed" and addonfunc[cmd] then
@@ -965,7 +968,6 @@ end
 
 ----------------------------------------------------------------
 -- Addon versioning system 
--- TODO: Find a better way to track this, ie: fix the svn to update the toc file anytime a commit is made
 do
 
 	local verLst = {}

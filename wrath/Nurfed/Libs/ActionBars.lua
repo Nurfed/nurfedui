@@ -15,7 +15,9 @@ local GetSpellCount = _G.GetSpellCount
 local IsEquipedItem = _G.IsEquipedItem
 local GetMacroItem = _G.GetMacroItem
 local GetMacroSpell = _G.GetMacroSpell
+local GetSpellName = _G.GetSpellName
 local GetSpellCount = _G.GetSpellCount
+local GetSpellTexture = _G.GetSpellTexture
 local GetSpellCooldown = _G.GetSpellCooldown
 local GetItemCooldown = _G.GetItemCooldown
 -- upvalueing this...makes it not work?  oddness.
@@ -25,11 +27,9 @@ local SecureButton_GetUnit = _G.SecureButton_GetUnit
 local SecureButton_GetModifiedAttribute = _G.SecureButton_GetModifiedAttribute
 local IsAttackSpell = _G.IsAttackSpell
 local IsAutoRepeatSpell = _G.IsAutoRepeatSpell
-local GetSpellTexture = _G.GetSpellTexture
 local GetMacroInfo = _G.GetMacroInfo
 local GameTooltip_SetDefaultAnchor = _G.GameTooltip_SetDefaultAnchor
 local GameTooltip = _G.GameTooltip
-local GetSpellName = _G.GetSpellName
 local GetItemInfo = _G.GetItemInfo
 local GetMacroBody = _G.GetMacroBody
 local GetCompanionInfo = _G.GetCompanionInfo
@@ -72,9 +72,24 @@ NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
 	},
 }
 NURFED_TALENTBARS = NURFED_TALENTBARS or {}
+----------------------------------------------------------------
+-- Meta Tables (Expect to see a lot more of these used in the future)
+-- Cache the data, so that we arent constantly pulling texture functions.  rwar
+local icons = setmetatable({}, {__index = function(self, key)
+	self[key] = GetSpellTexture(key) or "Interface\\Icons\\Mail_GMIcon"
+	return self[key]
+end,})
 
+local function clearMetaTables()
+	for name, texture in pairs(icons) do
+		if texture == "Interface\\Icons\\Mail_GMIcon" then
+			icons[name] = nil
+		end
+	end
+end
 ----------------------------------------------------------------
 -- Button functions
+
 local function updateCompanionList()
 	if not companionList then
 		companionList = {}
@@ -85,9 +100,10 @@ local function updateCompanionList()
 			local _, name, id = GetCompanionInfo("MOUNT", i)
 			if name and id then
 				companionList[name] = id
+				icons[name] = select(3, GetSpellInfo(id))
 			else
 				-- if there isnt a name, and there should be, stop updating and rerun func.
-				return updateCompanionList()
+				return Nurfed:schedule(1, updateCompanionList)
 			end
 		end
 	end
@@ -97,9 +113,10 @@ local function updateCompanionList()
 			local _, name, id = GetCompanionInfo("CRITTER", i)
 			if name and id then
 				companionList[name] = id
+				icons[name] = select(3, GetSpellInfo(id))
 			else
 				-- if there isnt a name, and there should be, stop updating and rerun func.
-				return updateCompanionList()
+				return Nurfed:schedule(1, updateCompanionList)
 			end
 		end
 	end
@@ -268,8 +285,11 @@ local function seticon(btn)
 							texture = _G[texture]
 						end
 					else
-						texture = GetSpellTexture(spell)
+						clearMetaTables() -- clear the garbaged cache if it exists (for some reason)
+						texture = icons[spell]--GetSpellTexture(spell)
+						--[[ not needed anymore
 						if not texture then
+							print("no texture", spell)
 							if companionList and companionList[spell] then
 								texture = select(3, GetSpellInfo(companionList[spell]))
 							else
@@ -283,7 +303,7 @@ local function seticon(btn)
 									end
 								end
 							end
-						end
+						end]]
 						if IsAttackSpell(spell) or IsAutoRepeatSpell(spell) then
 							btn.attack = true
 						end
@@ -1251,6 +1271,8 @@ local barevents = {
 			_G[self:GetName().."drag"]:Show()
 		end
 	end,
+	["COMPANION_LEARNED"] = updateCompanionList,
+	["COMPANION_UPDATE"] = updateCompanionList,
 }
 
 local function barevent(event, ...)
