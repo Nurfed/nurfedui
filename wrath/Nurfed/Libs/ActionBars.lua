@@ -456,7 +456,11 @@ local function btndragstart(self)
 						end
 						-- do nothing.
 					else
-						PickupSpell(Nurfed:getspell(spell), BOOKTYPE_SPELL)
+						if Nurfed:getspell(spell) then
+							PickupSpell(Nurfed:getspell(spell), BOOKTYPE_SPELL)
+						else
+							self.spell = nil
+						end
 					end
 				elseif new == "item" then
 					PickupItem(spell)

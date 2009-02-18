@@ -143,7 +143,7 @@ local function onevent(self, event, arg1, arg2, arg3)
 				else
 					local result = { string.find(arg1, ingroup) }
 					if result[1] then
-						SendChatMessage(string.format(L["Drop group and resend '%d'"], Nurfed:getopt("keyword")), "WHISPER", nil, result[3])
+						SendChatMessage(string.format(L["Drop group and resend '%s'"], Nurfed:getopt("keyword")), "WHISPER", nil, result[3])
 					end
 				end
 			end
