@@ -76,13 +76,13 @@ NURFED_TALENTBARS = NURFED_TALENTBARS or {}
 -- Meta Tables (Expect to see a lot more of these used in the future)
 -- Cache the data, so that we arent constantly pulling texture functions.  rwar
 local icons = setmetatable({}, {__index = function(self, key)
-	self[key] = GetSpellTexture(key) or "Interface\\Icons\\Mail_GMIcon"
+	self[key] = GetSpellTexture(key) or "Interface\\Icons\\NoIcon"
 	return self[key]
 end,})
 
 local function clearMetaTables()
 	for name, texture in pairs(icons) do
-		if texture == "Interface\\Icons\\Mail_GMIcon" then
+		if texture == "Interface\\Icons\\NoIcon" then
 			icons[name] = nil
 		end
 	end
