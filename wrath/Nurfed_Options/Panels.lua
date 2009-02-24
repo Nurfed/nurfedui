@@ -1012,6 +1012,7 @@ local panels = {
 				OnClick = function()
 					for i in ipairs(NURFED_ACTIONBARS) do
 						NURFED_ACTIONBARS[i].Point = { _G[NURFED_ACTIONBARS[i].name]:GetPoint() }
+						print("Position for: "..NURFED_ACTIONBARS[i].name.." SAVED!")
 					end
 				end,
 				Text = L["Save Pos"],
