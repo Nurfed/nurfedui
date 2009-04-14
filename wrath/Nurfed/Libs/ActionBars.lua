@@ -186,11 +186,7 @@ local function updatecooldown(btn)
 	local start, duration, enable = 0, 0, 0
 	if btn.spell then
 		if btn.type == "spell" then
-			if btn.IsPetAction then
-				start, duration, enable = GetPetActionCooldown(btn.IsPetAction)
-			else
-				start, duration, enable = GetSpellCooldown(btn.spell)
-			end
+			start, duration, enable = GetSpellCooldown(btn.spell)
 		elseif btn.type == "item" then
 			start, duration, enable = GetItemCooldown(btn.spell)
 		elseif btn.type == "macro" then
@@ -279,34 +275,15 @@ local function seticon(btn)
 			spell = SecureButton_GetModifiedAttribute(btn, new, value)
 			if spell then
 				if new == "spell" then
-					if btn.IsPetAction then
-						texture = select(3, GetPetActionInfo(btn.IsPetAction))
-						if texture == "PET_PASSIVE_TEXTURE" or texture == "PET_FOLLOW_TEXTURE" or texture == "PET_ATTACK_TEXTURE" or texture == "PET_WAIT_TEXTURE" or texture == "PET_AGGRESSIVE_TEXTURE" or texture == "PET_DEFENSIVE_TEXTURE" then
-							texture = _G[texture]
-						end
+					clearMetaTables() -- clear the garbaged cache if it exists (for some reason)
+					local txture = icons[spell]
+					if txture == "Interface\\Icons\\NoIcon" then
+						txture = nil;
 					else
-						clearMetaTables() -- clear the garbaged cache if it exists (for some reason)
-						texture = icons[spell]--GetSpellTexture(spell)
-						--[[ not needed anymore
-						if not texture then
-							print("no texture", spell)
-							if companionList and companionList[spell] then
-								texture = select(3, GetSpellInfo(companionList[spell]))
-							else
-								-- the ingame mount name via companions is different from the actual spell name.  
-								if spell == "Summon Charger" then
-									texture = "Interface\\Icons\\Ability_Mount_Charger"
-								else
-									updateCompanionList()
-									if companionList[spell] then
-										texture = select(3, GetSpellInfo(companionList[spell]))
-									end
-								end
-							end
-						end]]
-						if IsAttackSpell(spell) or IsAutoRepeatSpell(spell) then
-							btn.attack = true
-						end
+						texture = txture
+					end
+					if IsAttackSpell(spell) or IsAutoRepeatSpell(spell) then
+						btn.attack = true
 					end
 					
 				elseif new == "item" then
@@ -361,25 +338,21 @@ local function btnenter(self)
 	if tooltip and self.type then
 		GameTooltip_SetDefaultAnchor(GameTooltip, self)
 		if self.type == "spell" then
-			if self.IsPetAction then
-				GameTooltip:SetPetAction(self.IsPetAction)
+			local id = Nurfed:getspell(self.spell)
+			if id then
+				local rank = select(2, GetSpellName(id, BOOKTYPE_SPELL))
+				GameTooltip:SetHyperlink(GetSpellLink(id, BOOKTYPE_SPELL))
+				if rank then
+					GameTooltipTextRight1:SetText(rank)
+					GameTooltipTextRight1:SetTextColor(0.5, 0.5, 0.5)
+					GameTooltipTextRight1:Show()
+				end
 			else
-				local id = Nurfed:getspell(self.spell)
-				if id then
-					local rank = select(2, GetSpellName(id, BOOKTYPE_SPELL))
-					GameTooltip:SetHyperlink(GetSpellLink(id, BOOKTYPE_SPELL))
-					if rank then
-						GameTooltipTextRight1:SetText(rank)
-						GameTooltipTextRight1:SetTextColor(0.5, 0.5, 0.5)
-						GameTooltipTextRight1:Show()
-					end
-				else
-					if not companionList then
-						updateCompanionList()
-					end
-					if companionList and companionList[self.spell] then
-						GameTooltip:SetHyperlink("spell:"..companionList[self.spell])
-					end
+				if not companionList then
+					updateCompanionList()
+				end
+				if companionList and companionList[self.spell] then
+					GameTooltip:SetHyperlink("spell:"..companionList[self.spell])
 				end
 			end
 		
@@ -845,26 +818,18 @@ local function btnupdate()
 			else
 				btn:SetChecked(nil);
 			end
-			if btn.IsPetAction then 
-				-- do nothing yet, maybe never?
-			--elseif btn.companionID then
-			--	if UnitAffectingCombat("player") then
-			--		r, g, b =  0.4, 0.4, 0.4;
-			--	end	
+			if companionList[btn.spell] then
+				if UnitAffectingCombat("player") then
+					r, g, b = optColorNotUsable[1], optColorNotUsable[2], optColorNotUsable[3] --0.4, 0.4, 0.4;
+				end
 			else
-				if companionList[btn.spell] then
-					if UnitAffectingCombat("player") then
-						r, g, b = optColorNotUsable[1], optColorNotUsable[2], optColorNotUsable[3] --0.4, 0.4, 0.4;
-					end
-				else
-					local usable, nomana = IsUsableSpell(btn.spell);
-					if nomana then
-						r, g, b = optColorNoMana[1], optColorNoMana[2], optColorNoMana[3] --0.5, 0.5, 1;
-					elseif not usable then
-						r, g, b = optColorNotUsable[1], optColorNotUsable[2], optColorNotUsable[3] --0.4, 0.4, 0.4;
-					elseif SpellHasRange(btn.spell) and IsSpellInRange(btn.spell, unit) == 0 then
-						r, g, b = optColorNoRange[1], optColorNoRange[2], optColorNoRange[3]--1, 0, 0;
-					end
+				local usable, nomana = IsUsableSpell(btn.spell);
+				if nomana then
+					r, g, b = optColorNoMana[1], optColorNoMana[2], optColorNoMana[3] --0.5, 0.5, 1;
+				elseif not usable then
+					r, g, b = optColorNotUsable[1], optColorNotUsable[2], optColorNotUsable[3] --0.4, 0.4, 0.4;
+				elseif SpellHasRange(btn.spell) and IsSpellInRange(btn.spell, unit) == 0 then
+					r, g, b = optColorNoRange[1], optColorNoRange[2], optColorNoRange[3]--1, 0, 0;
 				end
 			end
 	
