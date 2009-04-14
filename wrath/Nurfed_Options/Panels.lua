@@ -537,55 +537,21 @@ local panels = {
 			check3 = {
 				template = "nrf_check",
 				Anchor = { "TOPLEFT", "$parentcheck2", "BOTTOMLEFT", 0, -8 },
-				vars = { text = L["Show Raid Group"], option = "raidgroup" },
+				vars = { text = L["Hide Chat Buttons"], option = "chatbuttons", func = function() nrf_togglechat() end },
 			},
 			check4 = {
 				template = "nrf_check",
 				Anchor = { "TOPLEFT", "$parentcheck3", "BOTTOMLEFT", 0, -8 },
-				vars = { text = L["Show Raid Class"], option = "raidclass" },
+				vars = { text = L["Hide Achievements"], option = "hideachievements" },
 			},
 			check5 = {
 				template = "nrf_check",
-				Anchor = { "TOPLEFT", "$parentcheck4", "BOTTOMLEFT", 0, -8 },
-				vars = { text = L["Hide Chat Buttons"], option = "chatbuttons", func = function() nrf_togglechat() end },
-			},
-			check6 = {
-				template = "nrf_check",
-				Anchor = { "TOPLEFT", "$parentcheck5", "BOTTOMLEFT", 0, -8 },
-				vars = { text = L["Hide Achievements"], option = "hideachievements" },
-			},
-			check8 = {
-				template = "nrf_check",
 				Anchor = { "TOPRIGHT", "$parentSubText", "BOTTOMRIGHT", 0, -8 },
-				vars = { text = L["Chat Text Fade"], option = "chatfade", func = function() nrf_togglechat()
-					-- Note to Tivs:
-					-- I need a disabled = boolean(or function that returns boolean) option in vars
-					-- to be able to alpha / enablemouse for options that are no longer relevant based on other options
-					-- example: disabled = function(self) return not Nurfed:getopt("chatfade") end,
-					-- that would return true if Chat Fading is turned on, hence enable the slider for the time
-					-- otherwise it would return false and shade out and disable the slider option as its nolonger needed
-					-- this would prevent a lot of redundancy and make it easier on the users and myself
-					-- Also the onshow(self) func in Templates.lua should be fired for all visible options 
-					-- anytime the saveopt() func is fired to make sure that all values are proper.
-					-- The disabled function should also fire anytime the saveopt() is fired.
-					if Nurfed:getopt("chatfade") then
-						NurfedChatPanelslider1:SetAlpha(1)
-						NurfedChatPanelslider1:EnableMouse(true)
-						NurfedChatPanelslider1:EnableMouseWheel(true)
-						NurfedChatPanelslider1value:SetAlpha(1)
-						NurfedChatPanelslider1value:EnableMouse(true)
-					else
-						NurfedChatPanelslider1:SetAlpha(0.5)
-						NurfedChatPanelslider1:EnableMouse(false)
-						NurfedChatPanelslider1:EnableMouseWheel(false)
-						NurfedChatPanelslider1value:SetAlpha(0.5)
-						NurfedChatPanelslider1value:EnableMouse(false)
-					end
-				end },
+				vars = { text = L["Chat Text Fade"], option = "chatfade", func = function() nrf_togglechat() end },
 			},
 			slider1 = {
 				template = "nrf_slider",
-				Anchor = { "TOPRIGHT", "$parentcheck8", "BOTTOMRIGHT", 0, -24 },
+				Anchor = { "TOPRIGHT", "$parentcheck5", "BOTTOMRIGHT", 0, -24 },
 				vars = {
 					text = L["Chat Text Fade Time"],
 					option = "chatfadetime",
@@ -597,25 +563,6 @@ local panels = {
 					format = "%.0f",
 					func = function() nrf_togglechat() end,
 				},
-				-- this whole function could be removed if the above mention note is added in.  <3 u tivs
-				-- I would like to add this into a lot of different spots but I wont, more of a proof of concept
-				-- for right now so you know what I am talking about
-				OnShow = function(self)
-					NurfedTemplatesOnShow(self)
-					if Nurfed:getopt("chatfade") then
-						self:SetAlpha(1)
-						self:EnableMouse(true)
-						self:EnableMouseWheel(true)
-						_G[self:GetName().."value"]:SetAlpha(1)
-						_G[self:GetName().."value"]:EnableMouse(true)
-					else
-						self:SetAlpha(0.5)
-						self:EnableMouse(false)
-						self:EnableMouseWheel(false)
-						_G[self:GetName().."value"]:SetAlpha(0.5)
-						_G[self:GetName().."value"]:EnableMouse(false)
-					end
-				end,
 			},
 			input1 = {
 				template = "nrf_editbox",
@@ -812,7 +759,7 @@ local panels = {
 					max = 2,
 					step = 0.01,
 					bigStep = 0.10,
-					deci = 2,
+					deci = 3,
 					format = "%.2f",
 					right = true,
 					func = function() nrf_updatemainbar("bags") end,
@@ -829,7 +776,7 @@ local panels = {
 					max = 2,
 					step = 0.01,
 					bigStep = 0.10,
-					deci = 2,
+					deci = 3,
 					format = "%.2f",
 					right = true,
 					func = function() nrf_updatemainbar("micro") end,
@@ -846,7 +793,7 @@ local panels = {
 					max = 2,
 					step = 0.01,
 					bigStep = 0.10,
-					deci = 2,
+					deci = 3,
 					format = "%.2f",
 					right = true,
 					func = function() nrf_updatemainbar("stance") end,
@@ -888,7 +835,7 @@ local panels = {
 					max = 2,
 					step = 0.01,
 					bigStep = 0.10,
-					deci = 2,
+					deci = 3,
 					format = "%.2f",
 					right = true,
 					func = function() nrf_updatemainbar("petbar") end,
@@ -1207,7 +1154,7 @@ local panels = {
 							step = 0.01,
 							bigStep = .05,
 							format = "%.2f",
-							deci = 2,
+							deci = 3,
 							right = true,
 							default = 1,
 							fontobject = "GAMEFONTNORMALSMALL",
@@ -1227,7 +1174,7 @@ local panels = {
 							step = 0.01,
 							bigStep = .05,
 							format = "%.2f",
-							deci = 2,
+							deci = 3,
 							right = true,
 							default = 1,
 							fontobject = "GAMEFONTNORMALSMALL",
@@ -1650,7 +1597,7 @@ local panels = {
 					min = 0.01,
 					max = 1.0,
 					step = 0.01,
-					deci = 2,
+					deci = 3,
 					bigStep = 0.05,
 					format = "%.2f",
 					page = 2,
@@ -1676,7 +1623,7 @@ local panels = {
 					max = 5,
 					step = 0.1,
 					bigStep = 1,
-					deci = 2,
+					deci = 3,
 					format = "%.2f",
 					page = 2,
 				},
@@ -1848,7 +1795,7 @@ local panels = {
 					min = 0.25,
 					max = 3,
 					step = 0.01,
-					deci = 2,
+					deci = 3,
 					format = "%.2f",
 					func = function(val) Nurfed_Arena:SetScale(val) end,
 				},

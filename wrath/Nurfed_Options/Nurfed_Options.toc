@@ -5,6 +5,7 @@
 ## SavedVariablesPerCharacter: NURFED_ITEMS
 ## X-Website: http://www.nurfedui.net
 ## RequiredDeps: Nurfed
+## LoadOnDemand: 1
 
 Locales\Locales.xml
 Menus\AddOns.lua

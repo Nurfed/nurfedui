@@ -403,10 +403,22 @@ local templates = {
 						local min, max = parent:GetMinMaxValues()
 						if not value or value < min then return end
 						if value > max then value = max end
-						value = math.round(value, self.deci)
+						value = math.round(value, parent.deci)
 						parent:SetValue(value)
 						saveopt(parent)
 					end
+				end,
+				OnEnterPressed = function(self)
+					local p = self:GetParent()
+					local v = tonumber(self:GetText())
+					local min, max = p:GetMinMaxValues()
+					if v > max then v = max
+					elseif v < min then v = min
+					end
+					v = math.round(v, p.deci)
+					p:SetValue(v)
+					saveopt(p)
+					self:ClearFocus()
 				end,
 				OnEditFocusGained = function(self) self:HighlightText() self.focus = true end,
 				OnEditFocusLost = function(self) self:HighlightText(0, 0) self.focus = nil end,

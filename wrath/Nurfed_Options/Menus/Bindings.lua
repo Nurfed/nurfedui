@@ -231,7 +231,6 @@ function Nurfed_Binding_OnKeyDown(self, keyPressed)
 		HideUIPanel(Nurfed_Menu)
 		return
 	end
-	print(keyPressed)
 
 	if NurfedBindingsPanelList.spell then
 		if noPressLst[keyPressed] then return end
