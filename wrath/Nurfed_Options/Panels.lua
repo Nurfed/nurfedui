@@ -1624,7 +1624,6 @@ local panels = {
 								rwar = true
 								NurfedFramesPanelEditor:Show()
 							end
-
 							Nurfed_ScrollFrames(self) 
 						end,
 					},
