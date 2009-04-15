@@ -49,29 +49,49 @@ local IsSpellInRange = _G.IsSpellInRange
 local IsUsableItem = _G.IsUsableItem
 local ItemHasRange = _G.ItemHasRange
 local IsItemInRange = _G.IsItemInRange
+local GetActiveTalentGroup = _G.GetActiveTalentGroup
 local Nurfed = _G.Nurfed
 local L = _G.Nurfed:GetTranslations()
 local nrfCompanionID, nrfCompanionType, nrfCompanionSlot
 local companionList
 local lbf = _G["LibStub"] and _G.LibStub("LibButtonFacade", true) or nil
 local lbfg, lbfg_virtual, lbfg_blizzard
+local currentTalentGroup
 
 NURFED_ACTIONBARS = NURFED_ACTIONBARS or {
 	[1] = {
-		name = "Nurfed_Bar1",
-		rows = 1,
-		cols = 12,
-		scale = 1,
-		alpha = 1,
-		unitshow = false,
-		xgap = 2,
-		ygap = 2,
-		buttons = {},
-		statemaps = {},
-		visible = "show",
+		[1] = {
+			name = "Nurfed_Bar1",
+			rows = 1,
+			cols = 12,
+			scale = 1,
+			alpha = 1,
+			unitshow = false,
+			xgap = 2,
+			ygap = 2,
+			buttons = {},
+			statemaps = {},
+			visible = "show",
+		},
+		talentGroup = 1,
+	},
+	[2] = {
+		[1] = {
+			name = "Nurfed_Bar1",
+			rows = 1,
+			cols = 12,
+			scale = 1,
+			alpha = 1,
+			unitshow = false,
+			xgap = 2,
+			ygap = 2,
+			buttons = {},
+			statemaps = {},
+			visible = "show",
+		},
+		talentGroup = 2,
 	},
 }
-NURFED_TALENTBARS = NURFED_TALENTBARS or {}
 ----------------------------------------------------------------
 -- Meta Tables (Expect to see a lot more of these used in the future)
 -- Cache the data, so that we arent constantly pulling texture functions.  rwar
@@ -567,7 +587,7 @@ end
 local function saveattrib(self, name, value)
 	if name:find("^%*") or name:find("^shift") or name:find("^ctrl") or name:find("^alt") then
 		local parent = self:GetParent():GetName()
-		for _,tbl in ipairs(NURFED_ACTIONBARS) do
+		for _, tbl in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 			if tbl.name == parent then
 				if not self:GetAttribute("possessButton") then
 					tbl.buttons[self:GetID()][name] = value
@@ -653,7 +673,7 @@ local function delbtn(btn)
 
 	local attribs
 	local parent = btn:GetParent():GetName()
-	for i,v in ipairs(NURFED_ACTIONBARS) do
+	for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 		if v.name == parent then
 			attribs = v.buttons[btn:GetID()]
 			break
@@ -706,7 +726,7 @@ local btnevents = {
 				local key = GetBindingKey("CLICK "..btn:GetName()..":LeftButton")
 				local parent = btn:GetParent():GetName()
 				if parent ~= "UIParent" then
-					for i,v in ipairs(NURFED_ACTIONBARS) do
+					for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 						if v.name == parent then
 							v.buttons[id].bind = key
 							break
@@ -949,7 +969,7 @@ function Nurfed:updatebar(hdr)
 	end
 
 	local vals;
-	for i,v in ipairs(NURFED_ACTIONBARS) do
+	for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 		if v.name == hdr:GetName() then
 			vals = v;
 			break
@@ -1069,9 +1089,9 @@ function Nurfed:deletebar(frame)
 			end
 		end
 	end
-	for i,v in ipairs(NURFED_ACTIONBARS) do
+	for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 		if v.name == hdr:GetName() then
-			table.remove(NURFED_ACTIONBARS, i);
+			table.remove(NURFED_ACTIONBARS[currentTalentGroup], i);
 			break;
 		end
 	end
@@ -1079,7 +1099,7 @@ end
 
 function Nurfed:createbar(frame)
 	local vals
-	for _,v in ipairs(NURFED_ACTIONBARS) do
+	for _,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 		if v.name == frame then
 			vals = v;
 			break;
@@ -1109,7 +1129,7 @@ function Nurfed:createbar(frame)
 end
 
 function Nurfed:updatehks(frame)
-	for i,v in ipairs(NURFED_ACTIONBARS) do
+	for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 		if v.name == frame then
 			vals = v; 
 			break;
@@ -1124,7 +1144,7 @@ function Nurfed:updatehks(frame)
 			count = count + 1;
 		end
 		if hdr:IsUserPlaced() then
-			for i,v in ipairs(NURFED_ACTIONBARS) do
+			for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 				if v.name == hdr:GetName() then
 					v.Point = { hdr:GetPoint() };
 					break;
@@ -1183,7 +1203,7 @@ Nurfed:createtemp("actionbar", {
 				local parent = self:GetParent()
 				local saved
 				parent:StopMovingOrSizing()
-				for i,v in ipairs(NURFED_ACTIONBARS) do
+				for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 					if v.name == parent:GetName() then
 						v.Point = { parent:GetPoint() }
 						saved = true
@@ -1245,7 +1265,7 @@ local barevents = {
 }
 
 local function barevent(event, ...)
-	for i,v in ipairs(NURFED_ACTIONBARS) do
+	for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 		barevents[event](_G[v.name])
 	end
 end
@@ -1369,7 +1389,7 @@ end
 local function updateSkins(updateall, skinID, gloss, backdrop, group, button, colors)
 	if group and button then
 		if group == "Virtual Bars" then
-			for i,v in ipairs(NURFED_ACTIONBARS) do
+			for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 				if v.name == button then
 					if skinID == "Blizzard" then
 						v.skin = nil
@@ -1387,7 +1407,7 @@ local function updateSkins(updateall, skinID, gloss, backdrop, group, button, co
 		end
 	end
 	if updateall then
-		for _,v in ipairs(NURFED_ACTIONBARS) do
+		for _,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 			if v.skin and _G[v.name] and _G[v.name].lbf then
 				_G[v.name].lbf:Skin(unpack(v.skin))
 			end
@@ -1413,7 +1433,7 @@ local function createbars(bars)
 		
 		end
 	end
-	for i,v in ipairs(NURFED_ACTIONBARS) do
+	for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 		Nurfed:createbar(v.name)
 	end
 
@@ -1448,6 +1468,17 @@ local function createbars(bars)
 	updateSkins(true)
 end
 
+Nurfed:regevent("ACTIVE_TALENT_GROUP_CHANGED", function()
+	currentTalentGroup = GetActiveTalentGroup(false, false)
+	for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
+		Nurfed:updatehks(v.name)
+	end
+	Nurfed:sendevent("UPDATE_BINDINGS")
+	SaveBindings(GetCurrentBindingSet())
+	NurfedActionBarsUpdateColors()
+	Nurfed:print("Changed Specs!:  Spec Group:"..currentTalentGroup)
+end)
+
 Nurfed:regevent("VARIABLES_LOADED", function()
 	-- autoupgrade!
 	if not NURFED_ACTIONBARS[1] then
@@ -1462,6 +1493,16 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 	if not lbf then
 		lbf = _G["LibStub"] and _G.LibStub("LibButtonFacade", true) or nil
 	end
+	currentTalentGroup = currentTalentGroup or GetActiveTalentGroup(false, false)
+	-- upgrade to dual specs!
+	if not NURFED_ACTIONBARS[currentTalentGroup].talentGroup then
+		local tempTbl = NURFED_ACTIONBARS
+		NURFED_ACTIONBARS = {};
+		NURFED_ACTIONBARS[1] = tempTbl
+		NURFED_ACTIONBARS[2] = tempTbl
+		NURFED_ACTIONBARS[1].talentGroup = 1
+		NURFED_ACTIONBARS[2].talentGroup = 2
+	end
 	createbars()
 	if _G.ButtonFacade then
 		hooksecurefunc(ButtonFacade, "OpenOptions", function()
@@ -1473,7 +1514,7 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 end)
 
 Nurfed:regevent("PLAYER_LOGIN", function()
-	for i,v in ipairs(NURFED_ACTIONBARS) do
+	for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
 		Nurfed:updatehks(v.name)
 	end
 	isloaded = true
@@ -1849,7 +1890,7 @@ function Nurfed_CreateDefaultActionBar(type)
 		["warriorStance"] = true,
 	}	
 	if typeLst[type] then
-		table.insert(NURFED_ACTIONBARS, {
+		table.insert(NURFED_ACTIONBARS[currentTalentGroup], {
 			["visible"] = "show",
 			["useunit"] = false,
 			["buttons"] = {
@@ -1875,14 +1916,14 @@ function Nurfed_CreateDefaultActionBar(type)
 		})
 	end
 	if type == "rogueStealth" then
-		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_RogueStealthBar"
-		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
+		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].name = "Nurfed_RogueStealthBar"
+		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].statemaps = {
 			["stealth:0"] = "s1",
 			["stealth:1"] = "s2",
 		}
 	elseif type == "druidNoStealth" then
-		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_DruidNoStealthBar"
-		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
+		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].name = "Nurfed_DruidNoStealthBar"
+		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].statemaps = {
 			["actionbar:1, stance:0"] = "s0",
 			["actionbar:1, stance:1"] = "s1",
 			["actionbar:1, stance:2"] = "s2",
@@ -1894,8 +1935,8 @@ function Nurfed_CreateDefaultActionBar(type)
 		}
 	
 	elseif type == "druidStealth" then
-		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_DruidStealthBar"
-		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
+		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].name = "Nurfed_DruidStealthBar"
+		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].statemaps = {
 			["actionbar:1, stance:0"] = "s0",
 			["actionbar:1, stance:1"] = "s1",
 			["actionbar:1, stance:2"] = "s2",
@@ -1907,15 +1948,15 @@ function Nurfed_CreateDefaultActionBar(type)
 			["actionbar:3"] = "p3",
 		}
 	elseif type == "warriorStance" then
-		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_WarriorStanceBar"
-		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
+		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].name = "Nurfed_WarriorStanceBar"
+		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].statemaps = {
 			["stance:1"] = "s1",
 			["stance:2"] = "s2",
 			["stance:3"] = "s3",
 		}
 	elseif type == "customShow" then
-		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_CustomShow"
-		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
+		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].name = "Nurfed_CustomShow"
+		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].statemaps = {
 			["target=target,harm"] = "s1",
 			["target=target,help"] = "s2",
 			["target=target,noexists"] = "s3",
