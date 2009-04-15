@@ -20,8 +20,6 @@ local GetSpellCount = _G.GetSpellCount
 local GetSpellTexture = _G.GetSpellTexture
 local GetSpellCooldown = _G.GetSpellCooldown
 local GetItemCooldown = _G.GetItemCooldown
--- upvalueing this...makes it not work?  oddness.
---local CooldownFrame_SetTimer = _G.CooldownFrame_SetTimer
 local SecureButton_GetAttribute = _G.SecureButton_GetAttribute
 local SecureButton_GetUnit = _G.SecureButton_GetUnit
 local SecureButton_GetModifiedAttribute = _G.SecureButton_GetModifiedAttribute
@@ -52,7 +50,6 @@ local IsItemInRange = _G.IsItemInRange
 local GetActiveTalentGroup = _G.GetActiveTalentGroup
 local Nurfed = _G.Nurfed
 local L = _G.Nurfed:GetTranslations()
-local nrfCompanionID, nrfCompanionType, nrfCompanionSlot
 local companionList
 local lbf = _G["LibStub"] and _G.LibStub("LibButtonFacade", true) or nil
 local lbfg, lbfg_virtual, lbfg_blizzard
@@ -516,36 +513,34 @@ local function btnreceivedrag(self)
 			end
 		end
 		self:SetAttribute("*type"..value, cursor)
-		--TODO: Rewrite this so it clears values cleaner
-		if cursor == "spell" then
-			local spell, rank
-			if arg1 == 0 and arg2 == "spell" and nrfCompanionID and nrfCompanionType and nrfCompanionSlot and nrfCompanionSlot then
-				spell = GetSpellInfo(nrfCompanionID)
-			else
-				spell, rank = GetSpellName(arg1, arg2)
-				if rank:find(RANK) then
-					spell = spell.."("..rank..")"
-				elseif spell:find("%(") then
-					spell = spell.."()"
-				end
+		--Clear Attributes
+		self:SetAttribute("*spell"..value, nil)
+		self:SetAttribute("*item"..value, nil)
+		self:SetAttribute("*itemid"..value, nil)
+		self:SetAttribute("*macro"..value, nil)
+		self:SetAttribute("*macroID"..value, nil)
+		if cursor == "companion" then
+			local id = select(3, GetCompanionInfo(arg2, arg1))
+			spell = GetSpellInfo(id)
+			self:SetAttribute("*spell"..value, spell)
+			-- find a way to use the attribute id 'companion' which I imagine is in now.
+			self:SetAttribute("*type"..value, "spell")
+			
+			
+		elseif cursor == "spell" then
+			local spell, rank = GetSpellName(arg1, arg2)
+			if rank:find(RANK) then
+				spell = spell.."("..rank..")"
+			elseif spell:find("%(") then
+				spell = spell.."()"
 			end
 			self:SetAttribute("*spell"..value, spell)
-			self:SetAttribute("*item"..value, nil)
-			self:SetAttribute("*itemid"..value, nil)
-			self:SetAttribute("*macro"..value, nil)
-			self:SetAttribute("*macroID"..value, nil)
 			
 		elseif cursor == "item" then
-			self:SetAttribute("*spell"..value, nil)
 			self:SetAttribute("*item"..value, GetItemInfo(arg1))
 			self:SetAttribute("*itemid"..value, arg1)
-			self:SetAttribute("*macro"..value, nil)
-			self:SetAttribute("*macroID"..value, nil)
 			
 		elseif cursor == "macro" then
-			self:SetAttribute("*spell"..value, nil)
-			self:SetAttribute("*item"..value, nil)
-			self:SetAttribute("*itemid"..value, nil)
 			self:SetAttribute("*macro"..value, arg1)
 			for i=1, 72 do
 				if select(2, GetActionInfo(i)) == arg1 then
@@ -558,22 +553,18 @@ local function btnreceivedrag(self)
 
 		if oldtype and oldspell then
 			if oldtype == "spell" then
-				if nrfCompanionID then
-					nrfCompanionType = nil
-					nrfCompanionSlot = nil
-					nrfCompanionID = nil
-				else
-					local id = Nurfed:getspell(oldspell)
-					if id then
-						--PickupSpell(id, BOOKTYPE_SPELL)
-						--if we just use PickupSpell, it doesn't always seem to work.  Possibly a blizz bug, until a fix
-						-- is found, use this.  nrf:sched(time, func) time == 0, func() done on next frame (0.001 second~)
-						Nurfed:schedule(0, function() 
-							if not GetCursorInfo() then 
-								PickupSpell(id, BOOKTYPE_SPELL) 
-							end 
-						end)
-					end
+				local id = Nurfed:getspell(oldspell)
+				if id then
+					PickupSpell(id, BOOKTYPE_SPELL)
+					-- patch 3.0.1
+					--if we just use PickupSpell, it doesn't always seem to work.  Possibly a blizz bug, until a fix
+					-- is found, use this.  nrf:sched(time, func) time == 0, func() done on next frame (0.001 second~)
+					--[[
+					Nurfed:schedule(0, function() 
+						if not GetCursorInfo() then 
+							PickupSpell(id, BOOKTYPE_SPELL) 
+						end 
+					end)]]
 				end
 			elseif oldtype == "item" then
 				-- do nothing?
@@ -1870,15 +1861,6 @@ function nrf_mainmenu()
 		end
 	end
 end
-
-hooksecurefunc("PickupCompanion", function(type, pos)
-	local check1, check2, check3 = GetCursorInfo()
-	if check1 == "spell" and check2 == 0 and check3 == "spell" then
-		nrfCompanionID = select(3, GetCompanionInfo(type, pos))
-		nrfCompanionType = type
-		nrfCompanionSlot = pos
-	end
-end)
 
 ------------------------- default settings shit....kthxdie?
 function Nurfed_CreateDefaultActionBar(type)
