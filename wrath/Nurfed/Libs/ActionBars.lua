@@ -359,7 +359,7 @@ local function btnenter(self)
 		GameTooltip_SetDefaultAnchor(GameTooltip, self)
 		if self.type == "spell" then
 			local id = Nurfed:getspell(self.spell)
-			if id then
+			if id and GetSpellLink(id, BOOKTYPE_SPELL) then
 				local rank = select(2, GetSpellName(id, BOOKTYPE_SPELL))
 				GameTooltip:SetHyperlink(GetSpellLink(id, BOOKTYPE_SPELL))
 				if rank then
