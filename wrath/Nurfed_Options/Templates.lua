@@ -668,7 +668,9 @@ local templates = {
 		size = { 385, 271 },
 		uitemp = "FauxScrollFrameTemplate",
 		OnVerticalScroll = function(self, val) FauxScrollFrame_OnVerticalScroll(self, val, 100, Nurfed_Options_ScrollMenu) end,
-		OnShow = function(self) Nurfed_Options_ScrollMenu(self) end,
+		OnShow = function(self) 
+			Nurfed_Options_ScrollMenu(self)
+		end,
 		OnMouseWheel = function(...) Nurfed_Options_ScrollMouseWheel(...) end,
 	},
 	nrf_multiedit = {

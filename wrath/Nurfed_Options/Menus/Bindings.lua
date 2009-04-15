@@ -121,7 +121,7 @@ function Nurfed_ScrollBindings()
       table.insert(listing, { v, true, "ITEM" })
     end
 
-    for _, v in ipairs(NURFED_ACTIONBARS) do
+    for _, v in ipairs(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)]) do
       table.insert(listing, { " ", "|cffffff00" })
       table.insert(listing, { v.name, "|cffff00ff" })
       local btns = { getglobal(v.name):GetChildren() }

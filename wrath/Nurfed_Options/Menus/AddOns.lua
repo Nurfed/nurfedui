@@ -61,7 +61,7 @@ function Nurfed_ToggleAddOn(self)
 	reload:SetText("(Reload UI)")
 end
 
-function Nurfed_ScrollAddOns()
+function Nurfed_ScrollAddOns(self)
   local format_row = function(row, num)
 		local name, title, notes, enabled, loadable, reason, security = GetAddOnInfo(num)
 		local loaded = IsAddOnLoaded(num)

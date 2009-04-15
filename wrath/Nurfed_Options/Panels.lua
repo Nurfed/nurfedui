@@ -29,9 +29,9 @@ local updateoptions = function()
 	local bar = NurfedActionBarsPanel.bar
 	if bar then
 		local vals
-		for i in ipairs(NURFED_ACTIONBARS) do
-			if NURFED_ACTIONBARS[i].name == bar then
-				vals = NURFED_ACTIONBARS[i]
+		for i in ipairs(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)]) do
+			if NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i].name == bar then
+				vals = NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i]
 				break
 			end
 		end
@@ -51,9 +51,9 @@ local addstate = function()
 	local bar = NurfedActionBarsPanel.bar
 	if bar then
 		local statemaps
-		for i in ipairs(NURFED_ACTIONBARS) do
-			if NURFED_ACTIONBARS[i].name == bar then
-				statemaps = NURFED_ACTIONBARS[i].statemaps
+		for i in ipairs(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)]) do
+			if NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i].name == bar then
+				statemaps = NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i].statemaps
 				break
 			end
 		end
@@ -132,8 +132,8 @@ local addnew = function()
 	end
 	local text = this:GetText()
 	local add = true
-	for i in ipairs(NURFED_ACTIONBARS) do
-		if NURFED_ACTIONBARS[i].name == text then
+	for i in ipairs(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)]) do
+		if NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i].name == text then
 			add = false
 			break
 		end
@@ -161,7 +161,7 @@ local addnew = function()
 			local useunit = NurfedActionBarsPanelbaruseunit:GetChecked()
 			buseunit = not not useunit
 		end
-		table.insert(NURFED_ACTIONBARS, {
+		table.insert(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)], {
 			name = text,
 			unit = unit,
 			rows = brows,
@@ -199,9 +199,9 @@ local updatebar = function(self)
 		elseif objtype == "Button" then
 			value = self:GetText()
 		end
-		for i,v in ipairs(NURFED_ACTIONBARS) do
+		for i,v in ipairs(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)]) do
 			if v.name == bar then
-				NURFED_ACTIONBARS[i][self.val] = value
+				NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i][self.val] = value
 				break
 			end
 		end
@@ -822,6 +822,11 @@ local panels = {
 				Anchor = { "TOPLEFT", "$parentcheck18", "BOTTOMLEFT", 0, -2 },
 				vars = { text = L["Vertical Possess Bar"], option = "possessbarvert", func = function() nrf_updatemainbar("possessbar") end, page = 2 },
 			},
+			check20 = {
+				template = "nrf_check",
+				Anchor = { "TOPLEFT", "$parentcheck19", "BOTTOMLEFT", 0, -2 },
+				vars = { text = L["Auto-Join Group"], option = "autojoingroup", hint = L["Disable Auto-Joining Groups.\rNote: This only works with guild members."], page = 2, },
+			},
 			slider5 = {
 				template = "nrf_slider",
 				--Anchor = { "TOP", "$parentslider4", "BOTTOM", 0, -30 },
@@ -861,93 +866,6 @@ local panels = {
 			},
 		},
 	},
-	{
-		name = "Talent Settings",
-		subtext = "Save settings based on talents.",
-		menu = {
-			addbar = {
-				template = "nrf_button",
-				Anchor = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", 0, 20 },
-				OnClick = function()
-					local tab1 = select(3, GetTalentTabInfo(1, false))
-					local tab2 = select(3, GetTalentTabInfo(2, false))
-					local tab3 = select(3, GetTalentTabInfo(3, false))
-					if not NURFED_TALENTBARS[tab1] then
-						NURFED_TALENTBARS[tab1] = {}
-					end
-					if not NURFED_TALENTBARS[tab1][tab2] then
-						NURFED_TALENTBARS[tab1][tab2] = {}
-					end
-					NURFED_TALENTBARS[tab1][tab2][tab3] = {}
-					for i,v in pairs(NURFED_ACTIONBARS) do
-						NURFED_TALENTBARS[tab1][tab2][tab3][i] = v
-					end
-					Nurfed:print("Nurfed: Saved ActionBar Settings for Spec:"..tab1..","..tab2..","..tab3)
-				end,
-				Text = L["Add Talent Action Bars"],
-			},
-			addbinding = {
-				template = "nrf_button",
-				Anchor = { "TOPLEFT", "$parentaddbar", "BOTTOMLEFT", 0, -20 },
-				OnClick = function()
-					local tab1 = select(3, GetTalentTabInfo(1, false))
-					local tab2 = select(3, GetTalentTabInfo(2, false))
-					local tab3 = select(3, GetTalentTabInfo(3, false))
-					if not NURFED_TALENTBINDINGS[tab1] then
-						NURFED_TALENTBINDINGS[tab1] = {}
-					end
-					if not NURFED_TALENTBINDINGS[tab1][tab2] then
-						NURFED_TALENTBINDINGS[tab1][tab2] = {}
-					end
-					NURFED_TALENTBINDINGS[tab1][tab2][tab3] = {}
-					--[[ this function sucks ass.  
-					-- Fail blizzard at making GetNumBindings and GetBinding not work with non-registered bindings
-					-- such as SetBindingSpell, SetBindingMacro, and SetBindingItem
-					-- very depressing
-					for i=0, GetNumBindings() do
-						local action, key1, key2 = GetBinding(i)
-						if key1 then
-							if key2 then
-								NURFED_TALENTBINDINGS[tab1][tab2][tab3][action] = { [1] = key1, [2] = key2 }
-							else
-								NURFED_TALENTBINDINGS[tab1][tab2][tab3][action] = key1
-							end
-						end
-					end]]
-					local permutations = {"SHIFT","CTRL","ALT","ALT-SHIFT","ALT-CTRL","CTRL-SHIFT","ALT-CTRL-SHIFT"}
-					local talentKeyLst = {
-						"ESCAPE","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","PRINTSCREEN",
-						"SCROLLLOCK","PAUSE","`","1","2","3","4","5","6","7","8","9","0","-","=","BACKSPACE","TAB",
-						"Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\\", "CAPSLOCK", "A", "S", "D", "F", "G", "H", 
-						"J", "K", "L", ";", "'", "ENTER", "SHIFT", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "SHIFT", "INSERT", 
-						"HOME", "PAGEUP", "DELETE", "END", "PAGEDOWN", "LEFT", "UP", "DOWN", "RIGHT", "NUMLOCK", "NUMPADDIVIDE", "NUMPADMULTIPLY", 
-						"NUMPADMINUS", "NUMPAD7", "NUMPAD8", "NUMPAD9", "NUMPADPLUS", "NUMPAD4", "NUMPAD5", "NUMPAD6", "NUMPAD1", "NUMPAD2", 
-						"NUMPAD3", "ENTER", "NUMPAD0", "NUMPADDECIMAL", 
-					}
-					for _, key in pairs(talentKeyLst) do
-						local action = GetBindingAction(key)
-						if action and action ~= "" then
-							if not NURFED_TALENTBINDINGS[tab1][tab2][tab3][action] then
-								NURFED_TALENTBINDINGS[tab1][tab2][tab3][action] = {}
-							end
-							table.insert(NURFED_TALENTBINDINGS[tab1][tab2][tab3][action], key)
-						end
-						for _, subkey in pairs(permutations) do
-							action = GetBindingAction(subkey.."-"..key)
-							if action and action ~= "" then
-								if not NURFED_TALENTBINDINGS[tab1][tab2][tab3][action] then
-									NURFED_TALENTBINDINGS[tab1][tab2][tab3][action] = {}
-								end
-								table.insert(NURFED_TALENTBINDINGS[tab1][tab2][tab3][action], subkey.."-"..key)
-							end
-						end
-					end
-					Nurfed:print("Nurfed: Saved Keybinding Settings for Spec:"..tab1..","..tab2..","..tab3)
-				end,
-				Text = L["Add Talent Keybindings"],
-			},
-		},
-	},
 	-- Action Bars Panel
 	{
 		name = "ActionBars",
@@ -957,9 +875,12 @@ local panels = {
 				template = "nrf_button",
 				Anchor = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", 0, 20 },
 				OnClick = function()
-					for i in ipairs(NURFED_ACTIONBARS) do
-						NURFED_ACTIONBARS[i].Point = { _G[NURFED_ACTIONBARS[i].name]:GetPoint() }
-						print("Position for: "..NURFED_ACTIONBARS[i].name.." SAVED!")
+					for i in ipairs(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)]) do
+						--NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i].Point = { _G[NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i].name]:GetPoint() }
+															--Point("TOPLEFT", UIParent, "BOTTOMLEFT", Nurfed_Bar1:GetLeft(), Nurfed_Bar1:GetTop())
+						local frame = _G[NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i].name]
+						NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i].Point = { "TOPLEFT", "UIParent", "BOTTOMLEFT", frame:GetLeft(), frame:GetTop() }
+						print("Position for: "..NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i].name.." SAVED!")
 					end
 				end,
 				Text = L["Save Pos"],
@@ -1720,6 +1641,7 @@ local panels = {
 				type = "Frame",
 				size = { 375, 332 },
 				Point = { "TOPLEFT", "$parentSubText", "BOTTOMLEFT", -14, 0 },
+				SetAllPoints = "$parent",
 				children = {
 					scroll = {
 						type = "ScrollFrame",
@@ -1729,7 +1651,7 @@ local panels = {
 						OnVerticalScroll = function(self, val) 
 							FauxScrollFrame_OnVerticalScroll(self, val, 14, Nurfed_ScrollAddOns) 
 						end,
-						OnShow = function(self) Nurfed_ScrollAddOns() end,
+						OnShow = function(self) Nurfed_ScrollAddOns(self) end,
 					},
 				},
 				OnLoad = Nurfed_AddonsCreate,
@@ -1883,7 +1805,7 @@ function Nurfed_ScrollActionBarsStates(self)
 	local states = {}
 	local bar = NurfedActionBarsPanel.bar
 	local tbl
-	for i,v in ipairs(NURFED_ACTIONBARS) do
+	for i,v in ipairs(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)]) do
 		if v.name == bar then
 			tbl = v.statemaps
 			break
@@ -1918,8 +1840,8 @@ end
 
 function Nurfed_ScrollActionBars()
 	local bars = {}
-	for i in ipairs(NURFED_ACTIONBARS) do
-		table.insert(bars, NURFED_ACTIONBARS[i].name)
+	for i in ipairs(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)]) do
+		table.insert(bars, NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i].name)
 	end
 	table.sort(bars, function(a, b) return a < b end)
 	for k, v in ipairs(bars) do
@@ -2041,9 +1963,9 @@ function Nurfed_DeleteState(self)
 	local state = self:GetParent().state
 	local bar = NurfedActionBarsPanel.bar
 	local hdr = getglobal(bar)
-	for i,v in ipairs(NURFED_ACTIONBARS) do
+	for i,v in ipairs(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)]) do
 		if v.name == bar then
-			NURFED_ACTIONBARS[i].statemaps[state] = nil
+			NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i].statemaps[state] = nil
 			break
 		end
 	end
@@ -2055,9 +1977,9 @@ end
 function Nurfed_DeleteBar()
 	local bar = this:GetParent().bar
 	Nurfed:deletebar(bar)
-	for i in ipairs(NURFED_ACTIONBARS) do
-		if NURFED_ACTIONBARS[i].name == bar then
-			table.remove(NURFED_ACTIONBARS, i)
+	for i in ipairs(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)]) do
+		if NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)][i].name == bar then
+			table.remove(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)], i)
 			break
 		end
 	end
