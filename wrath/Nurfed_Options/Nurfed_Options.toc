@@ -1,4 +1,4 @@
-## Interface: 30000
+## Interface: 31000
 ## Title: Nurfed Options|cff00FF00-Extension-|r
 ## Author: Tivoli, Apoco http://www.nurfed.com
 ## SavedVariables: NURFED_LAYOUT
