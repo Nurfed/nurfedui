@@ -2246,7 +2246,7 @@ local function updateauras(self)
 		total = 0
 		for i = 1, #self.buff do
 			button = _G[self:GetName().."buff"..i]
-			name, rank, texture, app, dtype, duration, left, isMine, isStealable = UnitBuff(unit, i, self.bfilter)
+			name, rank, texture, app, dtype, duration, left, owner, isStealable = UnitBuff(unit, i, self.bfilter)
 			--if name then
 			if name and not filterList or filterList and filterList[name] then
 				total = total + 1
@@ -2267,7 +2267,7 @@ local function updateauras(self)
 				button:Show()
 				cd = _G[button:GetName().."Cooldown"]
 				if duration and duration > 0 then
-					if not oldBuffs or oldBuffs and isMine then
+					if not oldBuffs or oldBuffs and owner == "player" then
 						CooldownFrame_SetTimer(cd, left - duration, duration, 1)
 					else
 						cd:Hide()
@@ -2306,7 +2306,7 @@ local function updateauras(self)
 			local filter = self.dfilter
 			if (unit == "target" or unit == "focus") and not isFriend then filter = nil end
 
-			name, rank, texture, app, dtype, duration, left, isMine = UnitDebuff(unit, i, filter)
+			name, rank, texture, app, dtype, duration, left, owner = UnitDebuff(unit, i, filter)
 			if (name and (isFriend or not filterList)) or name and filterList and filterList[name] then
 				total = total + 1
 				-- reset to button position if we are using a filtering list.
@@ -2332,7 +2332,7 @@ local function updateauras(self)
 
 				cd = _G[button:GetName().."Cooldown"]
 				if duration and duration > 0 then
-					if not oldBuffs or oldBuffs and isMine then
+					if not oldBuffs or oldBuffs and owner == "player" then
 						CooldownFrame_SetTimer(cd, left - duration, duration, 1)
 					else
 						cd:Hide()
@@ -2353,7 +2353,7 @@ local function updateauras(self)
 					button:SetAlpha(1)
 				end
 				-- notnot btn.isMine means it will ALWAYS be true or false vs true or nil
-				button.isMine = not not isMine
+				button.isMine = owner == "player"
 			else
 				button.isMine = false
 				button:SetScript("OnUpdate", nil)
