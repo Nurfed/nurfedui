@@ -945,7 +945,7 @@ local panels = {
 						Anchor = { "TOPLEFT", 0, -7 },
 						FontObject = "GameFontNormalSmall",
 						JustifyH = "LEFT",
-						Text = L["Settings Templates"],
+						Text = L["Settings Templates\rYou should reset your actionbars before using one of these templates."],
 					},
 					roguestealthbar = {
 						template = "nrf_button",

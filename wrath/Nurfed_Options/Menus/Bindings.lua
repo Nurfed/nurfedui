@@ -87,51 +87,51 @@ function Nurfed_MouseWheelBindings(self, val)
 end
 
 function Nurfed_ScrollBindings()
-  if not spells then updatespells() end
-  if not macros then updatemacros() end
+	if not spells then updatespells() end
+	if not macros then updatemacros() end
 
-  if not listing then
-    listing = {}
-    for i = 1, #spells do
-      local name = GetSpellTabInfo(i)
-      table.insert(listing, { name, "|cff0099ff" })
-      for k, v in ipairs(spells[i]) do
-        table.insert(listing, { v, spells[i][v], "SPELL" })
-      end
-    end
+	if not listing then
+		listing = {}
+		for i = 1, #spells do
+			local name = GetSpellTabInfo(i)
+			table.insert(listing, { name, "|cff0099ff" })
+			for k, v in ipairs(spells[i]) do
+				table.insert(listing, { v, spells[i][v], "SPELL" })
+			end
+		end
 
-    table.insert(listing, { " ", "|cff00ff00" })
+		table.insert(listing, { " ", "|cff00ff00" })
 
-    for i = 1, #macros do
-      if i == 1 then
-        table.insert(listing, { GENERAL_MACROS, "|cff00ff00" })
-      else
-        local text = string.format(CHARACTER_SPECIFIC_MACROS, UnitName("player"))
-        table.insert(listing, { text, "|cff00ff00" })
-      end
-      for k, v in ipairs(macros[i]) do
-        table.insert(listing, { v[1], v[2], "MACRO" })
-      end
-    end
+		for i = 1, #macros do
+			if i == 1 then
+				table.insert(listing, { GENERAL_MACROS, "|cff00ff00" })
+			else
+				local text = string.format(CHARACTER_SPECIFIC_MACROS, UnitName("player"))
+				table.insert(listing, { text, "|cff00ff00" })
+			end
+			for k, v in ipairs(macros[i]) do
+				table.insert(listing, { v[1], v[2], "MACRO" })
+			end
+		end
 
-    table.insert(listing, { " ", "|cffffff00" })
-    table.insert(listing, { ITEMS, "|cffffff00" })
+		table.insert(listing, { " ", "|cffffff00" })
+		table.insert(listing, { ITEMS, "|cffffff00" })
 
-    for _, v in ipairs(NURFED_ITEMS) do
-      table.insert(listing, { v, true, "ITEM" })
-    end
+		for _, v in ipairs(NURFED_ITEMS) do
+			table.insert(listing, { v, true, "ITEM" })
+		end
 
-    for _, v in ipairs(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)]) do
-      table.insert(listing, { " ", "|cffffff00" })
-      table.insert(listing, { v.name, "|cffff00ff" })
-      local btns = { getglobal(v.name):GetChildren() }
-      for _, btn in ipairs(btns) do
-        if btn:GetID() > 0 then
-          table.insert(listing, { btn:GetName(), true, "CLICK" })
-        end
-      end
-    end
-  end
+		for _, v in ipairs(NURFED_ACTIONBARS[GetActiveTalentGroup(false, false)]) do
+			table.insert(listing, { " ", "|cffffff00" })
+			table.insert(listing, { v.name, "|cffff00ff" })
+			local btns = { getglobal(v.name):GetChildren() }
+			for _, btn in ipairs(btns) do
+				if btn:GetID() > 0 then
+					table.insert(listing, { btn:GetName(), true, "CLICK" })
+				end
+			end
+		end
+	 end
 
 	local format_row = function(row, num)
 		local name = getglobal(row:GetName().."name")
@@ -243,15 +243,7 @@ function Nurfed_Binding_OnKeyDown(self, keyPressed)
 		if IsShiftKeyDown() then keyPressed = "SHIFT-"..keyPressed end
 		if IsControlKeyDown() then keyPressed = "CTRL-"..keyPressed end
 		if IsAltKeyDown() then keyPressed = "ALT-"..keyPressed end
-		--[[
-		if IsLeftShiftKeyDown() then keyPressed = "LSHIFT-"..keyPressed
-		elseif IsRightShiftKeyDown() then keyPressed = "RSHIFT-"..keyPressed
-		elseif IsLeftControlKeyDown() then keyPressed = "LCTRL-"..keyPressed
-		elseif IsRightControlKeyDown() then keyPressed = "RCTRL-"..keyPressed
-		elseif IsLeftAltKeyDown() then keyPressed = "LALT-"..keyPressed
-		elseif IsRightAltKeyDown() then keyPressed = "RALT-"..keyPressed
-		end
-		]]
+
 		local spell = NurfedBindingsPanelList.spell
 		if NurfedBindingsPanelList[spell] then
 			spell = spell.."("..RANK.." "..NurfedBindingsPanelList[spell]..")"
@@ -383,6 +375,9 @@ function Nurfed_Binding_Save(key, spell, type)
 		end
 	end
 	SaveBindings(GetCurrentBindingSet())
+	if Nurfed_Save_Talent_Bindings then
+		Nurfed_Save_Talent_Bindings()
+	end
 end
 
 -- Overwrite binding popup
