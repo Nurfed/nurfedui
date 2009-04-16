@@ -1496,6 +1496,7 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 	currentTalentGroup = currentTalentGroup or GetActiveTalentGroup(false, false)
 	Nurfed_Add_Talent_Call(update_actionbar_talent_settings)
 	-- upgrade to dual specs!
+	--[[
 	if not NURFED_ACTIONBARS[currentTalentGroup].talentGroup then
 		local tempTbl = NURFED_ACTIONBARS
 		NURFED_ACTIONBARS = {};
@@ -1503,6 +1504,22 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 		NURFED_ACTIONBARS[2] = tempTbl
 		NURFED_ACTIONBARS[1].talentGroup = 1
 		NURFED_ACTIONBARS[2].talentGroup = 2
+	end]]
+	if not NURFED_ACTIONBARS[currentTalentGroup].talentGroup then	-- convert new ones!
+		for i,v in ipairs(NURFED_ACTIONBARS) do
+			if v.talentGroup then
+				NURFED_ACTIONBARS[currentTalentGroup] = v
+				break
+			end
+		end
+		if not NURFED_ACTIONBARS[currentTalentGroup].talentGroup then	-- upgrade the old ones!
+			local tempTbl = NURFED_ACTIONBARS
+			NURFED_ACTIONBARS = {};
+			NURFED_ACTIONBARS[1] = tempTbl
+			NURFED_ACTIONBARS[2] = tempTbl
+			NURFED_ACTIONBARS[1].talentGroup = 1
+			NURFED_ACTIONBARS[2].talentGroup = 2
+		end
 	end
 	createbars()
 	if _G.ButtonFacade then
