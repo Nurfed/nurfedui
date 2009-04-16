@@ -1033,7 +1033,7 @@ function Nurfed:updatebar(hdr)
       
 			for k, v in pairs(vals.buttons[count]) do
 				if k == "bind" then
-					SetBindingClick(v, btn:GetName(), "LeftButton");
+					--SetBindingClick(v, btn:GetName(), "LeftButton");
 				else
 					btn:SetAttribute(k, v);
 				end
@@ -1458,7 +1458,16 @@ local function createbars(bars)
 	end
 	updateSkins(true)
 end
-
+local function update_actionbar_talent_settings(new, old)
+	if type(new) == "number" then
+		currentTalentGroup = new
+		for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
+			Nurfed:updatehks(v.name)
+		end
+		NurfedActionBarsUpdateColors()
+	end
+end
+--[[
 Nurfed:regevent("ACTIVE_TALENT_GROUP_CHANGED", function()
 	currentTalentGroup = GetActiveTalentGroup(false, false)
 	for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
@@ -1469,7 +1478,7 @@ Nurfed:regevent("ACTIVE_TALENT_GROUP_CHANGED", function()
 	NurfedActionBarsUpdateColors()
 	Nurfed:print("Changed Specs!:  Spec Group:"..currentTalentGroup)
 end)
-
+]]
 Nurfed:regevent("VARIABLES_LOADED", function()
 	-- autoupgrade!
 	if not NURFED_ACTIONBARS[1] then
@@ -1485,6 +1494,7 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 		lbf = _G["LibStub"] and _G.LibStub("LibButtonFacade", true) or nil
 	end
 	currentTalentGroup = currentTalentGroup or GetActiveTalentGroup(false, false)
+	Nurfed_Add_Talent_Call(update_actionbar_talent_settings)
 	-- upgrade to dual specs!
 	if not NURFED_ACTIONBARS[currentTalentGroup].talentGroup then
 		local tempTbl = NURFED_ACTIONBARS
@@ -1872,7 +1882,7 @@ function Nurfed_CreateDefaultActionBar(type)
 		["warriorStance"] = true,
 	}	
 	if typeLst[type] then
-		table.insert(NURFED_ACTIONBARS[currentTalentGroup], {
+		table.insert(NURFED_ACTIONBARS, {
 			["visible"] = "show",
 			["useunit"] = false,
 			["buttons"] = {
@@ -1898,14 +1908,14 @@ function Nurfed_CreateDefaultActionBar(type)
 		})
 	end
 	if type == "rogueStealth" then
-		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].name = "Nurfed_RogueStealthBar"
-		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].statemaps = {
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_RogueStealthBar"
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
 			["stealth:0"] = "s1",
 			["stealth:1"] = "s2",
 		}
 	elseif type == "druidNoStealth" then
-		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].name = "Nurfed_DruidNoStealthBar"
-		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].statemaps = {
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_DruidNoStealthBar"
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
 			["actionbar:1, stance:0"] = "s0",
 			["actionbar:1, stance:1"] = "s1",
 			["actionbar:1, stance:2"] = "s2",
@@ -1917,8 +1927,8 @@ function Nurfed_CreateDefaultActionBar(type)
 		}
 	
 	elseif type == "druidStealth" then
-		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].name = "Nurfed_DruidStealthBar"
-		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].statemaps = {
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_DruidStealthBar"
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
 			["actionbar:1, stance:0"] = "s0",
 			["actionbar:1, stance:1"] = "s1",
 			["actionbar:1, stance:2"] = "s2",
@@ -1930,15 +1940,15 @@ function Nurfed_CreateDefaultActionBar(type)
 			["actionbar:3"] = "p3",
 		}
 	elseif type == "warriorStance" then
-		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].name = "Nurfed_WarriorStanceBar"
-		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].statemaps = {
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_WarriorStanceBar"
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
 			["stance:1"] = "s1",
 			["stance:2"] = "s2",
 			["stance:3"] = "s3",
 		}
 	elseif type == "customShow" then
-		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].name = "Nurfed_CustomShow"
-		NURFED_ACTIONBARS[currentTalentGroup][#NURFED_ACTIONBARS].statemaps = {
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].name = "Nurfed_CustomShow"
+		NURFED_ACTIONBARS[#NURFED_ACTIONBARS].statemaps = {
 			["target=target,harm"] = "s1",
 			["target=target,help"] = "s2",
 			["target=target,noexists"] = "s3",

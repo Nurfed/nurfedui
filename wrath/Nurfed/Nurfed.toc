@@ -1,7 +1,7 @@
 ## Interface: 31000
 ## Title: Nurfed UI Suite|cff3F3DFD-Core-|r
 ## Author: Tivoli, Apoco  http://www.nurfed.com
-## SavedVariablesPerCharacter: NURFED_SAVED, NURFED_FRAMES, NURFED_ACTIONBARS
+## SavedVariablesPerCharacter: NURFED_SAVED, NURFED_FRAMES, NURFED_ACTIONBARS, NURFED_BINDINGS
 ## OptionalDeps: ButtonFacade, LibButtonFacade
 ## X-Website: http://www.nurfedui.net
 
@@ -9,6 +9,7 @@ Defaults.lua
 Libs\Core.lua
 Locales\Locales.xml
 
+Libs\MultiSpec.lua
 Libs\Units.lua
 Libs\ActionBars.lua
 
