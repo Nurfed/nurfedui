@@ -1505,8 +1505,10 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 		NURFED_ACTIONBARS[1].talentGroup = 1
 		NURFED_ACTIONBARS[2].talentGroup = 2
 	end]]
-	if not NURFED_ACTIONBARS[currentTalentGroup].talentGroup then	-- convert new ones!
-		for i,v in ipairs(NURFED_ACTIONBARS) do
+	--if not NURFED_ACTIONBARS[currentTalentGroup].talentGroup then	-- convert new ones!
+	if (NURFED_ACTIONBARS[currentTalentGroup] and not NURFED_ACTIONBARS[currentTalentGroup].talentGroup) or
+		not NURFED_ACTIONBARS[currentTalentGroup] then
+		for i,v in pairs(NURFED_ACTIONBARS) do
 			if v.talentGroup then
 				NURFED_ACTIONBARS[currentTalentGroup] = v
 				break
