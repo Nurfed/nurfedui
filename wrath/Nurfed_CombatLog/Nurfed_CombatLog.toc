@@ -1,4 +1,4 @@
-## Interface: 30000
+## Interface: 30100
 ## Title: Nurfed CombatLog |cff3F3DFD-Plugin-|r
 ## Author: Tivoli, Apoco  http://www.nurfed.com
 ## SavedVariablesPerCharacter: NURFED_COMBATLOG_SAVED
