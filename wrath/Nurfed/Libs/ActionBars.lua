@@ -116,8 +116,14 @@ local function updateCompanionList()
 		for i=1, mnum do
 			local _, name, id = GetCompanionInfo("MOUNT", i)
 			if name and id then
-				companionList[name] = id
-				icons[name] = select(3, GetSpellInfo(id))
+				if not icons[name] or (icons[name] and icons[name] == "Interface\\Icons\\NoIcon") then
+					if name:find("Mount") then
+						companionList[name:gsub("%sMount", "")] = id
+						icons[name:gsub("%sMount", "")] = select(3, GetSpellInfo(id))
+					end
+					companionList[name] = id
+					icons[name] = select(3, GetSpellInfo(id))
+				end
 			else
 				-- if there isnt a name, and there should be, stop updating and rerun func.
 				return Nurfed:schedule(1, updateCompanionList)
@@ -129,14 +135,19 @@ local function updateCompanionList()
 		for i=1, mnum do
 			local _, name, id = GetCompanionInfo("CRITTER", i)
 			if name and id then
-				companionList[name] = id
-				icons[name] = select(3, GetSpellInfo(id))
+				if not icons[name] or (icons[name] and icons[name] == "Interface\\Icons\\NoIcon") then
+					companionList[name] = id
+					icons[name] = select(3, GetSpellInfo(id))
+				end
 			else
 				-- if there isnt a name, and there should be, stop updating and rerun func.
 				return Nurfed:schedule(1, updateCompanionList)
 			end
 		end
 	end
+end
+function nrftest(...)
+	return icons[...]
 end
 
 local function updateitem(btn)
@@ -1321,17 +1332,6 @@ function nrf_updatemainbar(bar)
 				btn:SetPoint("LEFT", "BonusActionButton"..(i-1), "RIGHT", offset, 0)
 			end
 		end
-	--[[elseif bar == Nurfed_vehiclemenubar then
-		for i=2, 6 do
-			local btn = _G["VehicleMenuBarActionButton"..i]
-			btn:ClearAllPoints();
-			if vert then
-				btn:SetPoint("TOP", "VehicleMenuBarActionButton"..(i-1), "BOTTOM", 0, offset)
-			else
-				btn:SetPoint("LEFT", "VehicleMenuBarActionButton"..(i-1), "RIGHT", offset, 0)
-			end
-		end
-		]]
 	elseif bar == Nurfed_stance then
 		for i = 2, 10 do
 			local btn = _G["ShapeshiftButton"..i]
@@ -1538,6 +1538,7 @@ Nurfed:regevent("PLAYER_LOGIN", function()
 	isloaded = true
 	updateCompanionList()
 	Nurfed:sendevent("UPDATE_BINDINGS")
+	Nurfed:sendevent("ACTIVE_TALENT_GROUP_CHANGED")
 	SaveBindings(GetCurrentBindingSet())
 	NurfedActionBarsUpdateColors()
 end)

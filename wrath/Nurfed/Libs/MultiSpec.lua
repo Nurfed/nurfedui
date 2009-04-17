@@ -42,8 +42,6 @@ local function active_talent_changed(event, new, old)
 		if currentTalentGroup == old then
 			currentTalentGroup = new
 			Nurfed:print(L["Nurfed-MultiSpec:  "]..L["Talent Groups Changed, New Group: "]..new)
-		else
-			Nurfed:print(L["Nurfed-MultiSpec:  "]..L["Unknown Talent Group Change....."]..new.."/"..old)
 		end
 	else
 		currentTalentGroup = GetActiveTalentGroup(false, false)
@@ -94,7 +92,7 @@ local updatemacros = function()
 	listing = nil
 end
 
-function Nurfed_Save_Talent_Bindings()
+function Nurfed_Save_Talent_Bindings(arg)
 	if not macros then updatemacros() end
 	if not spells then updatespells() end
 	if not listing then
@@ -184,12 +182,21 @@ function Nurfed_Save_Talent_Bindings()
 		end
 	end
 	NURFED_BINDINGS["talent-group-"..currentTalentGroup] = bindingsList
+	if arg then
+		NURFED_BINDINGS["talent-group-1"] = bindingsList
+		NURFED_BINDINGS["talent-group-2"] = bindingsList
+	end
 	Nurfed:print(L["Nurfed-MultiSpec:  "]..L["Talent Bindings Saved!"])
 end
 
 local function update_talent_bindings(new, old)
 	new = new or currentTalentGroup
 	local binds = NURFED_BINDINGS["talent-group-"..new]
+	if not binds then
+		 Nurfed_Save_Talent_Bindings(true)
+		 binds = NURFED_BINDINGS["talent-group-"..new]
+		 if not binds then return end
+	end
 	for type in pairs(binds) do
 		--type = string.capital(type)
 		local func = getglobal("SetBinding"..string.capital(type))
@@ -205,20 +212,9 @@ local function update_talent_bindings(new, old)
 			local old = { GetBindingKey(string.capital(type).." "..spell) }
 			for _, v in ipairs(old) do
 				if v ~= key then
-					print("removing binding!!!", v)
 					SetBinding(v)
-					print("~", GetBindingAction(v))
 				end
 			end
-			local old = { GetBindingKey(string.capital(type).." "..spell) }
-			for _, v in ipairs(old) do
-				if v ~= key then
-					print("removing binding!!!", v)
-					SetBinding(v)
-					print("~", GetBindingAction(v))
-				end
-			end
-			SaveBindings(GetCurrentBindingSet())
 		end
 	end
 	SaveBindings(GetCurrentBindingSet())
@@ -247,5 +243,6 @@ local function update_talent_bindings(new, old)
 end
 
 Nurfed_Add_Talent_Call(update_talent_bindings)
+
 Nurfed:regevent("PLAYER_LOGIN", active_talent_changed)
 Nurfed:regevent("ACTIVE_TALENT_GROUP_CHANGED", active_talent_changed)
