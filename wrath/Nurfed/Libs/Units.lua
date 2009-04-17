@@ -2891,7 +2891,7 @@ local function predictstats()
 		if UnitExists(frame.unit) then
 			if ( not frame.disconnected ) then
 				local currValue
-				if frame.predictedPower then
+				--if frame.predictedPower then
 					currValue = UnitPower(frame.unit, frame.powerType)
 					if currValue ~= frame.currPowerValue then
 						frame.currPowerValue = currValue
@@ -2915,16 +2915,15 @@ local function predictstats()
 							end
 						end
 					end
-
-				end
+				--end
 				
-				if frame.predictedHealth then
+				--if frame.predictedHealth then
 					currValue = UnitHealth(frame.unit)
 					if currValue ~= frame.currHealthValue then
 						frame.currHealthValue = currValue
 						updateinfo(frame, "Health")
 					end
-				end
+				--end
 			end
 		end
 	end
@@ -3045,7 +3044,7 @@ function Nurfed:unitimbue(frame)
 			frame[pre] = {}
 			if not frame.unit and frame:GetParent().unit then frame.unit = frame:GetParent().unit end
 			if pre == "Health" then
-				if GetCVarBool("predictedHealth") and frame.enablePredictedStats then
+				--if GetCVarBool("predictedHealth") and frame.enablePredictedStats then
 					frame.predictedHealth = true
 					if not predictedUpdate then
 						predictedUpdate = true
@@ -3053,9 +3052,9 @@ function Nurfed:unitimbue(frame)
 					end
 					if not predictedStatsTable then predictedStatsTable = {} end
 					ntinsert(predictedStatsTable, frame)
-				else
-					ntinsert(events, "UNIT_HEALTH")
-				end
+				--else
+				--	ntinsert(events, "UNIT_HEALTH")
+				--end
 				ntinsert(events, "UNIT_MAXHEALTH")
 			
 			elseif pre == "Threat" then
@@ -3063,7 +3062,7 @@ function Nurfed:unitimbue(frame)
 				ntinsert(events, "UNIT_THREAT_SITUATION_UPDATE")
 			
 			elseif pre == "dMana" then
-				if GetCVarBool("predictedPower") and frame.enablePredictedStats then
+				--if GetCVarBool("predictedPower") and frame.enablePredictedStats then
 					frame.predictedPower = true
 					if not predictedUpdate then
 						predictedUpdate = true
@@ -3071,14 +3070,14 @@ function Nurfed:unitimbue(frame)
 					end
 					if not predictedStatsTable then predictedStatsTable = {} end
 					ntinsert(predictedStatsTable, frame)
-				else
+				--[[else
 					ntinsert(events, "UNIT_MANA")
 					ntinsert(events, "UNIT_RAGE")
 					ntinsert(events, "UNIT_FOCUS")
 					ntinsert(events, "UNIT_ENERGY")
 					ntinsert(events, "UNIT_HAPPINESS")
 					ntinsert(events, "UNIT_RUNIC_POWER")
-				end
+				end]]
 				ntinsert(events, "UNIT_MAXMANA");
 				ntinsert(events, "UNIT_MAXRAGE");
 				ntinsert(events, "UNIT_MAXFOCUS");
@@ -3087,7 +3086,7 @@ function Nurfed:unitimbue(frame)
 				ntinsert(events, "UNIT_MAXRUNIC_POWER");
 				ntinsert(events, "UNIT_DISPLAYPOWER");
 			elseif pre == "Mana" then
-				if GetCVarBool("predictedPower") and frame.enablePredictedStats then
+				--if GetCVarBool("predictedPower") and frame.enablePredictedStats then
 					frame.predictedPower = true
 					if not predictedUpdate then
 						predictedUpdate = true
@@ -3096,14 +3095,14 @@ function Nurfed:unitimbue(frame)
 					frame.powerType = UnitPowerType(frame.unit)
 					if not predictedStatsTable then predictedStatsTable = {} end
 					ntinsert(predictedStatsTable, frame)
-				else
+				--[[else
 					ntinsert(events, "UNIT_MANA");
 					ntinsert(events, "UNIT_RAGE");
 					ntinsert(events, "UNIT_FOCUS");
 					ntinsert(events, "UNIT_ENERGY");
 					ntinsert(events, "UNIT_HAPPINESS");
 					ntinsert(events, "UNIT_RUNIC_POWER");
-				end
+				end]]
 				ntinsert(events, "UNIT_MAXMANA");
 				ntinsert(events, "UNIT_MAXRAGE");
 				ntinsert(events, "UNIT_MAXFOCUS");
