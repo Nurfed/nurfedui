@@ -1737,7 +1737,8 @@ end
 
 local function updateinfo(self, stat, tstat)
 	if not stat or not self[stat] then return end
-	local unit = SecureButton_GetUnit(self)
+	--local unit = SecureButton_GetUnit(self)
+	local unit = self.unit or SecureButton_GetUnit(self)
 	local curr, max, missing, perc, r, g, b, isTanking, state, scaledPercent, rawPercent, threatValue, rest, currtext;
 	if stat ~= "Threat" then
 		curr, max, missing, perc, r, g, b = Nurfed:getunitstat(unit, stat, tstat and 0, tstat and "Mana")
@@ -2889,6 +2890,13 @@ end
 local function predictstats()
 	for _, frame in ipairs(predictedStatsTable) do
 		if UnitExists(frame.unit) then
+			if UnitInVehicle("player") then
+				if frame.type == "player" and frame.unit ~= "pet" then frame.unit = "pet"; updateframe(frame); end
+				if frame.type == "pet" and frame.unit ~= "player" then frame.unit = "player"; updateframe(frame); end
+			else
+				if frame.type == "player" and frame.unit ~= "player" then frame.unit = "player"; updateframe(frame); end
+				if frame.type == "pet" and frame.unit ~= "pet" then frame.unit = "pet"; updateframe(frame); end
+			end	
 			if ( not frame.disconnected ) then
 				local currValue
 				--if frame.predictedPower then
@@ -2993,6 +3001,7 @@ function Nurfed:unitimbue(frame)
 		ntinsert(events, "UNIT_PET")
 		ntinsert(events, "UNIT_EXITED_VEHICLE")
 		ntinsert(events, "UNIT_ENTERED_VEHICLE")
+		frame.type = "pet"
 		
 	elseif frame.unit == "player" then
 		ntinsert(events, "UNIT_COMBAT")
@@ -3002,6 +3011,7 @@ function Nurfed:unitimbue(frame)
 		elseif playerClass == "DRUID" then
 			ntinsert(events, "UPDATE_SHAPESHIFT_FORM")
 		end
+		frame.type = "player"
 	end
 
 	if found == 1 then
