@@ -2232,7 +2232,7 @@ Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
 end)
 
 local function updateauras(self)
-	local unit = SecureButton_GetUnit(self)
+	local unit = self.unit or SecureButton_GetUnit(self)
 	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd, isMine, isStealable,isFriend, filterList, check, setbuff, debuffline
 	local showdur = Nurfed:getopt("showdurationlist")
 	local oldBuffs = Nurfed:getopt("olddebuffstyle")
@@ -2724,7 +2724,7 @@ local function updateAlphaRange()
 end
 
 local function updateframe(self, notext)
-	local unit = SecureButton_GetUnit(self)
+	local unit = self.unit or SecureButton_GetUnit(self)
 	if self.status then updatestatus(self) end
 	if self.Health then updateinfo(self, "Health") end
 	if self.XP then updateinfo(self, "XP") end
@@ -2846,8 +2846,14 @@ local events = {
 			updateRune_Type(self.runes[rune], rune)
 		end
 	end,
-	["UNIT_ENTERED_VEHICLE"] = updateframe,
-	["UNIT_EXITED_VEHICLE"] = updateframe,
+	["UNIT_ENTERED_VEHICLE"] = function(self)
+		if self.type and self.type == self.unit then self.unit = self.vehicletype end
+		updateframe(self)
+	end,
+	["UNIT_EXITED_VEHICLE"] = function(self)
+		if self.type and self.type ~= self.unit then self.unit = self.type end
+		updateframe(self)
+	end,
 }
 
 local function onevent(event, ...)
@@ -2858,6 +2864,12 @@ local function onevent(event, ...)
 				if (arg1 == "player" and unit == "pet") or (arg1 == unit:gsub("pet", "")) then
 					events[event](frame, ...)
 				end
+
+			elseif event:find("VEHICLE") then
+				if arg1 == "player" and unit == "pet" or arg1 == unit then
+					events[event](frame, ...)
+				end
+
 			elseif event:find("^UNIT_") then
 				if arg1 == unit or event == "UNIT_COMBO_POINTS" then
 					events[event](frame, ...)
@@ -2890,14 +2902,13 @@ end
 local function predictstats()
 	for _, frame in ipairs(predictedStatsTable) do
 		if UnitExists(frame.unit) then
-			if UnitInVehicle("player") then
+			--[[if UnitInVehicle("player") then
 				if frame.type == "player" and frame.unit ~= "pet" then frame.unit = "pet"; updateframe(frame); end
 				if frame.type == "pet" and frame.unit ~= "player" then frame.unit = "player"; updateframe(frame); end
 			else
 				if frame.type == "player" and frame.unit ~= "player" then frame.unit = "player"; updateframe(frame); end
 				if frame.type == "pet" and frame.unit ~= "pet" then frame.unit = "pet"; updateframe(frame); end
-			end	
-			if ( not frame.disconnected ) then
+			end	]]			if ( not frame.disconnected ) then
 				local currValue
 				--if frame.predictedPower then
 					currValue = UnitPower(frame.unit, frame.powerType)
@@ -3002,6 +3013,7 @@ function Nurfed:unitimbue(frame)
 		ntinsert(events, "UNIT_EXITED_VEHICLE")
 		ntinsert(events, "UNIT_ENTERED_VEHICLE")
 		frame.type = "pet"
+		frame.vehicletype = "player"
 		
 	elseif frame.unit == "player" then
 		ntinsert(events, "UNIT_COMBAT")
@@ -3011,7 +3023,10 @@ function Nurfed:unitimbue(frame)
 		elseif playerClass == "DRUID" then
 			ntinsert(events, "UPDATE_SHAPESHIFT_FORM")
 		end
+		ntinsert(events, "UNIT_EXITED_VEHICLE")
+		ntinsert(events, "UNIT_ENTERED_VEHICLE")
 		frame.type = "player"
+		frame.vehicletype = "pet"
 	end
 
 	if found == 1 then
