@@ -121,12 +121,14 @@ function Nurfed_Save_Talent_Bindings(arg)
 				table.insert(listing, { v, true, "ITEM" })
 			end
 		end
-		for _, v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do -- actionbars.... are these really needed?
-			table.insert(listing, { v.name, "|cffff00ff" })
-			local btns = { getglobal(v.name):GetChildren() }
-			for _, btn in ipairs(btns) do
-				if btn:GetID() > 0 then
-					table.insert(listing, { btn:GetName(), true, "CLICK" })
+		if NURFED_ACTIONBARS and NURFED_ACTIONBARS[currentTalentGroup] then
+			for _, v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do -- actionbars.... are these really needed?
+				table.insert(listing, { v.name, "|cffff00ff" })
+				local btns = { getglobal(v.name):GetChildren() }
+				for _, btn in ipairs(btns) do
+					if btn:GetID() > 0 then
+						table.insert(listing, { btn:GetName(), true, "CLICK" })
+					end
 				end
 			end
 		end

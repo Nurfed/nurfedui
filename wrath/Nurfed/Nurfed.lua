@@ -166,7 +166,6 @@ local function onevent(self, event, arg1, arg2, arg3)
 		while i do
 			name = GetGuildRosterInfo(i)
 			if name and name == arg1 then
-				print("Rwar!", name)
 				AcceptGroup()
 				StaticPopup_Hide("PARTY_INVITE")
 				return

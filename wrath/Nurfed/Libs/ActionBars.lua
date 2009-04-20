@@ -1506,8 +1506,8 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 		NURFED_ACTIONBARS[2].talentGroup = 2
 	end]]
 	--if not NURFED_ACTIONBARS[currentTalentGroup].talentGroup then	-- convert new ones!
-	if (NURFED_ACTIONBARS[currentTalentGroup] and not NURFED_ACTIONBARS[currentTalentGroup].talentGroup) or
-		not NURFED_ACTIONBARS[currentTalentGroup] then
+	if NURFED_ACTIONBARS and ((NURFED_ACTIONBARS[currentTalentGroup] and not NURFED_ACTIONBARS[currentTalentGroup].talentGroup) or
+		not NURFED_ACTIONBARS[currentTalentGroup]) then
 		for i,v in pairs(NURFED_ACTIONBARS) do
 			if v.talentGroup then
 				NURFED_ACTIONBARS[currentTalentGroup] = v
@@ -1539,7 +1539,6 @@ Nurfed:regevent("PLAYER_LOGIN", function()
 	end
 	isloaded = true
 	updateCompanionList()
-	Nurfed:sendevent("UPDATE_BINDINGS")
 	Nurfed:sendevent("ACTIVE_TALENT_GROUP_CHANGED")
 	SaveBindings(GetCurrentBindingSet())
 	NurfedActionBarsUpdateColors()
