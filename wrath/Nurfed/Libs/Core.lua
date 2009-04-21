@@ -1006,6 +1006,21 @@ do
 	end
 end
 
+function util:isfriend(name)
+	for i=1, GetNumFriends() do 
+		if GetFriendInfo(i) == name then 
+			return true
+		end
+	end
+	if IsInGuild() then 
+		for i=1, GetNumGuildMembers() do 
+			if GetGuildRosterInfo(i) == name then 
+				return true 
+			end 
+		end 
+	end
+	return false
+end
 util:regevent("CHAT_MSG_ADDON", addonmsg)
 Nurfed:setversion("Nurfed-Core", "$Date$", "$Rev$")
 

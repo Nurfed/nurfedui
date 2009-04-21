@@ -162,15 +162,15 @@ local function onevent(self, event, arg1, arg2, arg3)
 		end
 		
 	elseif event == "PARTY_INVITE_REQUEST" and Nurfed:getopt("autojoingroup") then
-		local i, name = 1, nil
-		while i do
-			name = GetGuildRosterInfo(i)
-			if name and name == arg1 then
-				AcceptGroup()
-				StaticPopup_Hide("PARTY_INVITE")
-				return
+		if Nurfed:isfriend(arg1) then
+			AcceptGroup()
+			for i=1, STATICPOPUP_NUMDIALOGS do
+				local popup = _G["StaticPopup"..i]
+				if popup.which == "PARTY_INVITE" then
+					popup.inviteAccepted = 1
+					return
+				end
 			end
-			i = name and i+1 or nil
 		end
 
 	elseif event == "MERCHANT_SHOW" then
