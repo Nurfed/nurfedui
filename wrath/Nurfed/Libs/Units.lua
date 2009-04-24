@@ -1131,7 +1131,7 @@ local replace = {
 				name = vtext
 			end
 		end
-		return (color or "|cffffffff")..(tname or name or "").."|r"
+		return (color or "|cffffffff")..(tname or name).."|r"
 	end,
 
 
@@ -2891,14 +2891,14 @@ local function predictstats()
 	for _, frame in ipairs(predictedStatsTable) do
 		if frame.vehicletype then
 			if UnitInVehicle("player") then
-				if frame.type == frame.unit then
+				if frame.type == frame:GetAttribute("unit") then
 					frame.unit = frame.vehicletype
 					frame:SetAttribute("unit", frame.vehicletype)
 					if UnitExists(frame.unit) then updateframe(frame) end
 					--return
 				end
 			else
-				if frame.unit == frame.vehicletype then
+				if frame:GetAttribute("unit") == frame.vehicletype then
 					frame.unit = frame.type
 					frame:SetAttribute("unit", frame.type)
 					if UnitExists(frame.unit) then updateframe(frame) end
