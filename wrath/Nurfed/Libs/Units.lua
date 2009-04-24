@@ -1123,16 +1123,6 @@ local replace = {
 			end
 		end
 		if t then 
-			--[[
-			if t.maxLen then
-				name = name:sub(1, t.maxLen)
-			end
-			if t.orientation == "VERTICAL" then
-				local len = string.len(name) - 1
-				if name:find("%s") then name = name:gsub("%s", "") end
-				name = name:gsub("%a", "%1\n", len)
-			end
-			]]
 			if t.orientation == "VERTICAL" then
 				local vtext = ""
 				for i=1, string.len(name) do
@@ -1141,7 +1131,7 @@ local replace = {
 				name = vtext
 			end
 		end
-		return (color or "|cffffffff")..(tname or name).."|r"
+		return (color or "|cffffffff")..(tname or name or "").."|r"
 	end,
 
 
@@ -1337,8 +1327,6 @@ local function fade(frame)
 	local name = texture:GetTexture()
 	frame.texture = name
 	frame.old = 0
-	--yes, this is redundant, but apparently its causing issues with some layouts
-	--	frame:HookScript("SetValue", nrf_fading)
 	hooksecurefunc(frame, "SetValue", nrf_fading)
 end
 
@@ -1738,7 +1726,7 @@ end
 local function updateinfo(self, stat, tstat)
 	if not stat or not self[stat] then return end
 	--local unit = SecureButton_GetUnit(self)
-	local unit = self.unit or SecureButton_GetUnit(self)
+	local unit = SecureButton_GetUnit(self)
 	local curr, max, missing, perc, r, g, b, isTanking, state, scaledPercent, rawPercent, threatValue, rest, currtext;
 	if stat ~= "Threat" then
 		curr, max, missing, perc, r, g, b = Nurfed:getunitstat(unit, stat, tstat and 0, tstat and "Mana")
@@ -2232,7 +2220,7 @@ Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
 end)
 
 local function updateauras(self)
-	local unit = self.unit or SecureButton_GetUnit(self)
+	local unit = SecureButton_GetUnit(self)
 	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd, isMine, isStealable,isFriend, filterList, check, setbuff, debuffline
 	local showdur = Nurfed:getopt("showdurationlist")
 	local oldBuffs = Nurfed:getopt("olddebuffstyle")
@@ -2724,7 +2712,7 @@ local function updateAlphaRange()
 end
 
 local function updateframe(self, notext)
-	local unit = self.unit or SecureButton_GetUnit(self)
+	local unit = SecureButton_GetUnit(self)
 	if self.status then updatestatus(self) end
 	if self.Health then updateinfo(self, "Health") end
 	if self.XP then updateinfo(self, "XP") end
@@ -2847,12 +2835,12 @@ local events = {
 		end
 	end,
 	["UNIT_ENTERED_VEHICLE"] = function(self)
-		if self.type and self.type == self.unit then self.unit = self.vehicletype end
-		updateframe(self)
+		--if self.type and self.type == self.unit then self.unit = self.vehicletype end
+		--updateframe(self)
 	end,
 	["UNIT_EXITED_VEHICLE"] = function(self)
-		if self.type and self.type ~= self.unit then self.unit = self.type end
-		updateframe(self)
+		--if self.type and self.type ~= self.unit then self.unit = self.type end
+		--updateframe(self)
 	end,
 }
 
@@ -2902,14 +2890,25 @@ end
 local function predictstats()
 	for _, frame in ipairs(predictedStatsTable) do
 		if UnitExists(frame.unit) then
-			--[[if UnitInVehicle("player") then
-				if frame.type == "player" and frame.unit ~= "pet" then frame.unit = "pet"; updateframe(frame); end
-				if frame.type == "pet" and frame.unit ~= "player" then frame.unit = "player"; updateframe(frame); end
-			else
-				if frame.type == "player" and frame.unit ~= "player" then frame.unit = "player"; updateframe(frame); end
-				if frame.type == "pet" and frame.unit ~= "pet" then frame.unit = "pet"; updateframe(frame); end
-			end	]]			if ( not frame.disconnected ) then
+			if ( not frame.disconnected ) then
 				local currValue
+				if frame.vehicletype then
+					if UnitInVehicle("player") then
+						if frame.type == frame.unit then
+							frame.unit = frame.vehicletype
+							frame:SetAttribute("unit", frame.vehicletype)
+							updateframe(frame)
+							return
+						end
+					else
+						if frame.unit == frame.vehicletype then
+							frame.unit = frame.type
+							frame:SetAttribute("unit", frame.type)
+							updateframe(frame)
+							return
+						end
+					end	
+				end
 				--if frame.predictedPower then
 					currValue = UnitPower(frame.unit, frame.powerType)
 					if currValue ~= frame.currPowerValue then
@@ -3035,6 +3034,7 @@ function Nurfed:unitimbue(frame)
 	elseif frame.unit:find("^raid") then
 		frame.isRaid = true
 		FriendsDropDown.initialize = function() UnitPopup_ShowMenu(_G[UIDROPDOWNMENU_OPEN_MENU], "RAID", frame.unit, UnitName(frame.unit), frame:GetID()) end
+		--FriendsDropDown.initialize = UnitPopup_ShowMenu(_G[UIDROPDOWNMENU_OPEN_MENU], "RAID", frame.unit, UnitName(frame.unit), frame:GetID())
 		FriendsDropDown.displayMode = "MENU"
 		dropdown = FriendsDropDown
 	else
@@ -3044,6 +3044,8 @@ function Nurfed:unitimbue(frame)
 	if dropdown then
 		-- trying to stop tainting, but alass it seems all unitframes mods are having the same issue.
 		menufunc = function() securecall("ToggleDropDownMenu", 1, nil, dropdown, "cursor") end
+		--menufunc = securecall("ToggleDropDownMenu", 1, nil, dropdown, "cursor")
+		--menufunc = ToggleDropDownMenu(1, nil, dropdown, "cursor")
 	end
 	
 	SecureUnitButton_OnLoad(frame, frame.unit, menufunc)

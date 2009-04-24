@@ -1024,8 +1024,6 @@ end
 util:regevent("CHAT_MSG_ADDON", addonmsg)
 Nurfed:setversion("Nurfed-Core", "$Date$", "$Rev$")
 
--- debug function I jacked from my RBM mod.  <3
--- used by apoco for beta, remove before final push
 function debug(...)
 	if not AceLibrary and not Rock and not LibStub then return end
 	local frame = ChatFrame3 or ChatFrame2
