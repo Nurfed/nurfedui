@@ -2889,26 +2889,26 @@ end
 
 local function predictstats()
 	for _, frame in ipairs(predictedStatsTable) do
+		if frame.vehicletype then
+			if UnitInVehicle("player") then
+				if frame.type == frame.unit then
+					frame.unit = frame.vehicletype
+					frame:SetAttribute("unit", frame.vehicletype)
+					if UnitExists(frame.unit) then updateframe(frame) end
+					--return
+				end
+			else
+				if frame.unit == frame.vehicletype then
+					frame.unit = frame.type
+					frame:SetAttribute("unit", frame.type)
+					if UnitExists(frame.unit) then updateframe(frame) end
+					--return
+				end
+			end	
+		end
 		if UnitExists(frame.unit) then
 			if ( not frame.disconnected ) then
 				local currValue
-				if frame.vehicletype then
-					if UnitInVehicle("player") then
-						if frame.type == frame.unit then
-							frame.unit = frame.vehicletype
-							frame:SetAttribute("unit", frame.vehicletype)
-							updateframe(frame)
-							return
-						end
-					else
-						if frame.unit == frame.vehicletype then
-							frame.unit = frame.type
-							frame:SetAttribute("unit", frame.type)
-							updateframe(frame)
-							return
-						end
-					end	
-				end
 				--if frame.predictedPower then
 					currValue = UnitPower(frame.unit, frame.powerType)
 					if currValue ~= frame.currPowerValue then

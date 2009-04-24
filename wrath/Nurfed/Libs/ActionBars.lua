@@ -1461,10 +1461,12 @@ end
 local function update_actionbar_talent_settings(new, old)
 	if type(new) == "number" then
 		currentTalentGroup = new
-		for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
-			Nurfed:updatehks(v.name)
+		if NURFED_ACTIONBARS and NURFED_ACTIONBARS[currentTalentGroup] then
+			for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
+				Nurfed:updatehks(v.name)
+			end
+			NurfedActionBarsUpdateColors()
 		end
-		NurfedActionBarsUpdateColors()
 	end
 end
 --[[
