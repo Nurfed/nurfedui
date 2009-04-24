@@ -698,7 +698,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					vars = { damage = true },
 				},
 			},
-			vars = { unit = "player", enablePredictedStats = true, },
+			vars = { unit = "player", },
 		},
 
 		Nurfed_target = {
@@ -771,7 +771,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 				},
 				model = {
 					template = "Nurfed_Unit_model",
-					size = { 40, 40 },
+					--size = { 40, 40 },
 					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -4, -6 },
 				},
 				rank = {
@@ -873,7 +873,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					Hide = true,
 				},
 			},
-			vars = { unit = "target", aurawidth = 176, aurasize = 17, enablePredictedStats = true, },
+			vars = { unit = "target", aurawidth = 176, aurasize = 17, },
 		},
 		Nurfed_pet = {
 			type = "Button",
@@ -949,15 +949,15 @@ NURFED_FRAMES = NURFED_FRAMES or {
 				debuff8 = { type = "Button", uitemp = "TargetDebuffFrameTemplate", Anchor = { "LEFT", "$parentdebuff7", "RIGHT", 0, 0 } },
 				debuff9 = { type = "Button", uitemp = "TargetDebuffFrameTemplate", Anchor = { "LEFT", "$parentdebuff8", "RIGHT", 0, 0 } },
 			},
-			vars = { unit = "pet", aurawidth = 160, enablePredictedStats = true },
+			vars = { unit = "pet", aurawidth = 160 },
 		},
 		Nurfed_focus = {
 			type = "Button",
 			uitemp = "SecureUnitButtonTemplate",
-			size = { 160, 43 },
+			size = { 200, 48 },
 			FrameStrata = "LOW",
 			ClampedToScreen = true,
-			Backdrop = { bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = true, tileSize = 16, edgeSize = 16, insets = { left = 5, right = 5, top = 5, bottom = 5 }, },
+			Backdrop = { bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = true, tileSize = 16, edgeSize = 16, insets = { left = 2, right = 2, top = 2, bottom = 2 }, },
 			BackdropColor = { 0, 0, 0, 0.75 },
 			Movable = true,
 			Mouse = true,
@@ -965,12 +965,12 @@ NURFED_FRAMES = NURFED_FRAMES or {
 				hp = {
 					template = "Nurfed_Unit_hp",
 					size = { 150, 12 },
-					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", 15, 14 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 45, -18 },
 				},
 				mp = {
 					template = "Nurfed_Unit_mp",
 					size = { 150, 8 },
-					Anchor = { "BOTTOMRIGHT", "$parent", "BOTTOMRIGHT", 15, 5 },
+					Anchor = { "TOPLEFT", "$parenthp", "BOTTOMLEFT", 0, -1 },
 				},
 				castingframe = {
 					template = "Nurfed_Unit_casting",
@@ -982,7 +982,7 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					layer = "ARTWORK",
 					FontObject = "Nurfed_UnitFont",
 					JustifyH = "LEFT",
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 20, -4 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 45, -4 },
 					vars = { format = "[$level] $name" },
 				},
 				hpperc = {
@@ -990,15 +990,15 @@ NURFED_FRAMES = NURFED_FRAMES or {
 					layer = "OVERLAY",
 					Font = { NRF_FONT.."framd.ttf", 9, "OUTLINE" },
 					JustifyH = "RIGHT",
-					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", 15, -5 },
+					Anchor = { "TOPRIGHT", "$parent", "TOPRIGHT", -4, -4 },
 					vars = { format = "$perc" },
 				},
 				model = {
 					template = "Nurfed_Unit_model",
 					size = { 40, 40 },
-					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", -4, -6 },
+					Anchor = { "TOPLEFT", "$parent", "TOPLEFT", 4, -4 },
 				},
-				buff1 = { type = "Button", uitemp = "TargetDebuffFrameTemplate", Anchor = { "TOPLEFT", "$parent", "BOTTOMLEFT", 4, 2 } },
+				buff1 = { type = "Button", uitemp = "TargetDebuffFrameTemplate", Anchor = { "TOPLEFT", "$parent", "BOTTOMLEFT", 4, -1 } },
 				buff2 = { type = "Button", uitemp = "TargetDebuffFrameTemplate", Anchor = { "LEFT", "$parentbuff1", "RIGHT", 0, 0 } },
 				buff3 = { type = "Button", uitemp = "TargetDebuffFrameTemplate", Anchor = { "LEFT", "$parentbuff2", "RIGHT", 0, 0 } },
 				buff4 = { type = "Button", uitemp = "TargetDebuffFrameTemplate", Anchor = { "LEFT", "$parentbuff3", "RIGHT", 0, 0 } },
@@ -2730,7 +2730,7 @@ local function updateframe(self, notext)
 	if self.text then updatetext(self) end
 	if self.alphaRange then updaterangealpha(self, unit) end
 	if self.highlight and not self.highlight.nolock then updatehighlight(self) end
-	if self.model then self.model:SetUnit(self.unit)  end
+	if self.model then self.model:SetUnit(self.unit) end
 	if self.rune then
 		for i,v in ipairs(self.rune) do
 			updateRunes(self, i)
