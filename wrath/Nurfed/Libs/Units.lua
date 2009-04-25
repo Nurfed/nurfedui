@@ -1131,7 +1131,7 @@ local replace = {
 				name = vtext
 			end
 		end
-		return (color or "|cffffffff")..(tname or name).."|r"
+		return (color or "|cffffffff")..(tname or name or "").."|r"
 	end,
 
 
