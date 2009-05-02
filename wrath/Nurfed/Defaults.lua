@@ -43,6 +43,7 @@ else
    end
 end
 ]]
+NURFED_DEFAULT["changeframesforvehicle"] = true
 NURFED_DEFAULT["changehpbg"] = false
 NURFED_DEFAULT["changempbg"] = false
 NURFED_DEFAULT["mana"] = { 0.00, 0.00, 1.00 }

@@ -2889,7 +2889,7 @@ end
 
 local function predictstats()
 	for _, frame in ipairs(predictedStatsTable) do
-		if frame.vehicletype then
+		if frame.vehicletype and Nurfed:getopt("changeframesforvehicle") then
 			if UnitInVehicle("player") then
 				if frame.type == frame:GetAttribute("unit") then
 					frame.unit = frame.vehicletype
@@ -2907,7 +2907,7 @@ local function predictstats()
 			end	
 		end
 		if UnitExists(frame.unit) then
-			if ( not frame.disconnected ) then
+			--if ( not frame.disconnected ) then
 				local currValue
 				--if frame.predictedPower then
 					currValue = UnitPower(frame.unit, frame.powerType)
@@ -2942,7 +2942,7 @@ local function predictstats()
 						updateinfo(frame, "Health")
 					end
 				--end
-			end
+			--end
 		end
 	end
 end
@@ -3080,7 +3080,7 @@ function Nurfed:unitimbue(frame)
 					if not predictedStatsTable then predictedStatsTable = {} end
 					ntinsert(predictedStatsTable, frame)
 				--else
-				--	ntinsert(events, "UNIT_HEALTH")
+					ntinsert(events, "UNIT_HEALTH")
 				--end
 				ntinsert(events, "UNIT_MAXHEALTH")
 			
@@ -3097,14 +3097,14 @@ function Nurfed:unitimbue(frame)
 					end
 					if not predictedStatsTable then predictedStatsTable = {} end
 					ntinsert(predictedStatsTable, frame)
-				--[[else
+				--else
 					ntinsert(events, "UNIT_MANA")
 					ntinsert(events, "UNIT_RAGE")
 					ntinsert(events, "UNIT_FOCUS")
 					ntinsert(events, "UNIT_ENERGY")
 					ntinsert(events, "UNIT_HAPPINESS")
 					ntinsert(events, "UNIT_RUNIC_POWER")
-				end]]
+				--end
 				ntinsert(events, "UNIT_MAXMANA");
 				ntinsert(events, "UNIT_MAXRAGE");
 				ntinsert(events, "UNIT_MAXFOCUS");
@@ -3122,14 +3122,14 @@ function Nurfed:unitimbue(frame)
 					frame.powerType = UnitPowerType(frame.unit)
 					if not predictedStatsTable then predictedStatsTable = {} end
 					ntinsert(predictedStatsTable, frame)
-				--[[else
+				--else
 					ntinsert(events, "UNIT_MANA");
 					ntinsert(events, "UNIT_RAGE");
 					ntinsert(events, "UNIT_FOCUS");
 					ntinsert(events, "UNIT_ENERGY");
 					ntinsert(events, "UNIT_HAPPINESS");
 					ntinsert(events, "UNIT_RUNIC_POWER");
-				end]]
+				--end
 				ntinsert(events, "UNIT_MAXMANA");
 				ntinsert(events, "UNIT_MAXRAGE");
 				ntinsert(events, "UNIT_MAXFOCUS");
