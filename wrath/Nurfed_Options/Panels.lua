@@ -1549,6 +1549,11 @@ local panels = {
 					page = 2,
 				},
 			},
+			check22 = {
+				template = "nrf_check",
+				Point = { "TOPLEFT", "$parentcheck21", "BOTTOMLEFT", 0, -5 },
+				vars = { text = L["Auto Swap Vehicles"], option = "changeframesforvehicle", page = 2, hint = L["Toggle AutoSwapping Unit Frames For Vehicles"], },
+			},
 		},
 	},
 -- Frames Panel
