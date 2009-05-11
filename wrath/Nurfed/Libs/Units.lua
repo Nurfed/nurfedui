@@ -1222,24 +1222,28 @@ local disable = {
 	player = function()
 		_G["PlayerFrame"]:UnregisterAllEvents()
 		_G["PlayerFrame"]:Hide()
+		UnregisterUnitWatch(_G["PlayerFrame"])
 	end,
 	target = function()
 		_G["TargetFrame"]:UnregisterAllEvents()
 		_G["TargetFrame"]:Hide()
 		_G["ComboFrame"]:UnregisterAllEvents()
 		_G["ComboFrame"]:Hide()
+		UnregisterUnitWatch(_G["TargetFrame"])
 	end,
 	party1 = function()
 		for i = 1, 4 do
 			local party = _G["PartyMemberFrame"..i]
 			party:UnregisterAllEvents()
 			party:Hide()
+			UnregisterUnitWatch(party)
 		end
 		_G["ShowPartyFrame"] = function() end
 	end,
 	focus = function()
 		_G["FocusFrame"]:UnregisterAllEvents()
 		_G["FocusFrame"]:Hide()
+		UnregisterUnitWatch(_G["FocusFrame"])
 		if _G["ShowFocusFrame"] then
 			_G["ShowFocusFrame"] = function() end
 		end
@@ -1378,11 +1382,6 @@ local function updatedamage(self, unit, event, flags, amount, type, ...)
 		end
 
 		ntinsert(combatlog[unit], { UnitName(unit), text })
-		-- while localizing this makes sense, it really isnt necessary.  The only time it should be called more than
-		-- once in the 'while #tbl > val do' is when changing settings, and if thats the case who cares
-		-- if its calling the func numerious un-needed times.
-		-- there is no reason to cause a local var everytime combat entries are added just for settings shit
-		--local max = Nurfed:getopt("combatloglength")
 		while #combatlog[unit] > Nurfed:getopt("combatloglength") do
 			table.remove(combatlog[unit], 1)
 		end
@@ -1501,6 +1500,7 @@ local function castevent(self, event, unit, spell)
 			self.fadeOut = 1
 			self.holdTime = 0
 		end
+
 	elseif event == "UNIT_SPELLCAST_FAILED" or event == "UNIT_SPELLCAST_INTERRUPTED" or event == "UNIT_SPELLCAST_CHANNEL_INTERRUPTED" then
 		if event == "UNIT_SPELLCAST_FAILED" and (self.casting or self.channeling) then
 			return
@@ -1527,6 +1527,7 @@ local function castevent(self, event, unit, spell)
 				barText:SetText(text)
 			end
 		end
+
 	elseif event == "UNIT_SPELLCAST_DELAYED" then
 		if self:IsShown() then
 			local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitCastingInfo(self.unit)
@@ -1539,6 +1540,7 @@ local function castevent(self, event, unit, spell)
 			self.maxValue = endTime / 1000
 			self:SetMinMaxValues(self.startTime, self.maxValue)
 		end
+
 	elseif event == "UNIT_SPELLCAST_CHANNEL_START" then
 		local name, nameSubtext, text, texture, startTime, endTime, isTradeSkill = UnitChannelInfo(self.unit)
 		if not name then
@@ -1685,6 +1687,7 @@ local function castupdate(self)
 		end
 	elseif GetTime() < self.holdTime then
 		return
+
 	elseif self.fadeOut then
 		local parent = self.parent
 		local alpha = self:GetAlpha() - CASTING_BAR_ALPHA_STEP
@@ -1725,8 +1728,8 @@ end
 
 local function updateinfo(self, stat, tstat)
 	if not stat or not self[stat] then return end
-	--local unit = SecureButton_GetUnit(self)
-	local unit = SecureButton_GetUnit(self)
+	--local unit = self.unit --SecureButton_GetUnit(self)
+	local unit = self.unit --SecureButton_GetUnit(self)
 	local curr, max, missing, perc, r, g, b, isTanking, state, scaledPercent, rawPercent, threatValue, rest, currtext;
 	if stat ~= "Threat" then
 		curr, max, missing, perc, r, g, b = Nurfed:getunitstat(unit, stat, tstat and 0, tstat and "Mana")
@@ -1883,7 +1886,7 @@ end
 local function manacolor(self)
 	if not self.Mana then return end
 	local unit, color
-	unit = SecureButton_GetUnit(self)
+	unit = self.unit --SecureButton_GetUnit(self)
 	self.powerType = UnitPowerType(unit)
 	color = PowerBarColor[self.powerType]
 	if color then
@@ -1907,7 +1910,7 @@ local function updatestatus(self)
 	if self.status then
 		local icon = self.status
 		local objtype = icon:GetObjectType()
-		local unit = SecureButton_GetUnit(self)
+		local unit = self.unit --SecureButton_GetUnit(self)
 		if UnitAffectingCombat(unit) then
 			if objtype == "Texture" then
 				icon:SetTexCoord(0.5, 1.0, 0, 0.5)
@@ -1932,7 +1935,7 @@ end
 
 local function updateraid(self)
 	if self.raidtarget then
-		local unit = SecureButton_GetUnit(self)
+		local unit = self.unit --SecureButton_GetUnit(self)
 		local icon = self.raidtarget
 		local index = GetRaidTargetIndex(unit)
 		if index then
@@ -1972,7 +1975,7 @@ local function formattext(self, trueself)
 end
 
 local function updatename(self)
-	local unit = SecureButton_GetUnit(self)
+	local unit = self.unit --SecureButton_GetUnit(self)
 	if self.name then
 		formattext(self.name, self)
 	end
@@ -2076,7 +2079,7 @@ end
 local function updateleader(self)
 	if self.leader then
 		local icon = self.leader
-		local unit = SecureButton_GetUnit(self)
+		local unit = self.unit --SecureButton_GetUnit(self)
 		local id, found = unit:gsub("party([1-4])", "%1")
 		if unit == "player" then
 			if IsPartyLeader() then
@@ -2105,7 +2108,7 @@ end
 local function updatemaster(self)
 	if self.master then
 		local icon = self.master
-		local unit = SecureButton_GetUnit(self)
+		local unit = self.unit --SecureButton_GetUnit(self)
 		local id, found = unit:gsub("party([1-4])", "%1")
 		local lootMethod, lootMaster = GetLootMethod()
 		if unit == "player" then
@@ -2126,7 +2129,7 @@ end
 
 local function updatepvp(self)
 	if self.pvp then
-		local unit = SecureButton_GetUnit(self)
+		local unit = self.unit --SecureButton_GetUnit(self)
 		local icon = self.pvp
 		local objtype = icon:GetObjectType()
 		local factionGroup, factionName = UnitFactionGroup(unit)
@@ -2220,7 +2223,7 @@ Nurfed:regevent("PLAYER_ENTERING_WORLD", function()
 end)
 
 local function updateauras(self)
-	local unit = SecureButton_GetUnit(self)
+	local unit = self.unit --SecureButton_GetUnit(self)
 	local button, name, rank, texture, app, duration, left, dtype, color, total, width, fwidth, scale, count, cd, isMine, isStealable,isFriend, filterList, check, setbuff, debuffline
 	local showdur = Nurfed:getopt("showdurationlist")
 	local oldBuffs = Nurfed:getopt("olddebuffstyle")
@@ -2387,7 +2390,7 @@ end
 local function updaterank(self)
 	if self.rank then
 		local icon = self.rank
-		local unit = SecureButton_GetUnit(self)
+		local unit = self.unit --SecureButton_GetUnit(self)
 		local rankname, ranknumber = GetPVPRankInfo(UnitPVPRank(unit))
 		if ranknumber and ranknumber > 0 then
 			local objtype = icon:GetObjectType()
@@ -2408,7 +2411,7 @@ local function updaterank(self)
 end
 
 local function updatehighlight(self)
-	local unit = SecureButton_GetUnit(self)
+	local unit = self.unit --SecureButton_GetUnit(self)
 	if UnitExists("target") and UnitIsUnit("target", unit) then
 		self:LockHighlight()
 	else
@@ -2419,7 +2422,7 @@ end
 local function updategroup(self)
 	if self.group then
 		local text = self.group
-		local unit = SecureButton_GetUnit(self)
+		local unit = self.unit --SecureButton_GetUnit(self)
 		local group = Nurfed:getunit(UnitName(unit))
 		if group then
 			text:SetText(GROUP..": |cffffff00"..group.."|r")
@@ -2630,7 +2633,7 @@ end
 ]]
 local function updaterangealpha(self, unit)
 	local alpha
-	unit = unit or SecureButton_GetUnit(self)
+	unit = self.unit --SecureButton_GetUnit(self)
 	local helpspell = Nurfed:getopt("alphahelpspell")
 	
 -- check if the frames are raid or party frames before calling the UnitInParty/Raid APIS
@@ -2713,6 +2716,9 @@ end
 
 local function updateframe(self, notext)
 	local unit = SecureButton_GetUnit(self)
+	if self.unit ~= unit and not InCombatLockdown() then
+		self:SetAttribute("unit", self.unit)
+	end
 	if self.status then updatestatus(self) end
 	if self.Health then updateinfo(self, "Health") end
 	if self.XP then updateinfo(self, "XP") end
@@ -2834,30 +2840,65 @@ local events = {
 			updateRune_Type(self.runes[rune], rune)
 		end
 	end,
-	["UNIT_ENTERED_VEHICLE"] = function(self)
-		--if self.type and self.type == self.unit then self.unit = self.vehicletype end
-		--updateframe(self)
+	["UNIT_ENTERED_VEHICLE"] = function(self, showui)
+		if showui and Nurfed:getopt("changeframesforvehicle") then
+			if self == Nurfed_player then
+				self.unit = "vehicle"
+				if not InCombatLockdown() then
+					self:SetAttribute("unit", "vehicle")
+				end
+			elseif self == Nurfed_pet then
+				self.unit = "player"
+				if not InCombatLockdown() then
+					self:SetAttribute("unit", "player")
+				end
+			end
+			updateframe(self)
+		end
 	end,
 	["UNIT_EXITED_VEHICLE"] = function(self)
-		--if self.type and self.type ~= self.unit then self.unit = self.type end
-		--updateframe(self)
+		if Nurfed:getopt("changeframesforvehicle") then
+			if self == Nurfed_player then
+				if self.unit ~= "player" then
+					self.unit = "player"
+					if not InCombatLockdown() then
+						self:SetAttribute("unit", "player")
+					else
+						Nurfed:schedule("combat", function()
+							Nurfed_player:SetAttribute("unit", "player")
+						end)
+					end
+					updateframe(self)
+				end
+			elseif self == Nurfed_pet then
+				if self.unit ~= "pet" then
+					self.unit = "pet"
+					if not InCombatLockdown() then
+						self:SetAttribute("unit", "pet")
+					else
+						Nurfed:schedule("combat", function()
+							Nurfed_pet:SetAttribute("unit", "pet")
+						end)
+					end
+					updateframe(self)
+				end
+			end
+		end
 	end,
 }
 
 local function onevent(event, ...)
 	for _, frame in ipairs(units[event]) do
-		local unit = SecureButton_GetUnit(frame)
+		local unit = frame.unit --SecureButton_GetUnit(frame)
+		if event:find("VEHICLE") then
+			events[event](frame, ...)
+		end
 		if UnitExists(unit) then
 			if event == "UNIT_PET" then
 				if (arg1 == "player" and unit == "pet") or (arg1 == unit:gsub("pet", "")) then
 					events[event](frame, ...)
 				end
-
-			elseif event:find("VEHICLE") then
-				if arg1 == "player" and unit == "pet" or arg1 == unit then
-					events[event](frame, ...)
-				end
-
+				
 			elseif event:find("^UNIT_") then
 				if arg1 == unit or event == "UNIT_COMBO_POINTS" then
 					events[event](frame, ...)
@@ -2872,7 +2913,7 @@ end
 local function totupdate(self)
 	local unit
 	for _, frame in ipairs(tots) do
-		unit = SecureButton_GetUnit(frame)
+		unit = frame.unit --SecureButton_GetUnit(frame)
 		if UnitExists(unit) then
 			if not frame.lastname or frame.lastname ~= UnitName(unit) then
 				frame.lastname = UnitName(unit)
@@ -2889,6 +2930,7 @@ end
 
 local function predictstats()
 	for _, frame in ipairs(predictedStatsTable) do
+	--[[
 		if frame.vehicletype and Nurfed:getopt("changeframesforvehicle") then
 			if UnitInVehicle("player") then
 				if frame.type == frame:GetAttribute("unit") then
@@ -2904,8 +2946,9 @@ local function predictstats()
 					if UnitExists(frame.unit) then updateframe(frame) end
 					--return
 				end
-			end	
+			end
 		end
+	]]
 		if UnitExists(frame.unit) then
 			--if ( not frame.disconnected ) then
 				local currValue
@@ -3011,8 +3054,6 @@ function Nurfed:unitimbue(frame)
 		ntinsert(events, "UNIT_PET")
 		ntinsert(events, "UNIT_EXITED_VEHICLE")
 		ntinsert(events, "UNIT_ENTERED_VEHICLE")
-		frame.type = "pet"
-		frame.vehicletype = "player"
 		
 	elseif frame.unit == "player" then
 		ntinsert(events, "UNIT_COMBAT")
@@ -3024,8 +3065,6 @@ function Nurfed:unitimbue(frame)
 		end
 		ntinsert(events, "UNIT_EXITED_VEHICLE")
 		ntinsert(events, "UNIT_ENTERED_VEHICLE")
-		frame.type = "player"
-		frame.vehicletype = "pet"
 	end
 
 	if found == 1 then
@@ -3056,7 +3095,9 @@ function Nurfed:unitimbue(frame)
 			frame:Hide()
 		end
 	else
-		RegisterUnitWatch(frame)
+		if frame.unit ~= "player" then
+			RegisterUnitWatch(frame)
+		end
 	end
 	ClickCastFrames[frame] = true
 	if frame.alphaRange then
@@ -3608,7 +3649,7 @@ function Nurfed_UnitColors()
 	if not NURFED_FRAMES.frames then return end
 	for k in pairs(NURFED_FRAMES.frames) do
 		local frame = _G[k]
-		local unit = SecureButton_GetUnit(frame)
+		local unit = frame.unit --SecureButton_GetUnit(frame)
 		if UnitExists(unit) then
 			if frame.Health then updateinfo(frame, "Health") end
 			if frame.Mana then manacolor(frame) end
