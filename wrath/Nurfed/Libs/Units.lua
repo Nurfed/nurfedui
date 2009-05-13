@@ -3081,10 +3081,7 @@ function Nurfed:unitimbue(frame)
 	end
 	
 	if dropdown then
-		-- trying to stop tainting, but alass it seems all unitframes mods are having the same issue.
 		menufunc = function() securecall("ToggleDropDownMenu", 1, nil, dropdown, "cursor") end
-		--menufunc = securecall("ToggleDropDownMenu", 1, nil, dropdown, "cursor")
-		--menufunc = ToggleDropDownMenu(1, nil, dropdown, "cursor")
 	end
 	
 	SecureUnitButton_OnLoad(frame, frame.unit, menufunc)

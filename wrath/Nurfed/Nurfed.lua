@@ -21,16 +21,20 @@ local nameList = {}
 NURFED_SAVED = NURFED_SAVED or {}
 
 local wowmenu = {
-	{ CHARACTER, function() CharacterMicroButton:Click() end },
+	{ CHARACTER, function() ToggleCharacter("PaperDollFrame"); end },
 	{ SPELLBOOK, function() SpellbookMicroButton:Click() end },
 	{ TALENTS, function() TalentMicroButton:Click() end },
+	{ ACHIEVEMENTS, function() AchievementMicroButton:Click() end },
 	{ QUESTLOG_BUTTON, function() QuestLogMicroButton:Click() end },
-	{ FRIENDS, function() SocialsMicroButton:Click() end },
-	{ LFG_TITLE, function() LFGMicroButton:Click() end },
+	{ SOCIAL_BUTTON, function() SocialsMicroButton:Click() end },
+	{ PLAYER_V_PLAYER, function() PVPMicroButton:Click() end },
+	{ LFG_BUTTON, function() LFGMicroButton:Click() end },
 	{ BINDING_NAME_TOGGLEGAMEMENU, function() MainMenuMicroButton:Click() end },
 	{ KNOWLEDGE_BASE, function() HelpMicroButton:Click() end },
 	{ KEYRING, function() KeyRingButton:Click() end },
 }
+
+
 
 local function onenter(self)
 	GameTooltip:SetOwner(self, "ANCHOR_LEFT")
