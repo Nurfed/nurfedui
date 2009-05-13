@@ -2891,7 +2891,10 @@ local function onevent(event, ...)
 	for _, frame in ipairs(units[event]) do
 		local unit = frame.unit --SecureButton_GetUnit(frame)
 		if event:find("VEHICLE") then
-			events[event](frame, ...)
+			if arg1 == "player" or arg1 == "vehicle" then
+				events[event](frame, ...)
+				return
+			end
 		end
 		if UnitExists(unit) then
 			if event == "UNIT_PET" then
