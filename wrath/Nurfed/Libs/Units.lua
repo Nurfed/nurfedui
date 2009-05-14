@@ -1,8 +1,6 @@
 ------------------------------------------
 --		Nurfed Units Library
 ------------------------------------------
--- temp hot fix until everyone gets their layouts updated.
-TargetDebuffButtonTemplate = TargetDebuffFrameTemplate
 --locals
 local units, tots, alphaFadeList, predictedUpdate, predictedStatsTable
 local partyframes = {}
@@ -2893,7 +2891,6 @@ local function onevent(event, ...)
 		if event:find("VEHICLE") then
 			if arg1 == "player" or arg1 == "vehicle" then
 				events[event](frame, ...)
-				return
 			end
 		end
 		if UnitExists(unit) then
