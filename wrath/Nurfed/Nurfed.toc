@@ -2,7 +2,7 @@
 ## Title: Nurfed UI Suite|cff3F3DFD-Core-|r
 ## Author: Tivoli, Apoco  http://www.nurfed.com
 ## SavedVariablesPerCharacter: NURFED_SAVED, NURFED_FRAMES, NURFED_ACTIONBARS, NURFED_BINDINGS
-## OptionalDeps: ButtonFacade, LibButtonFacade
+## OptionalDeps: ButtonFacade, LibButtonFacade, Nurfed2, Nurfed2_Chat, Nurfed2_ActionBars, Nurfed2_UnitFrames, Nurfed2_CombatAlert
 ## X-Website: http://www.nurfedui.net
 
 Defaults.lua

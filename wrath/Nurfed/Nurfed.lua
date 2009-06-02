@@ -44,6 +44,7 @@ local function onenter(self)
 	else
 		GameTooltip:AddLine(L["Left Click - |cff00ff00Lock|r UI"], 0.75, 0.75, 0.75)
 	end
+
 	GameTooltip:AddLine(L["Right Click - Nurfed Menu"], 0.75, 0.75, 0.75)
 	GameTooltip:AddLine(L["Middle Click - WoW Micro Menu"], 0.75, 0.75, 0.75)
 	GameTooltip:AddLine(L["Ctrl + Drag moves your Action Bars."], 0, 1, 0)
@@ -115,6 +116,7 @@ end
 
 local function onevent(self, event, arg1, arg2, arg3)
 	if event == "CHAT_MSG_WHISPER" and Nurfed:getopt("autoinvite") then
+		if IsNurfed2Loaded then return end
 		if IsPartyLeader() or IsRaidLeader() or IsRaidOfficer() or (GetNumPartyMembers() == 0 and GetNumRaidMembers() == 0) then
 			local text = string.lower(arg1)
 			local keyword = string.lower(Nurfed:getopt("keyword"))
@@ -138,6 +140,7 @@ local function onevent(self, event, arg1, arg2, arg3)
 		end
 		    
 	elseif event == "MINIMAP_PING" and Nurfed:getopt("ping") then
+		if IsNurfed2Loaded then return end
 		local name = UnitName(arg1)
 		if name ~= UnitName("player") and not pingflood[name] then
 			Nurfed:print(name..L[" Ping."], 1, 1, 1, 0)
@@ -145,6 +148,7 @@ local function onevent(self, event, arg1, arg2, arg3)
 		end
     
 	elseif event == "CHAT_MSG_SYSTEM" then
+		if IsNurfed2Loaded then return end
 		if arg1 == READY_CHECK_ALL_READY or string.find(arg1, afkstring) then
 			if Nurfed:getopt("readycheck") then
 				SendChatMessage(arg1, "RAID")
@@ -166,6 +170,7 @@ local function onevent(self, event, arg1, arg2, arg3)
 		end
 		
 	elseif event == "PARTY_INVITE_REQUEST" and Nurfed:getopt("autojoingroup") then
+		if IsNurfed2Loaded then return end
 		if Nurfed:isfriend(arg1) then
 			AcceptGroup()
 			for i=1, STATICPOPUP_NUMDIALOGS do
@@ -178,6 +183,7 @@ local function onevent(self, event, arg1, arg2, arg3)
 		end
 
 	elseif event == "MERCHANT_SHOW" then
+		if IsNurfed2Loaded then return end
 		local isRepairing, startRepMoney
 		if Nurfed:getopt("repair") then
 			local limit = tonumber(Nurfed:getopt("repairlimit"))
@@ -226,7 +232,7 @@ local function onevent(self, event, arg1, arg2, arg3)
 				for slot=1, GetContainerNumSlots(bag), 1 do
 					if GetContainerItemLink(bag, slot) then
 						local name, link, rarity = GetItemInfo(GetContainerItemLink(bag, slot))
-						if name and not dnsLst[link:find("Hitem:(%d+)")] and rarity == 0 then
+						if name and not dnsLst[link:match("Hitem:(%d+)")] and rarity == 0 then
 							if not soldLst[name] then
 								if GetItemCount(link) ~= 1 then
 									soldNum = soldNum + GetItemCount(link)
@@ -273,6 +279,7 @@ local function onevent(self, event, arg1, arg2, arg3)
 		end
 
 	elseif event == "TRAINER_SHOW" and Nurfed:getopt("traineravailable") then
+		if IsNurfed2Loaded then return end
 		SetTrainerServiceTypeFilter("unavailable", 0)
     
 	elseif event == "ADDON_LOADED" and arg1 == "Blizzard_InspectUI" then
@@ -433,7 +440,7 @@ local function OnMouseWheel(self, arg1)
 		end
 	end
 end
-
+local nrf2ChatLoaded = IsAddOnLoaded("Nurfed2")
 local messageText = {}
 local ACHIEVEMENT_BROADCAST_NURFED = ACHIEVEMENT_BROADCAST:gsub("%%s", "%%S+", 1):gsub("%s%%s!", "")
 local replaceChannel = function(chan)
@@ -471,6 +478,8 @@ function nrf_togglcast()
 end
 
 function nrf_togglechat()
+	if nrf2ChatLoaded then return end
+	print("fuck me")
 	local buttons = Nurfed:getopt("chatbuttons")
 	local fade = Nurfed:getopt("chatfade")
 	local fadetime = Nurfed:getopt("chatfadetime")
@@ -497,19 +506,21 @@ function nrf_togglechat()
 	end
 end
 
-for i = 1, 7, 1 do
-	local chatframe = _G["ChatFrame"..i]
-	local buttons = Nurfed:getopt("chatbuttons")
-	
-	chatframe:EnableMouseWheel(true)
-	chatframe:SetScript("OnMouseWheel", OnMouseWheel)
-	if not chatframe.O_AddMessage then
-		chatframe.O_AddMessage = chatframe.AddMessage
-		chatframe.AddMessage = message
-	end
-	
-	if not chatframe.O_OnShow then
-		chatframe.O_OnShow = chatframe:GetScript("OnShow")
+if not nrf2ChatLoaded then
+	for i = 1, 7, 1 do
+		local chatframe = _G["ChatFrame"..i]
+		local buttons = Nurfed:getopt("chatbuttons")
+		
+		chatframe:EnableMouseWheel(true)
+		chatframe:SetScript("OnMouseWheel", OnMouseWheel)
+		if not chatframe.O_AddMessage then
+			chatframe.O_AddMessage = chatframe.AddMessage
+			chatframe.AddMessage = message
+		end
+		
+		if not chatframe.O_OnShow then
+			chatframe.O_OnShow = chatframe:GetScript("OnShow")
+		end
 	end
 end
 
