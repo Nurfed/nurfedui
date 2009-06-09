@@ -479,7 +479,6 @@ end
 
 function nrf_togglechat()
 	if nrf2ChatLoaded then return end
-	print("fuck me")
 	local buttons = Nurfed:getopt("chatbuttons")
 	local fade = Nurfed:getopt("chatfade")
 	local fadetime = Nurfed:getopt("chatfadetime")
