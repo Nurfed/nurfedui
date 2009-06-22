@@ -2,6 +2,7 @@
 -- Nurfed CombatLog
 assert(Nurfed, "Nurfed must be enabled for Nurfed_CombatLog to work.")
 if IsAddOnLoaded("Nurfed2_SpellAlert") then return end
+if IsNurfed2Loaded then return end
 local _G = getfenv(0)
 local bitband = _G.bit.band
 local SPELLCASTGOOTHER = "%s casts %s."
