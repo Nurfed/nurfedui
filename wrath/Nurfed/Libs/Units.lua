@@ -1154,8 +1154,7 @@ local replace = {
 				g = color.g
 				b = color.b
 			end
-			--if UnitIsPlusMob(self.unit) then
-			if false then
+			if classification == "rareelite" or classification == "elite" or classification == "rare" then
 				level = level.."+"
 			elseif level == 0 then
 				level = ""
