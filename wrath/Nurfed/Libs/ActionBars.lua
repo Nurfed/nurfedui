@@ -567,15 +567,6 @@ local function btnreceivedrag(self)
 				local id = Nurfed:getspell(oldspell)
 				if id then
 					PickupSpell(id, BOOKTYPE_SPELL)
-					-- patch 3.0.1
-					--if we just use PickupSpell, it doesn't always seem to work.  Possibly a blizz bug, until a fix
-					-- is found, use this.  nrf:sched(time, func) time == 0, func() done on next frame (0.001 second~)
-					--[[
-					Nurfed:schedule(0, function() 
-						if not GetCursorInfo() then 
-							PickupSpell(id, BOOKTYPE_SPELL) 
-						end 
-					end)]]
 				end
 			elseif oldtype == "item" then
 				-- do nothing?
@@ -611,7 +602,7 @@ local function getbtn(hdr)
 	else
 		local new = #live + 1
 		--btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate ActionButtonTemplate")
-		btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate  ActionButtonTemplate")
+		btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate ActionButtonTemplate")
 		RegisterStateDriver(btn, "possesstest", "[bonusbar:5]s1;s2")
 
 		--hdr:SetAttribute("_adopt", btn)
@@ -1163,7 +1154,6 @@ end
 
 Nurfed:createtemp("actionbar", {
 	type = "Frame",
-	--uitemp = "SecureHandlerStateTemplate SecureHandlerAttributeTemplate SecureHandlerClickTemplate",
 	uitemp = "SecureHandlerStateTemplate SecureHandlerClickTemplate",
 	size = { 36, 36 },
 	Movable = true,
@@ -1469,18 +1459,7 @@ local function update_actionbar_talent_settings(new, old)
 		end
 	end
 end
---[[
-Nurfed:regevent("ACTIVE_TALENT_GROUP_CHANGED", function()
-	currentTalentGroup = GetActiveTalentGroup(false, false)
-	for i,v in ipairs(NURFED_ACTIONBARS[currentTalentGroup]) do
-		Nurfed:updatehks(v.name)
-	end
-	Nurfed:sendevent("UPDATE_BINDINGS")
-	SaveBindings(GetCurrentBindingSet())
-	NurfedActionBarsUpdateColors()
-	Nurfed:print("Changed Specs!:  Spec Group:"..currentTalentGroup)
-end)
-]]
+
 Nurfed:regevent("VARIABLES_LOADED", function()
 	-- autoupgrade!
 	if not NURFED_ACTIONBARS[1] then
@@ -1497,17 +1476,7 @@ Nurfed:regevent("VARIABLES_LOADED", function()
 	end
 	currentTalentGroup = currentTalentGroup or GetActiveTalentGroup(false, false)
 	Nurfed_Add_Talent_Call(update_actionbar_talent_settings)
-	-- upgrade to dual specs!
-	--[[
-	if not NURFED_ACTIONBARS[currentTalentGroup].talentGroup then
-		local tempTbl = NURFED_ACTIONBARS
-		NURFED_ACTIONBARS = {};
-		NURFED_ACTIONBARS[1] = tempTbl
-		NURFED_ACTIONBARS[2] = tempTbl
-		NURFED_ACTIONBARS[1].talentGroup = 1
-		NURFED_ACTIONBARS[2].talentGroup = 2
-	end]]
-	--if not NURFED_ACTIONBARS[currentTalentGroup].talentGroup then	-- convert new ones!
+
 	if NURFED_ACTIONBARS and ((NURFED_ACTIONBARS[currentTalentGroup] and not NURFED_ACTIONBARS[currentTalentGroup].talentGroup) or
 		not NURFED_ACTIONBARS[currentTalentGroup]) then
 		for i,v in pairs(NURFED_ACTIONBARS) do

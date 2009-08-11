@@ -1149,12 +1149,13 @@ local replace = {
 			local classification = UnitClassification(self.unit)
 			local r, g, b
 			if level > 0 then
-				local color = GetDifficultyColor(level)
+				local color = GetQuestDifficultyColor(level)
 				r = color.r
 				g = color.g
 				b = color.b
 			end
-			if UnitIsPlusMob(self.unit) then
+			--if UnitIsPlusMob(self.unit) then
+			if false then
 				level = level.."+"
 			elseif level == 0 then
 				level = ""
@@ -2808,6 +2809,7 @@ local events = {
 	["UNIT_COMBAT"] = updatedamage,
 	["UNIT_AURA"] = updateauras,
 	["UNIT_DISPLAYPOWER"] = manacolor,
+	["NURFED_UPDATE_FRAME"] = updateframe,
 	
 	["UNIT_PORTRAIT_UPDATE"] = function(self)
 		SetPortraitTexture(self.portrait, SecureButton_GetUnit(self))
@@ -2997,7 +2999,7 @@ function Nurfed:unitimbue(frame)
 		id = nil
 		found = nil
 	end
-	local events = { "PLAYER_ENTERING_WORLD", "UNIT_NAME_UPDATE", }
+	local events = { "PLAYER_ENTERING_WORLD", "UNIT_NAME_UPDATE", "NURFED_UPDATE_FRAME" }
 	local frames = {}
 	self:getframes(frame, frames, true)
 	if disable[frame.unit] then disable[frame.unit]() end
