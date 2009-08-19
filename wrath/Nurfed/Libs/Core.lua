@@ -1,6 +1,7 @@
 ﻿------------------------------------------
 --    Nurfed Core Library
 ------------------------------------------
+
 hooksecurefunc("QuestLog_UpdateQuestDetails", function()
 	local text = QuestLogQuestDescription:GetText()
 	text = text:gsub("north", "|cff3333ff%1|r")

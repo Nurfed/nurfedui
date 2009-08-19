@@ -3,6 +3,8 @@
 ------------------------------------------
 --## TODO:  Check Talents On Login (BUT NOT RELOAD!)
 -- Locals
+
+
 local sellFrame = CreateFrame("Frame")
 local invite
 local pingflood = {}

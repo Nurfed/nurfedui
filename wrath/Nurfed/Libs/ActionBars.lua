@@ -770,6 +770,7 @@ local btnevents = {
 			btn.macro = true
 		end
 	end,
+	
 	["ACTIONBAR_SHOWGRID"] = function(btn)
 		btn.grid = true
 		btn:SetAlpha(1)
@@ -1353,18 +1354,9 @@ function nrf_updatemainbar(bar)
 		end
 	end
 	if show then
-		--[[if bar == Nurfed_vehiclemenubar then
-			if UnitHasVehicleUI("player") then
-				bar:Show()
-			else
-				bar:Hide()
-			end
-		else]]
-			bar:Show()
-		--end
-	else
-		bar:Hide()
+		return bar:Show()
 	end
+	bar:Hide()
 end
 
 local function updateSkins(updateall, skinID, gloss, backdrop, group, button, colors)
@@ -1694,6 +1686,24 @@ function nrf_mainmenu()
 			if Nurfed_petbar.lbf then
 				Nurfed_petbar.lbf:AddButton(btn)
 			end
+		end
+		if UnitClass("player") == "Shaman" then
+			if not _G["Nurfed_TotemBar"] then
+				Nurfed:create("Nurfed_TotemBar", "actionbar")
+				Nurfed_TotemBar:SetHeight(32)
+				Nurfed_TotemBar:SetWidth(220)
+				Nurfed_TotemBar:SetAttribute("unit", "player")
+				Nurfed_TotemBar:SetPoint("CENTER")
+				
+				Nurfed_TotemBardragtext:SetText("Totem Bar")
+		
+				MultiCastActionBarFrame:SetParent(Nurfed_TotemBar)
+				Nurfed:schedule(2, function()
+					MultiCastActionBarFrame:ClearAllPoints()
+					MultiCastActionBarFrame:SetPoint("TOPLEFT", Nurfed_TotemBar, "TOPLEFT", -2, 2)
+				end)
+			end
+			Nurfed_TotemBar:Show()
 		end
 		
 		for i = 1, NUM_POSSESS_SLOTS do

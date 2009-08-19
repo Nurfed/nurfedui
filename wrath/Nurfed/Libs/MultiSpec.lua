@@ -1,5 +1,6 @@
 -- the intention of this file is to keep out clutter of other files to be able to do more things with multiple specs.
 -- eventually this will allow for a more wide range of support, cleaner implemination, and further features.
+
 NURFED_BINDINGS = NURFED_BINDINGS or {}
 --local _G = getfenv(0)
 local GetActiveTalentGroup = _G.GetActiveTalentGroup
