@@ -1516,6 +1516,7 @@ Nurfed:regevent("NURFED_LOCK", function()
 		Nurfed_possessbardrag:Hide()
 		Nurfed_possessactionbardrag:Hide()
 		Nurfed_vehiclecontrolsdrag:Hide()
+		Nurfed_TotemBardrag:Hide()
 	else
 		Nurfed_bagsdrag:Show()
 		Nurfed_microdrag:Show()
@@ -1524,6 +1525,7 @@ Nurfed:regevent("NURFED_LOCK", function()
 		Nurfed_possessbardrag:Show()
 		Nurfed_possessactionbardrag:Show()
 		Nurfed_vehiclecontrolsdrag:Show()
+		Nurfed_TotemBardrag:Show()
 	end
 end)
 
@@ -1703,6 +1705,8 @@ function nrf_mainmenu()
 					MultiCastActionBarFrame:SetPoint("TOPLEFT", Nurfed_TotemBar, "TOPLEFT", -2, 2)
 				end)
 			end
+			Nurfed_TotemBardrag:ClearAllPoints();
+			Nurfed_TotemBardrag:SetPoint("BOTTOMLEFT", Nurfed_TotemBar, "TOPLEFT", 0, 0)
 			Nurfed_TotemBar:Show()
 		end
 		
