@@ -295,7 +295,9 @@ local function onevent(self, event, arg1, arg2, arg3)
 		self:UnregisterEvent(event)
 		nrf_togglechat()
 		nrf_togglcast()
-		nrf_mainmenu()
+		if nrf_mainmenu then
+			nrf_mainmenu()
+		end
 		CombatLogQuickButtonFrame_Custom:UnregisterEvent("PLAYER_ENTERING_WORLD")
 		
 		if NURFED_SAVED[MANA] then

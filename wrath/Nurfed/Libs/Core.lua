@@ -717,8 +717,10 @@ end
 
 local function onevent(self, event, ...)
 	local tbl = events[event]
-	for _, func in ipairs(tbl) do
-		func(event, ...)
+	if tbl then
+		for _, func in ipairs(tbl) do
+			func(event, ...)
+		end
 	end
 end
 

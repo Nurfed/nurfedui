@@ -1,7 +1,6 @@
 ------------------------------------------
 --  Nurfed Action Bar Library
 ------------------------------------------
-
 -- Locals
 local _G = getfenv(0)
 local pairs = _G.pairs
@@ -603,7 +602,7 @@ local function getbtn(hdr)
 		local new = #live + 1
 		--btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate ActionButtonTemplate")
 		btn = CreateFrame("CheckButton", "Nurfed_Button"..new, hdr, "SecureActionButtonTemplate ActionButtonTemplate")
-		RegisterStateDriver(btn, "possesstest", "[bonusbar:5]s1;s2")
+		--RegisterStateDriver(btn, "possesstest", "[bonusbar:5]s1;s2")
 
 		--hdr:SetAttribute("_adopt", btn)
 		btn:RegisterForClicks("AnyUp")
@@ -1516,7 +1515,9 @@ Nurfed:regevent("NURFED_LOCK", function()
 		Nurfed_possessbardrag:Hide()
 		Nurfed_possessactionbardrag:Hide()
 		Nurfed_vehiclecontrolsdrag:Hide()
-		Nurfed_TotemBardrag:Hide()
+		if Nurfed_TotemBardrag then
+			Nurfed_TotemBardrag:Hide()
+		end
 	else
 		Nurfed_bagsdrag:Show()
 		Nurfed_microdrag:Show()
@@ -1525,7 +1526,9 @@ Nurfed:regevent("NURFED_LOCK", function()
 		Nurfed_possessbardrag:Show()
 		Nurfed_possessactionbardrag:Show()
 		Nurfed_vehiclecontrolsdrag:Show()
-		Nurfed_TotemBardrag:Show()
+		if Nurfed_TotemBardrag then
+			Nurfed_TotemBardrag:Show()
+		end
 	end
 end)
 
@@ -1700,14 +1703,20 @@ function nrf_mainmenu()
 				Nurfed_TotemBardragtext:SetText("Totem Bar")
 		
 				MultiCastActionBarFrame:SetParent(Nurfed_TotemBar)
-				Nurfed:schedule(2, function()
+				local function shit()
 					MultiCastActionBarFrame:ClearAllPoints()
-					MultiCastActionBarFrame:SetPoint("TOPLEFT", Nurfed_TotemBar, "TOPLEFT", -2, 2)
-				end)
+					MultiCastActionBarFrame:SetPoint("TOPLEFT", Nurfed_TotemBar, "TOPLEFT", -2, -4)
+				end
+				hooksecurefunc("UIParent_ManageFramePosition", shit)
+				hooksecurefunc("UIParent_ManageFramePositions", shit)
 			end
 			Nurfed_TotemBardrag:ClearAllPoints();
-			Nurfed_TotemBardrag:SetPoint("BOTTOMLEFT", Nurfed_TotemBar, "TOPLEFT", 0, 0)
+			Nurfed_TotemBardrag:SetPoint("BOTTOMLEFT", Nurfed_TotemBar, "TOPLEFT", 0, -4)
 			Nurfed_TotemBar:Show()
+			if NURFED_SAVED["Nurfed_TotemBar"] then
+				Nurfed_TotemBar:ClearAllPoints();
+				Nurfed_TotemBar:SetPoint(unpack(NURFED_SAVED["Nurfed_TotemBar"]))
+			end
 		end
 		
 		for i = 1, NUM_POSSESS_SLOTS do
